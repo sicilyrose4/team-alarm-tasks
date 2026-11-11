@@ -496,18 +496,14 @@ function invitedLine() {
     <span style="font:400 16px var(--sf);color:var(--sub)">${mine ? `You invited ${esc(alarm.team)} to` : `${esc(alarm.by || 'Your coach')} invited you to`}</span></div>
     <div style="font:500 32px var(--sf);color:var(--title);margin-top:21px;line-height:38px">${esc(alarm.name)}</div>`;
 }
-// Time picker: two wheels. Swipe to roll (hours by 1, minutes by 5); the arrows nudge by 1.
+// Time picker: two wheels. Swipe to roll by 1; the arrows nudge by 1.
 const PITCH = 119;                                   // distance between numbers on a wheel
 const wheel = { h: { off: 0 }, m: { off: 0 }, anim: null };
 const pad2 = n => String(n).padStart(2, '0');
 function wheelVal(col, k) {                          // value k rows above (+) or below (-) the center
   const d = ui.draft;
   if (col === 'h') { const H = d.hh % 12 || 12; return String(((H - 1 + k) % 12 + 12) % 12 + 1); }
-  const m = d.mm; let v;
-  if (k === 0) v = m;
-  else if (m % 5 === 0) v = m + 5 * k;
-  else v = k > 0 ? Math.ceil(m / 5) * 5 + 5 * (k - 1) : Math.floor(m / 5) * 5 + 5 * (k + 1);
-  return pad2(((v % 60) + 60) % 60);
+  return pad2(((d.mm + k) % 60 + 60) % 60);
 }
 function stripHtml(col) {
   const off = wheel[col].off;
