@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<meta name="theme-color" content="#15142e">
+<meta name="theme-color" content="#141416">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Team Alarm</title>
@@ -206,7 +206,7 @@ svg,img{display:block;flex:none}
 .wait i{width:14px;height:14px;background:var(--sub);border-radius:50%;animation:breathe 1s infinite}
 
 /* ===== playful bold theme ===== */
-:root{--bg:#15142e;--deep:#0f0e24;--line:#2a2950;--line2:#3d3c6b;--ink:#ffffff;--ampm:#c9c7ff;--title:#ffffff;--sub:#a9a7d6;--ph:#8a88c0;--btn:#ffffff;
+:root{--bg:#141416;--deep:#0c0c0e;--line:#26262b;--line2:#3a3a42;--ink:#ffffff;--ampm:#c9c7ff;--title:#ffffff;--sub:#a9a7d6;--ph:#8a88c0;--btn:#ffffff;
   --sleep:#e39a92;--snz:#ddd39a;--up:#8fc4a6;
   --blue:#454f86;--blue-d:#323a66;--coral:#8c566a;--coral-d:#6b4152;--yellow:#d8d5f3;--yellow-d:#a29dcf;--mint:#46705f;--mint-d:#345446;--violet:#5e5287;--violet-d:#463d66;--pink:#d8d5f3;--pink-d:#a29dcf;--plum:#5b4f86;--plum-d:#433a64;--k:#15142e}
 .hello{font:800 32px var(--rnd);letter-spacing:-.5px;color:#fff}
@@ -295,7 +295,7 @@ svg,img{display:block;flex:none}
 .tog.on:after{background:#fff}
 .chip{font-family:var(--rnd);font-weight:700;color:#6c6aa0;border-color:var(--line2)}
 .chip.on{background:var(--yellow);border-color:var(--yellow);color:var(--k)}
-.scr>.dock,.scr>.dock.col-dock{background:linear-gradient(to bottom,rgba(21,20,46,0),rgba(21,20,46,.94) 40%,var(--bg) 70%)}
+.scr>.dock,.scr>.dock.col-dock{background:linear-gradient(to bottom,rgba(20,20,22,0),rgba(20,20,22,.94) 40%,var(--bg) 70%)}
 
 /* sheet, tasks */
 .sheet{background:var(--bg);border-top:0;box-shadow:0 -14px 40px rgba(0,0,0,.45)}
@@ -882,7 +882,7 @@ function tick() {
 }
 
 function onEnter(screen) {
-  document.body.style.background = screen === 'ring' || screen === 'photo' ? '#06060f' : '#15142e';
+  document.body.style.background = screen === 'ring' || screen === 'photo' ? '#06060f' : '#141416';
   if (screen === 'newgroup') { const f = document.getElementById('groupForm'), inp = document.getElementById('groupIn'), go = document.getElementById('groupGo');
     const upd = () => { go.disabled = !clean(inp.value, 30); }; inp.addEventListener('input', upd);
     setTimeout(() => inp.focus(), 250);
