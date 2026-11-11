@@ -55,13 +55,13 @@ svg,img{display:block;flex:none}
 
 /* time picker */
 .picker{display:flex;align-items:center;justify-content:center;gap:6px;margin:0 -30px;touch-action:none}
-.col{position:relative;width:140px;height:180px;display:flex;align-items:center;justify-content:center;border-radius:11px;border:1px solid transparent}
-.col.h{width:118px;justify-content:flex-end;padding-right:10px}
-.col.on{background:var(--deep);border-color:var(--line);overflow:hidden;justify-content:center;padding-right:0}
-.col .d{font:300 114px/1 var(--rnd);color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:-1px}
-.col .n{position:absolute;left:0;right:0;text-align:center;font:300 114px/1 var(--rnd);color:var(--ink);opacity:.4;display:none;letter-spacing:-1px}
-.col.on .n{display:block}
-.col .n.a{top:-86px}.col .n.b{bottom:-86px}
+.col{position:relative;width:140px;height:180px;border-radius:11px;border:1px solid transparent;overflow:hidden;touch-action:none;cursor:grab}
+.col.h{width:118px}
+.col.on{background:var(--deep);border-color:var(--line)}
+.col .it{position:absolute;left:0;right:0;top:0;height:114px;text-align:center;font:300 114px/1 var(--rnd);color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:-1px;will-change:transform;pointer-events:none}
+.col .it.nb{opacity:.4}
+.col:not(.on) .it.nb{display:none}
+.col.h:not(.on) .it{text-align:right;padding-right:10px}
 .chev{position:absolute;left:50%;margin-left:-13.5px;width:27px;height:27px;display:none;z-index:2}
 .col-wrap{position:relative}
 .col-wrap.on .chev{display:block}
@@ -488,13 +488,30 @@ function invitedLine() {
     <span style="font:400 16px var(--sf);color:var(--sub)">${mine ? `You invited ${esc(alarm.team)} to` : `${esc(alarm.by || 'Your coach')} invited you to`}</span></div>
     <div style="font:500 32px var(--sf);color:var(--title);margin-top:21px;line-height:38px">${esc(alarm.name)}</div>`;
 }
+// Time picker: two wheels. Swipe to roll (hours by 1, minutes by 5); the arrows nudge by 1.
+const PITCH = 119;                                   // distance between numbers on a wheel
+const wheel = { h: { off: 0 }, m: { off: 0 }, anim: null };
+const pad2 = n => String(n).padStart(2, '0');
+function wheelVal(col, k) {                          // value k rows above (+) or below (-) the center
+  const d = ui.draft;
+  if (col === 'h') { const H = d.hh % 12 || 12; return String(((H - 1 + k) % 12 + 12) % 12 + 1); }
+  const m = d.mm; let v;
+  if (k === 0) v = m;
+  else if (m % 5 === 0) v = m + 5 * k;
+  else v = k > 0 ? Math.ceil(m / 5) * 5 + 5 * (k - 1) : Math.floor(m / 5) * 5 + 5 * (k + 1);
+  return pad2(((v % 60) + 60) % 60);
+}
+function stripHtml(col) {
+  const off = wheel[col].off;
+  let h = '';
+  for (let k = -2; k <= 2; k++) h += `<span class="it ${k ? 'nb' : 'd'}" style="transform:translateY(${33 - k * PITCH + off}px)">${wheelVal(col, k)}</span>`;
+  return h;
+}
 function pickerHtml(d) {
-  const H = d.hh % 12 || 12, on = ui.col || 'm';
-  const hv = n => ((n - 1 + 12) % 12) + 1, mv = n => String((n + 60) % 60).padStart(2, '0');
-  const col = (k, cur, prev, next) => `<div class="col-wrap ${on === k ? 'on' : ''}">
-      ${img(A.chev, 27, 27, 'chev up')}<div class="col ${k} ${on === k ? 'on' : ''}" data-col="${k}">
-      <span class="n a">${next}</span><span class="d">${cur}</span><span class="n b">${prev}</span></div>${img(A.chev, 27, 27, 'chev dn')}</div>`;
-  return `${col('h', H, hv(H - 1), hv(H + 1))}<span class="colon">:</span>${col('m', mv(d.mm), mv(d.mm - 1), mv(d.mm + 1))}
+  const on = ui.col || 'm';
+  const col = k => `<div class="col-wrap ${on === k ? 'on' : ''}">
+      ${img(A.chev, 27, 27, 'chev up')}<div class="col ${k} ${on === k ? 'on' : ''}" data-col="${k}" id="col-${k}">${stripHtml(k)}</div>${img(A.chev, 27, 27, 'chev dn')}</div>`;
+  return `${col('h')}<span class="colon">:</span>${col('m')}
     <div class="ap-col"><button data-ap="pm" class="${d.hh >= 12 ? 'on' : ''}">PM</button><button data-ap="am" class="${d.hh < 12 ? 'on' : ''}">AM</button></div>`;
 }
 
@@ -738,11 +755,41 @@ function onEnter(screen) {
 }
 
 /* ================= Time picker ================= */
-function stepTime(col, dir) {
+// Move a wheel one notch: +1 is the number above (higher), -1 the one below.
+function shiftWheel(col, dir, byOne) {
   const d = ui.draft;
-  if (col === 'h') { const ap = d.hh >= 12 ? 12 : 0; d.hh = ap + (((d.hh % 12) + dir + 12) % 12); }
-  else d.mm = (d.mm + dir + 60) % 60;
-  document.getElementById('picker').innerHTML = pickerHtml(d);
+  if (col === 'h') { const pm = d.hh >= 12; d.hh = (+wheelVal('h', dir) % 12) + (pm ? 12 : 0); }
+  else d.mm = byOne ? (d.mm + dir + 60) % 60 : +wheelVal('m', dir);
+}
+function paintWheel(col) { const el = document.getElementById('col-' + col); if (el) el.innerHTML = stripHtml(col); }
+function settle(col, off) {                           // fold whole notches into the value, keep the remainder
+  while (off > PITCH / 2) { shiftWheel(col, 1); off -= PITCH; }
+  while (off < -PITCH / 2) { shiftWheel(col, -1); off += PITCH; }
+  return off;
+}
+function animateWheel(col, target, fold = true) {     // glide (with notches passing by) to a resting spot
+  cancelAnimationFrame(wheel.anim);
+  const w = wheel[col];
+  const step = () => {
+    w.off += (target - w.off) * 0.18;
+    if (Math.abs(target - w.off) < 0.6) w.off = target;
+    if (fold) { const folded = settle(col, w.off); target += folded - w.off; w.off = folded; }
+    paintWheel(col);
+    if (w.off !== target) wheel.anim = requestAnimationFrame(step);
+    else { w.off = 0; paintWheel(col); }
+  };
+  wheel.anim = requestAnimationFrame(step);
+}
+function nudge(col, dir) {                            // arrows: by 1, sliding in from the side it came from
+  cancelAnimationFrame(wheel.anim);
+  shiftWheel(col, dir, true);
+  wheel[col].off = -dir * PITCH;
+  animateWheel(col, 0, false);
+}
+function selectCol(col) {
+  if (ui.col === col) return;
+  ui.col = col;
+  document.getElementById('picker').innerHTML = pickerHtml(ui.draft);
 }
 function wirePicker() {
   const pk = document.getElementById('picker');
@@ -751,18 +798,35 @@ function wirePicker() {
     const ap = e.target.closest('[data-ap]');
     if (ap) { const d = ui.draft; d.hh = (d.hh % 12) + (ap.dataset.ap === 'pm' ? 12 : 0); pk.innerHTML = pickerHtml(d); return; }
     const ch = e.target.closest('.chev');
-    if (ch) { stepTime(ui.col, ch.classList.contains('up') ? 1 : -1); return; }
-    const c = e.target.closest('[data-col]');
-    if (c && !(drag && drag.moved)) { ui.col = c.dataset.col; pk.innerHTML = pickerHtml(ui.draft); }
+    if (ch) nudge(ui.col || 'm', ch.classList.contains('up') ? 1 : -1);
   });
-  // Swipe a column up or down to roll it.
-  pk.addEventListener('pointerdown', e => { const c = e.target.closest('[data-col]'); if (c) drag = { col: c.dataset.col, y: e.clientY, moved: false }; });
+  pk.addEventListener('pointerdown', e => {
+    const c = e.target.closest('[data-col]'); if (!c) return;
+    cancelAnimationFrame(wheel.anim);
+    const col = c.dataset.col;
+    selectCol(col);
+    wheel[col].off = settle(col, wheel[col].off);
+    drag = { col, y: e.clientY, t: performance.now(), v: 0, id: e.pointerId };
+    try { pk.setPointerCapture(e.pointerId); } catch (x) {}
+    e.preventDefault();
+  });
   pk.addEventListener('pointermove', e => {
-    if (!drag) return;
-    const dy = e.clientY - drag.y;
-    if (Math.abs(dy) >= 28) { drag.moved = true; ui.col = drag.col; stepTime(drag.col, dy < 0 ? 1 : -1); drag.y = e.clientY; }
+    if (!drag || e.pointerId !== drag.id) return;
+    const now = performance.now(), dy = e.clientY - drag.y, dt = Math.max(1, now - drag.t);
+    drag.v = drag.v * 0.6 + (dy / dt) * 0.4;           // px per ms, smoothed
+    drag.y = e.clientY; drag.t = now;
+    const w = wheel[drag.col];
+    w.off = settle(drag.col, w.off + dy);
+    paintWheel(drag.col);
   });
-  const end = () => { setTimeout(() => { drag = null; }, 0); };
+  const end = e => {
+    if (!drag || (e && e.pointerId !== drag.id)) return;
+    const col = drag.col, w = wheel[col];
+    const v = Math.max(-3, Math.min(3, drag.v));       // flick carries a few notches
+    const coast = Math.abs(v) > 0.25 ? v * 220 : 0;
+    drag = null;
+    animateWheel(col, Math.round((w.off + coast) / PITCH) * PITCH);
+  };
   pk.addEventListener('pointerup', end); pk.addEventListener('pointercancel', end);
 }
 
