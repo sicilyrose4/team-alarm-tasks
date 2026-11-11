@@ -161,6 +161,8 @@ svg,img{display:block;flex:none}
 .addrow:active .addic{background:var(--line)}
 .scr>.dock{position:fixed !important;left:0;right:0;bottom:0;padding:16px 20px calc(env(safe-area-inset-bottom) + 20px);background:linear-gradient(to bottom,rgba(29,31,52,0),var(--bg) 35%);display:flex;justify-content:center;z-index:8 !important;max-width:430px;margin:0 auto}
 .dock .pill{padding:6px 34px;font-size:22px;line-height:30px}
+.scr>.dock.col-dock{flex-direction:column;align-items:center;padding-top:40px;background:linear-gradient(to bottom,rgba(29,31,52,0),rgba(29,31,52,.92) 40%,#1d1f34 70%)}
+.dock.col-dock .pill{padding:4px 72px;font-size:32px;line-height:38px}
 .notif.ncol{flex-direction:column;align-items:stretch;cursor:pointer}
 .notif.ncol b{white-space:normal;line-height:21px}
 .nrow{display:flex;gap:12px;align-items:center;width:100%}
@@ -651,9 +653,9 @@ const views = {
       ${d.tasks ? `<div class="chips">
         <button class="chip ${d.types.includes('photo') ? 'on' : ''}" data-act="type" data-v="photo">${I.cam(18)}Photo</button>
         <button class="chip ${d.types.includes('move') ? 'on' : ''}" data-act="type" data-v="move">${I.shake(18)}Move</button></div>` : ''}
-      <div style="height:${d.tasks ? 64 : 84}px"></div>
-      <button class="pill" data-act="create">${ui.editMode === 'new' ? 'Create' : 'Save'}</button>
-      <button class="link" data-act="cancel">Cancel</button>
+      <div style="height:${(d.tasks ? 64 : 84) + 130}px"></div>
+      <div class="dock col-dock"><button class="pill" data-act="create">${ui.editMode === 'new' ? 'Create' : 'Save'}</button>
+        <button class="link" data-act="cancel">Cancel</button></div>
       ${img(A.glowCreate, 642, 448, 'glow bot')}
     </div>`;
   },
