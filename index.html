@@ -1032,9 +1032,9 @@ function doAct(act, b) {
     case 'newgroup': ui.bgHtml = ui.lastHtml; ui.newGroup = true; break;
     case 'close': ui.closed = doneKey(); ui.view = 'home'; break;
     case 'accept': if (!myGroups.includes(MY_GROUP)) myGroups.push(MY_GROUP); publish(true); break;
-    case 'new': case 'group': ui.draft = { name: '', team: act === 'group' ? data.g : (myGroups[0] || ''), hh: soon().hh, mm: soon().mm, tasks: true, types: ['photo'] }; ui.editMode = 'new'; ui.col = 'm'; break;
+    case 'new': case 'group': ui.draft = { name: '', team: act === 'group' ? data.g : (myGroups[0] || ''), hh: soon().hh, mm: soon().mm, tasks: true, types: ['photo'] }; ui.editMode = 'new'; ui.col = 'none'; break;
     case 'reuse': { const x = history()[+data.i]; if (!x) break;
-      ui.draft = { name: x.name, team: x.team, hh: x.hh, mm: x.mm, tasks: !!x.tasks, types: (x.types || ['photo', 'move']).slice() }; ui.editMode = 'new'; ui.col = 'm'; break; }
+      ui.draft = { name: x.name, team: x.team, hh: x.hh, mm: x.mm, tasks: !!x.tasks, types: (x.types || ['photo', 'move']).slice() }; ui.editMode = 'new'; ui.col = 'none'; break; }
     case 'home': ui.view = 'home'; break;
     case 'invite': ui.view = 'invite'; break;
     case 'open': ui.view = 'lobby'; break;
