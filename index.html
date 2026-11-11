@@ -123,7 +123,7 @@ svg,img{display:block;flex:none}
 
 /* dashboard */
 .dash{padding-left:20px;padding-right:20px;padding-bottom:calc(env(safe-area-inset-bottom) + 30px);min-height:auto}
-.dtop{display:flex;justify-content:space-between;align-items:center;margin:4px 4px 22px}
+.dtop{display:flex;justify-content:space-between;align-items:center;margin:4px 4px 30px}
 .date{font:400 14px var(--sf);color:var(--sub)}
 .hello{font:500 28px var(--sf);color:var(--title);margin-top:4px}
 .card{display:block;width:100%;text-align:left;background:var(--deep);border:1px solid var(--line);border-radius:24px;padding:18px 20px;margin-bottom:12px;color:var(--ink)}
@@ -163,7 +163,7 @@ svg,img{display:block;flex:none}
 .notif.ncol b{white-space:normal;line-height:21px}
 .nrow{display:flex;gap:12px;align-items:center;width:100%}
 .notif .pill.sm{font-size:17px;padding:7px 24px}
-.sec{margin:26px 4px 8px}
+.sec{margin:44px 4px 12px}
 .empty{font:400 15px var(--sf);color:#56566c;padding:10px 4px 2px}
 .scr>.fab{position:fixed !important;z-index:8 !important;right:max(20px,calc(50% - 240px));bottom:calc(env(safe-area-inset-bottom) + 24px);width:62px;height:62px;border-radius:50%;background:var(--btn);color:#1d1f34;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 28px rgba(6,6,15,.55);z-index:8;transition:transform .1s}
 .fab:active{transform:scale(.94)}
@@ -622,7 +622,7 @@ const views = {
       ${d.tasks ? `<div class="chips">
         <button class="chip ${d.types.includes('photo') ? 'on' : ''}" data-act="type" data-v="photo">${I.cam(18)}Photo</button>
         <button class="chip ${d.types.includes('move') ? 'on' : ''}" data-act="type" data-v="move">${I.shake(18)}Move</button></div>` : ''}
-      <div style="height:${d.tasks ? 34 : 70}px"></div>
+      <div style="height:${d.tasks ? 64 : 84}px"></div>
       <button class="pill" data-act="create">${ui.editMode === 'new' ? 'Create' : 'Save'}</button>
       <button class="link" data-act="cancel">Cancel</button>
       ${img(A.glowCreate, 642, 448, 'glow bot')}
