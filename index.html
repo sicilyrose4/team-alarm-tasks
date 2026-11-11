@@ -676,12 +676,12 @@ const views = {
       <div class="dtop"><div><div class="date">${date}</div><div class="hello">${hello}${nick ? ', ' + esc(nick) : ''}</div></div>
         <span class="dot av" style="width:44px;height:44px;font-size:18px;background:${nick ? personColor(nick) : 'var(--line)'};color:${nick ? '#1d1f34' : 'var(--sub)'}">${nick ? esc(nick[0].toUpperCase()) : '<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4.2"/><path d="M3.5 21c.8-4.4 4.3-7 8.5-7s7.7 2.6 8.5 7z"/></svg>'}</span></div>
       ${groupInvite ? `<div class="notif ncol ${ui.giShown ? '' : 'drop'}" data-act="opengroup" data-g="${esc(MY_GROUP)}" role="button">
-        <div class="nrow"><span class="appic">${I.people(20)}</span>
+        <div class="nrow">
         <span style="flex:1;min-width:0"><b>You're invited to ${esc(MY_GROUP)}</b><small>Group · ${roster().filter(p => !p.me).length} members</small></span><em>now</em></div>
         <div class="nrow" style="margin-top:12px"><div class="mini" style="margin:0">${roster().filter(p => !p.me).slice(0, 4).map((p, i) => dot(p, null, i)).join('')}</div>
         <button class="pill sm" data-act="accept" style="margin:0 0 0 auto">Accept</button></div></div>` : ''}
       ${inv ? `<div class="notif ncol ${ui.notifSeen === alarm.gen ? '' : 'drop'}" data-act="invite" role="button">
-        <div class="nrow"><span class="appic">${I.bell(20)}</span>
+        <div class="nrow">
         <span style="flex:1;min-width:0"><b>${esc(alarm.by || 'A teammate')} created an alarm in ${esc(alarm.team)}</b><small>${esc(alarm.name)} · ${t.hm} ${t.ap}</small></span><em>now</em></div>
         <div class="nrow" style="margin-top:12px"><span class="card-s" style="margin:0">Tap for details</span>
         <button class="pill sm" data-act="join" data-stay="1" style="margin:0 0 0 auto">Join</button></div></div>` : ''}
@@ -778,6 +778,24 @@ const views = {
     </div></div>`;
   },
 
+  // Snoozed: the alarm is quiet for me until it rings again; I can still turn it off now.
+  snooze: team => {
+    const now = new Date(), t = fmt(now.getHours(), now.getMinutes());
+    const secs = Math.max(0, Math.ceil((me.snoozeUntil - Date.now()) / 1000));
+    return `<div class="ringbg"><div class="scr" style="padding-left:24px;padding-right:24px">
+      <div class="fade"></div>
+      <div style="font:500 32px var(--rd);color:#56566c;text-align:center;line-height:42px;margin-top:1px">${esc(alarm.name)}</div>
+      <div style="font:400 16px var(--sf);color:#3e3e52;text-align:center;margin-top:15px">${esc(alarm.team)}</div>
+      <div class="time" style="font-size:${tsz(t.hm)}px;color:#a9a9b8;margin-top:52px"><span>${t.hm}</span><span class="ap" style="font-weight:300;font-size:27px;color:#a9a9b8">${t.ap}</span></div>
+      <div style="text-align:center;margin-top:14px;font:700 22px var(--rnd);color:var(--snz)">Snoozing</div>
+      <div style="text-align:center;margin-top:6px;font:400 16px var(--sf);color:#6a6a80">Rings again in ${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}</div>
+      <div class="ringgrid" style="margin-top:52px">${team.map(p => dot(p, RING_COL)).join('')}</div>
+      <div class="grow" style="min-height:40px"></div>
+      <button class="pill" data-act="${alarm.tasks ? 'task' : 'off'}" style="background:#8e92bd;font:600 26px var(--rd);line-height:38px;padding:4px 44px">Turn off now</button>
+      <div style="height:46px"></div>
+    </div></div>`;
+  },
+
   status: team => {
     const groups = { asleep: [], snoozed: [], up: [] };
     team.forEach(p => groups[p.status].push(p));
@@ -842,6 +860,7 @@ function screenFor(team, now) {
   }
   if (allUp(team)) return ui.closed === doneKey() ? (ui.view === 'group' ? 'group' : 'home') : 'done';
   const st = myStatus(now);
+  if (st === 'snoozed') return ui.task || 'snooze';
   if (st !== 'asleep') return 'status';
   if (ui.task) return ui.task;
   return 'ring';
@@ -873,7 +892,7 @@ function tick() {
   // Sound: loud while it's ringing for me; softer while I'm up but teammates still sleep.
   const inIt = joinedNow();
   const mine = inIt && ringing(now) && !allUp(team) && myStatus(now) === 'asleep';
-  const others = inIt && ringing(now) && !allUp(team) && team.some(p => p.status === 'asleep');
+  const others = inIt && ringing(now) && !allUp(team) && myStatus(now) !== 'snoozed' && team.some(p => p.status === 'asleep');
   // New invite: soft chime once; the banner's drop-in plays once per alarm.
   if (screen === 'home' && invited() && ui.notifSeen !== alarm.gen) { ui.notifSeen = alarm.gen; tone(false); if (navigator.vibrate) navigator.vibrate(60); }
   if (mine && now - lastBeep >= 1000) { lastBeep = now; tone(true); if (navigator.vibrate) navigator.vibrate([400, 200, 400]); }
@@ -882,7 +901,7 @@ function tick() {
 }
 
 function onEnter(screen) {
-  document.body.style.background = screen === 'ring' || screen === 'photo' ? '#06060f' : '#141416';
+  document.body.style.background = screen === 'ring' || screen === 'snooze' || screen === 'photo' ? '#06060f' : '#141416';
   if (screen === 'newgroup') { const f = document.getElementById('groupForm'), inp = document.getElementById('groupIn'), go = document.getElementById('groupGo');
     const upd = () => { go.disabled = !clean(inp.value, 30); }; inp.addEventListener('input', upd);
     setTimeout(() => inp.focus(), 250);
