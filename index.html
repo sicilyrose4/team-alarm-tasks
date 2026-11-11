@@ -106,11 +106,11 @@ svg{display:block;flex:none}
 (() => {
 /* ================= Constants ================= */
 const TEAM_SIZE = 11, SNOOZE_MS = 30000, MAX_SNOOZE = 2, LEAD_MS = 15000;
-const RING_STALE = 10 * 60e3, IDLE_STALE = 60 * 60e3, GONE_MS = 3 * 60e3, ONLINE_MS = 35000;
+const RING_STALE = 10 * 60e3, GONE_MS = 10 * 60e3, ONLINE_MS = 35000;
 const FAKES = ['Maya', 'Jordan', 'Theo', 'Priya', 'Leo', 'Ava', 'Marcus', 'Nina', 'Sam', 'Kai'];
 const PHOTO_PROMPTS = ['Something blue', 'Your shoes', 'Outside', 'Your toothbrush', 'Something green', 'A plant', 'Your water bottle', 'Something red', 'A door', 'Your sink'];
 const MOVE_TASKS = ['shake', 'hold'];
-const DEFAULTS = { name: 'Morning lift', team: 'Westside Warriors', hh: 5, mm: 45 };
+const DEFAULTS = { name: 'Morning lift', team: 'Westside Warriors' };
 const STORE = 'team-alarm-tasks-v1';
 const ROOM = (new URLSearchParams(location.search).get('team') || 'squad-r8x4').replace(/[^a-z0-9-]/gi, '').slice(0, 40) || 'squad-r8x4';
 const BASE = 'team-alarm-tasks-proto/' + ROOM;
@@ -123,6 +123,7 @@ const I = {
   check: (s = 24) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>`,
   zz: (s = 24) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h7l-7 9h7M14 4h6l-6 7h6"/></svg>`,
   arrow: (s = 30) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>`,
+  bell: (s = 24) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M6 17V11a6 6 0 0112 0v6l2 2H4z"/><path d="M10 21h4"/></svg>`,
   x: (s = 26) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>`,
 };
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -170,7 +171,7 @@ function lastSeen(gen) {
 }
 function expired(a, now = Date.now()) {
   if (!a) return true;
-  if (a.ringAt ? now - a.ringAt > RING_STALE : now - a.t > IDLE_STALE) return true;
+  if (a.ringAt && now - a.ringAt > RING_STALE) return true;
   return now - Math.max(lastSeen(a.gen), a.t) > GONE_MS;
 }
 function adopt(a) {
@@ -263,7 +264,7 @@ function computeTeam(now = Date.now()) {
     list.push({ key: p.key, name: clean(p.nick, 20) || 'Teammate', status, snoozes, upAt, joinedAt: num(p.joinedAt) });
   }
   list.sort((a, b) => a.joinedAt - b.joinedAt);
-  const nFake = alarm.ringAt ? alarm.fakes : Math.max(0, TEAM_SIZE - list.length - (me.gen === alarm.gen ? 0 : 1));
+  const nFake = Math.max(0, TEAM_SIZE - list.length - (me.gen === alarm.gen ? 0 : 1));
   for (let i = 0; i < nFake; i++) {
     const f = live ? fakeState(i, now) : { status: 'asleep', snoozes: 0 };
     list.push(Object.assign({ key: 'f' + i, fake: true, name: FAKES[i % FAKES.length] }, f));
@@ -283,6 +284,16 @@ function clockAt(offsetSec) {
   const H = Math.floor(t / 3600), M = Math.floor(t / 60) % 60;
   return { hm: (H % 12 || 12) + ':' + String(M).padStart(2, '0'), ss: String(t % 60).padStart(2, '0'), ap: H >= 12 ? 'PM' : 'AM' };
 }
+function soon() { const d = new Date(Date.now() + 180000); return { hh: d.getHours(), mm: d.getMinutes() }; }
+function nextAt(hh, mm) { const d = new Date(); d.setHours(hh, mm, 0, 0); if (d.getTime() <= Date.now() + 1000) d.setDate(d.getDate() + 1); return d.getTime(); }
+function until() {
+  const s = Math.max(0, Math.ceil((alarm.ringAt - Date.now()) / 1000));
+  if (s >= 3600) return Math.floor(s / 3600) + 'h ' + Math.floor(s / 60) % 60 + 'm';
+  if (s >= 60) return Math.floor(s / 60) + 'm ' + String(s % 60).padStart(2, '0') + 's';
+  return s + 's';
+}
+function draftFrom(a, time) { return { name: a.name, team: a.team, hh: time.hh, mm: time.mm, tasks: a.tasks, types: a.types.slice() }; }
+const sz = (hm, short, long) => (hm.length > 4 ? long : short) + 'px';
 const fmt = (hh, mm) => ({ hm: (hh % 12 || 12) + ':' + String(mm).padStart(2, '0'), ap: hh >= 12 ? 'PM' : 'AM' });
 
 /* ================= Sound, buzz, screen ================= */
@@ -344,9 +355,10 @@ const views = {
   create: () => {
     const d = ui.draft, t = fmt(d.hh, d.mm);
     return `<div class="scr">
-      <div class="top"><span style="width:60px"></span><span class="big" style="font-size:24px">New alarm</span>
-        <button class="big" style="font-size:20px;color:var(--volt);width:60px;text-align:right;height:44px" data-act="create">Create</button></div>
-      <label class="timepick"><div class="time" id="tpShow" style="font-size:124px">${t.hm}<small>${t.ap}</small></div>
+      <div class="top">${ui.editMode ? `<button class="cam-x" style="position:static;margin-left:-10px;width:60px;justify-content:flex-start" data-act="cancel" aria-label="Cancel">${I.x()}</button>` : '<span style="width:60px"></span>'}
+        <span class="big" style="font-size:24px">${ui.editMode === 'edit' ? 'Edit alarm' : ui.editMode === 'next' ? 'Next alarm' : 'New alarm'}</span>
+        <button class="big" style="font-size:20px;color:var(--volt);width:60px;text-align:right;height:44px" data-act="create">${ui.editMode ? 'Save' : 'Create'}</button></div>
+      <label class="timepick"><div class="time" id="tpShow" style="font-size:${sz(t.hm, 124, 112)}">${t.hm}<small>${t.ap}</small></div>
         <input type="time" id="tp" value="${String(d.hh).padStart(2, '0')}:${String(d.mm).padStart(2, '0')}" aria-label="Wake-up time"></label>
       <label class="row"><span class="k">Name</span><input id="anName" maxlength="40" value="${esc(d.name)}" autocapitalize="sentences"></label>
       <label class="row"><span class="k">Team</span><input id="anTeam" maxlength="40" value="${esc(d.team)}" autocapitalize="words"></label>
@@ -364,7 +376,7 @@ const views = {
       <div style="font:600 17px Inter,system-ui,sans-serif">${esc(alarm.team)}</div>
       <div class="grow" style="display:flex;flex-direction:column;justify-content:center;padding:24px 0">
         <div class="big" style="font-size:26px">${esc(alarm.name)}</div>
-        <div class="time" style="font-size:150px">${t.hm}<small>${t.ap}</small></div>
+        <div class="time" style="font-size:${sz(t.hm, 150, 118)}">${t.hm}<small>${t.ap}</small></div>
         ${taskChips(alarm)}
         <div class="tiles" style="margin-top:26px">${team.map(tile).join('')}</div>
       </div>
@@ -378,26 +390,14 @@ const views = {
       <div style="font:600 17px Inter,system-ui,sans-serif">${esc(alarm.team)}</div>
       <div class="grow" style="display:flex;flex-direction:column;justify-content:center;padding:24px 0">
         <div class="big" style="font-size:26px">${esc(alarm.name)}</div>
-        <div class="time" style="font-size:150px">${t.hm}<small>${t.ap}</small></div>
+        <button class="time" data-act="edit" style="font-size:${sz(t.hm, 150, 118)};text-align:left;color:#fff">${t.hm}<small>${t.ap}</small></button>
+        <div class="big" style="font-size:28px;color:var(--volt);display:flex;gap:10px;align-items:center;margin-top:8px">${I.bell(24)}<span>${until()}</span></div>
         ${taskChips(alarm)}
         <div class="tiles" style="margin-top:26px">${team.map(tile).join('')}</div>
       </div>
-      <button class="btn volt" data-act="start">Start test</button>
     </div>`;
   },
 
-  count: team => {
-    const left = Math.max(0, (alarm.ringAt - Date.now()) / 1000);
-    const c = clockAt(-Math.ceil(left));
-    return `<div class="scr">
-      <div style="font:600 17px Inter,system-ui,sans-serif;color:var(--dim)">${esc(alarm.team)}</div>
-      <div class="grow" style="display:flex;flex-direction:column;justify-content:center">
-        <div class="big" style="font-size:26px">${esc(alarm.name)}</div>
-        <div class="time" style="font-size:150px">${c.hm}<small>${c.ss}</small></div>
-        ${bars(team, '#d4ff2e')}
-      </div>
-    </div>`;
-  },
 
   ring: team => {
     const task = alarm.tasks ? todaysTask() : null;
@@ -408,7 +408,7 @@ const views = {
       <div style="font:600 17px Inter,system-ui,sans-serif">${esc(alarm.team)}</div>
       <div class="grow" style="display:flex;flex-direction:column;justify-content:center">
         <div class="big" style="font-size:26px">${esc(alarm.name)}</div>
-        <div class="time pulse" style="font-size:180px;transform-origin:left center">${clockAt(0).hm}</div>
+        <div class="time pulse" style="font-size:${sz(clockAt(0).hm, 180, 140)};transform-origin:left center">${clockAt(0).hm}</div>
         ${bars(team, '#0b0b0c')}
       </div>
       <button class="btn dark" data-act="${task ? 'task' : 'off'}" style="height:78px">${label}</button>
@@ -452,7 +452,7 @@ const views = {
           <div><div style="font:400 15px Inter,system-ui,sans-serif">Last up</div><div class="big" style="font-size:36px">${esc(last ? last.name : '')}</div></div>
         </div>
       </div>
-      <button class="btn dark" data-act="again">New round</button>
+      <button class="btn dark" data-act="next">Next alarm</button>
     </div></div>`;
   },
 
@@ -487,9 +487,9 @@ function screenFor(team, now) {
   if (!nick) return 'name';
   if (!heard) return 'wait';
   if (!alarm) return 'create';
+  if (ui.editMode && ui.draft) return 'create';
   if (me.gen !== alarm.gen) return 'join';
-  if (!alarm.ringAt) return 'lobby';
-  if (now < alarm.ringAt) return 'count';
+  if (!alarm.ringAt || now < alarm.ringAt) return 'lobby';
   if (allUp(team)) return 'done';
   const st = myStatus(now);
   if (st !== 'asleep') return 'status';
@@ -507,7 +507,7 @@ function tick() {
   }
   if (alarm && resumed && expired(alarm, now)) { alarm = null; me = blankMe(); ui.task = null; publish(); }
   if (me.status === 'snoozed' && now >= me.snoozeUntil) { me.status = 'asleep'; publish(); }
-  if (!alarm && nick && heard && !ui.draft) ui.draft = Object.assign({ tasks: true, types: ['photo', 'move'] }, DEFAULTS);
+  if (!alarm && nick && heard && !ui.draft) ui.draft = Object.assign({ tasks: true, types: ['photo', 'move'] }, DEFAULTS, soon());
   const team = alarm ? computeTeam(now) : [];
   const screen = screenFor(team, now);
   if (screen !== 'photo' && screen !== 'move') stopTask();
@@ -557,18 +557,20 @@ document.addEventListener('click', e => {
       rerender(); break;
     }
     case 'create': {
-      const d = ui.draft;
-      alarm = cleanAlarm({ gen: now * 1000 + Math.floor(Math.random() * 1000), v: 1, t: now, creator: myKey,
-        name: d.name, team: d.team, hh: d.hh, mm: d.mm, tasks: d.tasks, types: d.types, round: 1, ringAt: 0, fakes: 0 });
-      me = Object.assign(blankMe(), { gen: alarm.gen, joinedAt: now });
-      ui.draft = null; keepAwake(); publish(); break;
+      const d = ui.draft, ringAt = nextAt(d.hh, d.mm);
+      const fields = { name: d.name, team: d.team, hh: d.hh, mm: d.mm, tasks: d.tasks, types: d.types, ringAt };
+      if (ui.editMode === 'edit' && alarm) bump(fields);
+      else if (ui.editMode === 'next' && alarm) { bump(Object.assign(fields, { round: alarm.round + 1 })); me = Object.assign(blankMe(), { gen: me.gen, joinedAt: me.joinedAt }); }
+      else {
+        alarm = cleanAlarm(Object.assign({ gen: now * 1000 + Math.floor(Math.random() * 1000), v: 1, t: now, creator: myKey, round: 1 }, fields));
+        me = Object.assign(blankMe(), { gen: alarm.gen, joinedAt: now });
+      }
+      ui.draft = null; ui.editMode = null; keepAwake(); publish(); break;
     }
+    case 'edit': ui.draft = draftFrom(alarm, { hh: alarm.hh, mm: alarm.mm }); ui.editMode = 'edit'; break;
+    case 'next': ui.draft = draftFrom(alarm, soon()); ui.editMode = 'next'; break;
+    case 'cancel': ui.draft = null; ui.editMode = null; break;
     case 'join': me = Object.assign(blankMe(), { gen: alarm.gen, joinedAt: now }); keepAwake(); publish(); break;
-    case 'start': {
-      const real = computeTeam(now).filter(p => !p.fake).length;
-      bump({ ringAt: now + LEAD_MS, fakes: Math.max(0, TEAM_SIZE - real) });
-      keepAwake(); publish(); break;
-    }
     case 'snooze':
       if (me.snoozes >= MAX_SNOOZE) break;
       Object.assign(me, { round: alarm.round, status: 'snoozed', snoozes: me.snoozes + 1, snoozeUntil: now + SNOOZE_MS });
@@ -581,7 +583,6 @@ document.addEventListener('click', e => {
     }
     case 'back': ui.task = null; break;
     case 'shoot': shoot(); break;
-    case 'again': bump({ round: alarm.round + 1, ringAt: 0, fakes: 0 }); me = Object.assign(blankMe(), { gen: me.gen, joinedAt: me.joinedAt }); publish(); break;
   }
   tick();
 });
