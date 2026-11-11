@@ -649,8 +649,9 @@ const views = {
       <${mine ? 'button data-act="edit"' : 'div'} class="time" style="font-size:${tsz(t.hm)}px">${timeBig(alarm.hh, alarm.mm)}</${mine ? 'button' : 'div'}>
       <div style="margin-top:20px">${stack(team)}</div>
       <div class="grow"></div>
-      <div class="pill" style="background:none;color:var(--btn);display:flex;gap:10px;align-items:center;padding:4px 0">${img(A.check, 21, 21)}Joined</div>
-      <button class="link" style="color:#9296bb" data-act="${mine ? 'edit' : 'leave'}">${mine ? 'Edit' : 'Cancel'}</button>
+      ${mine ? `<button class="pill" data-act="edit">Edit</button><div style="height:32px"></div>`
+        : `<div class="pill" style="background:none;color:var(--btn);display:flex;gap:10px;align-items:center;padding:4px 0">${img(A.check, 21, 21)}Joined</div>
+      <button class="link" style="color:#9296bb" data-act="leave">Cancel</button>`}
     </div>`;
   },
 
