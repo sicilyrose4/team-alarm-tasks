@@ -677,7 +677,7 @@ const views = {
     const empty = (txt, act, label) => `<div class="empty">${txt}</div><button class="addrow" data-act="${act}"><span class="addic">${I.plus(20)}</span>${label}</button>`;
     setTimeout(() => { if (groupInvite) ui.giShown = true; }, 0);
     return `<div class="scr dash">
-      <div class="dtop"><div><div class="date">${date}</div><div class="hello">${hello}${nick ? ', ' + esc(nick) : ''}</div></div>
+      <div class="dtop"><div><div class="date">${date}</div><div class="hello">${hello}${nick ? ',<br>' + esc(nick) : ''}</div></div>
         <span class="dot av" style="width:44px;height:44px;font-size:18px;background:${nick ? personColor(nick) : 'var(--line)'};color:${nick ? '#1d1f34' : 'var(--sub)'}">${nick ? esc(nick[0].toUpperCase()) : '<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4.2"/><path d="M3.5 21c.8-4.4 4.3-7 8.5-7s7.7 2.6 8.5 7z"/></svg>'}</span></div>
       ${groupInvite ? `<div class="notif ncol ${ui.giShown ? '' : 'drop'}" data-act="opengroup" data-g="${esc(MY_GROUP)}" role="button">
         <div class="nrow">
