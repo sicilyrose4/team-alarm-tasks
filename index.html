@@ -606,7 +606,7 @@ const views = {
       ${joined ? `<button class="card" data-act="open">
         <div class="card-top"><span class="label">${esc(alarm.team)}</span><span class="chipx">${ringing() ? 'Ringing' : 'in ' + until()}</span></div>
         <div class="time" style="font-size:72px;justify-content:flex-start;margin-top:10px">${timeBig(alarm.hh, alarm.mm)}</div>
-        <div class="card-t">${esc(alarm.name)}</div><div class="card-s">${alarm.tasks ? 'Wake-up task on' : 'No wake-up task'}</div>
+        <div class="card-t">${esc(alarm.name)}</div>
         <div class="mini">${team.slice(0, 5).map((p, i) => dot(p, null, i)).join('')}<span>${team.length} going</span></div></button>` : empty('No upcoming alarms', 'new', 'Create an alarm')}
       <div class="label sec">My groups</div>
       ${myGroups.length ? myGroups.map(g => { const gi = groupInfo(g, crew); return `<button class="hrow grow-row" data-act="opengroup" data-g="${esc(g)}">
