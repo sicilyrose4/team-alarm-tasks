@@ -207,8 +207,9 @@ const MOVE_TASKS = ['shake', 'hold'];
 // Everyone is in IXD 415 (the class QR code links to ?group=ixd415, which lands in the same place).
 const MY_GROUP = 'IXD 415';
 const DEFAULTS = { name: 'Morning workout', team: MY_GROUP };
-const STORE = 'team-alarm-tasks-v1';
-const ROOM = (new URLSearchParams(location.search).get('team') || 'squad-r8x4').replace(/[^a-z0-9-]/gi, '').slice(0, 40) || 'squad-r8x4';
+const STORE = 'team-alarm-tasks-v2';
+try { localStorage.removeItem('team-alarm-tasks-v1'); } catch (e) {}
+const ROOM = (new URLSearchParams(location.search).get('team') || 'ixd415-live').replace(/[^a-z0-9-]/gi, '').slice(0, 40) || 'ixd415-live';
 const BASE = 'team-alarm-tasks-proto/' + ROOM;
 const BROKERS = ['wss://broker.hivemq.com:8884/mqtt', 'wss://broker.emqx.io:8084/mqtt'];
 
@@ -230,7 +231,7 @@ const num = x => (typeof x === 'number' && isFinite(x) ? x : 0);
 
 /* ================= Local state ================= */
 let saved = {};
-try { saved = JSON.parse(localStorage.getItem(STORE)) || {}; } catch (e) {}
+try { saved = JSON.parse(sessionStorage.getItem(STORE)) || {}; } catch (e) {}
 const myKey = saved.key || 'p' + Math.random().toString(36).slice(2, 10);
 let nick = clean(saved.nick, 20);
 let myGroups = Array.isArray(saved.groups) ? saved.groups.filter(g => typeof g === 'string').slice(0, 8) : [];
@@ -244,7 +245,7 @@ const peers = new Map();       // key -> latest message from that phone
 let ui = { sheet: nick ? null : 'first', groupInviteAt: 0, screen: '', view: 'home', task: null, draft: null, editMode: null, col: 'm', notifSeen: 0, lastHtml: '', prevStatus: {} };
 
 function save() {
-  try { localStorage.setItem(STORE, JSON.stringify({ key: myKey, nick, groups: myGroups, recent, me, alarm, lastTs: resumed ? Date.now() : bootLast })); } catch (e) {}
+  try { sessionStorage.setItem(STORE, JSON.stringify({ key: myKey, nick, groups: myGroups, recent, me, alarm, lastTs: resumed ? Date.now() : bootLast })); } catch (e) {}
 }
 
 /* ================= Alarm model ================= */
@@ -318,6 +319,7 @@ function connect() {
 }
 setTimeout(() => { heard = true; }, 12000);     // no broker at all: carry on solo
 setInterval(() => publish(true), 10000);        // heartbeat
+window.addEventListener('pagehide', e => { if (!e.persisted && live && client) try { client.publish(BASE + '/p/' + myKey, '', { retain: true, qos: 0 }); } catch (x) {} });
 
 /* ================= Team ================= */
 function rand(seed) {
@@ -529,15 +531,15 @@ const views = {
         <div class="card-t">${esc(alarm.name)}</div><div class="card-s">${alarm.tasks ? 'Wake-up task on' : 'No wake-up task'}</div>
         <div class="mini">${team.slice(0, 5).map((p, i) => dot(p, null, i)).join('')}<span>${team.length} going</span></div></button>` : empty('No upcoming alarms')}
       <div class="label sec">My groups</div>
-      ${myGroups.length ? myGroups.map(g => { const gi = groupInfo(g, crew); return `<button class="hrow grow-row" data-act="group" data-g="${esc(g)}" ${busy ? 'disabled' : ''}>
+      ${myGroups.length ? myGroups.map(g => { const gi = groupInfo(g, crew); return `<button class="hrow grow-row" data-act="group" data-g="${esc(g)}" >
         <div class="mini" style="margin:0;width:78px">${gi.faces.map((p, i) => dot(p, null, i)).join('')}</div>
         <div style="flex:1;min-width:0;text-align:left"><div class="hrow-t">${esc(g)}</div><div class="card-s" style="margin:2px 0 0">${gi.n} members</div></div>
         <img src="assets/chevron-down.svg" width="27" height="27" alt="" style="transform:rotate(-90deg)"></button>`; }).join('') : empty("You're not in any groups yet")}
       ${rows.length ? `<div class="label sec">Recent</div>
       ${rows.map((x, i) => { const f = fmt(x.hh, x.mm); return `<div class="hrow"><div style="min-width:0"><div class="hrow-t">${esc(x.name)}</div><div class="card-s" style="margin:2px 0 0">${x.day} · ${f.hm} ${f.ap} · ${esc(x.team)}</div></div>
-        <button class="reuse" data-act="reuse" data-i="${i}" ${busy ? 'disabled' : ''}>Reuse</button></div>`; }).join('')}` : ''}
+        <button class="reuse" data-act="reuse" data-i="${i}" >Reuse</button></div>`; }).join('')}` : ''}
       <div style="height:90px"></div>
-      ${nick ? `<button class="fab" data-act="new" aria-label="Create alarm" ${busy ? 'disabled' : ''}>${I.plus(30)}</button>` : ''}
+      ${nick ? `<button class="fab" data-act="new" aria-label="Create alarm" >${I.plus(30)}</button>` : ''}
     </div>`;
   },
 
@@ -771,9 +773,7 @@ document.addEventListener('click', e => {
   unlockAudio();
   const act = b.dataset.act;
   // First join or create asks for a first name, then carries on.
-  if (act === 'reuse' || act === 'group' || act === 'new') { if (b.disabled) return; }
   if (!nick && ['join', 'new', 'group', 'reuse'].includes(act)) { ui.bgHtml = ui.lastHtml; ui.sheet = act; ui.sheetData = Object.assign({}, b.dataset); tick(); return; }
-  if (act === 'reuse' && b.disabled) return;
   if (act === 'unsheet') { ui.sheet = null; tick(); return; }
   doAct(act, b);
   tick();
@@ -799,8 +799,8 @@ function doAct(act, b) {
       remember(alarm); ui.draft = null; ui.editMode = null; ui.view = 'lobby'; keepAwake(); publish(); break;
     }
     case 'accept': if (!myGroups.includes(MY_GROUP)) myGroups.push(MY_GROUP); publish(true); break;
-    case 'new': case 'group': if (activeAlarm()) break; ui.draft = { name: '', team: act === 'group' ? data.g : (myGroups[0] || ''), hh: soon().hh, mm: soon().mm, tasks: true, types: ['photo', 'move'] }; ui.editMode = 'new'; ui.col = 'm'; break;
-    case 'reuse': { const x = history()[+data.i]; if (!x || activeAlarm()) break;
+    case 'new': case 'group': ui.draft = { name: '', team: act === 'group' ? data.g : (myGroups[0] || ''), hh: soon().hh, mm: soon().mm, tasks: true, types: ['photo', 'move'] }; ui.editMode = 'new'; ui.col = 'm'; break;
+    case 'reuse': { const x = history()[+data.i]; if (!x) break;
       ui.draft = { name: x.name, team: x.team, hh: x.hh, mm: x.mm, tasks: !!x.tasks, types: (x.types || ['photo', 'move']).slice() }; ui.editMode = 'new'; ui.col = 'm'; break; }
     case 'home': ui.view = 'home'; break;
     case 'invite': ui.view = 'invite'; break;
