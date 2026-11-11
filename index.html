@@ -315,6 +315,7 @@ svg,img{display:block;flex:none}
   45%{transform:scale(1.07);color:#ffffff;text-shadow:0 0 28px rgba(200,200,255,.55),0 0 60px rgba(160,165,255,.3)}}
 .ringpulse .ap{animation:ringglow 1s ease-in-out infinite}
 @keyframes ringglow{0%,100%{color:#9c9cae}45%{color:#ffffff}}
+.scr>.fab{width:auto;height:56px;border-radius:28px;padding:0 22px 0 18px;gap:8px;font:800 17px var(--rnd)}
 </style>
 </head>
 <body>
@@ -725,7 +726,7 @@ const views = {
       ${rows.map((x, i) => { const f = fmt(x.hh, x.mm); return `<div class="hrow"><div style="min-width:0"><div class="hrow-t">${esc(x.name)}</div><div class="card-s" style="margin:2px 0 0">${x.day} · ${f.hm} ${f.ap} · ${esc(x.team)}</div></div>
         <button class="reuse" data-act="reuse" data-i="${i}" >Reuse</button></div>`; }).join('')}` : ''}
       <div style="height:90px"></div>
-      ${nick ? `<button class="fab" data-act="new" aria-label="Create alarm" >${I.plus(30)}</button>` : ''}
+      ${nick ? `<button class="fab" data-act="new">${I.plus(22)}<span>Create alarm</span></button>` : ''}
     </div>`;
   },
 
