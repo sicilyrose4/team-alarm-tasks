@@ -1059,7 +1059,11 @@ function doAct(act, b) {
     case 'shoot': shoot(); break;
   }
 }
-function rerender() { ui.screen = ''; tick(); }
+function rerender() {                                // redraw in place: stay where you were scrolled on the same screen
+  const y = window.scrollY, was = ui.screen;
+  ui.screen = ''; tick();
+  if (ui.screen === was) window.scrollTo(0, y);
+}
 function wakeUp() {
   Object.assign(me, { round: alarm.round, status: 'up', upAt: Date.now() });
   ui.task = null; publish();
