@@ -195,6 +195,9 @@ svg,img{display:block;flex:none}
 .okmark div{width:120px;height:120px;border-radius:50%;background:var(--up);display:flex;align-items:center;justify-content:center;animation:pop .4s;color:#1d1f34}
 
 /* move */
+.steps{display:flex;gap:12px}
+.steps i{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--line2);transition:background .2s,transform .2s}
+.steps i.on{background:linear-gradient(145deg,#c4e0cd,#86a993);border-color:transparent;transform:scale(1.15)}
 .prog{width:100%;height:28px;background:var(--deep);border:1px solid var(--line);border-radius:14px;overflow:hidden}
 .prog i{display:block;height:100%;background:var(--up);border-radius:14px;transition:width .15s}
 .wait{min-height:100dvh;display:flex;align-items:center;justify-content:center}
@@ -235,7 +238,8 @@ const TEAM_SIZE = 11, SNOOZE_MS = 30000, MAX_SNOOZE = 2, LEAD_MS = 15000;
 const RING_STALE = 10 * 60e3, GONE_MS = 10 * 60e3, ONLINE_MS = 35000;
 const FAKES = ['Maya', 'Jordan', 'Theo', 'Priya', 'Leo', 'Ava', 'Marcus', 'Nina', 'Sam', 'Kai', 'Zoe', 'Eli'];
 const PHOTO_PROMPTS = ['Something blue', 'Your shoes', 'Outside', 'Your toothbrush', 'Something green', 'A plant', 'Your water bottle', 'Something red', 'A door', 'Your sink'];
-const MOVE_TASKS = ['shake', 'hold'];
+const MOVE_TASKS = ['shake', 'walk'];
+const STEPS = 5;
 // Everyone is in IXD 415 (the class QR code links to ?group=ixd415, which lands in the same place).
 const MY_GROUP = 'IXD 415';
 const DEFAULTS = { name: 'Morning workout', team: MY_GROUP };
@@ -255,6 +259,7 @@ const I = {
   bell: (s = 24) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M6 17V11a6 6 0 0112 0v6l2 2H4z"/><path d="M10 21h4"/></svg>`,
   plus: (s = 28) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>`,
   people: (s = 24) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="8" r="3.6"/><circle cx="17" cy="9.5" r="2.8"/><path d="M2.5 19.5c.6-3.6 3.3-5.6 6.5-5.6s5.9 2 6.5 5.6z"/><path d="M16 14.2c2.9-.3 5 1.4 5.5 4.6H17"/></svg>`,
+  walk: (s = 24) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="4" r="2"/><path d="M11 21l2-6 3 3v4M9 12l2-4 4 1 2 4M11 8l-2 5-3 1"/></svg>`,
   x: (s = 26) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>`,
 };
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -733,12 +738,12 @@ const views = {
     return `<div class="scr" id="moveScr" style="touch-action:none">
       <div><button class="cam-x" style="position:static;margin-left:-12px" data-act="back" aria-label="Back">${I.x()}</button></div>
       <div class="grow" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px">
-        <div style="color:var(--title)">${shake ? I.shake(96) : I.up(80)}</div>
-        <div style="text-align:center"><div style="font:500 32px var(--rd);color:var(--title)">${shake ? 'Shake your phone' : 'Raise it over your head'}</div>
-          <div class="card-s" style="margin-top:8px;font-size:16px">${shake ? 'Keep shaking until the bar fills' : 'Hold your phone up high, screen facing down, for 3 seconds'}</div>
+        <div style="color:var(--title)">${shake ? I.shake(96) : I.walk(84)}</div>
+        <div style="text-align:center"><div style="font:500 32px var(--rd);color:var(--title)">${shake ? 'Shake your phone' : 'Walk ' + STEPS + ' steps'}</div>
+          <div class="card-s" style="margin-top:8px;font-size:16px">${shake ? 'Keep shaking until the bar fills' : 'Get out of bed and walk with your phone in hand'}</div>
           <div id="mvHint" class="card-s" style="margin-top:14px;font-size:15px;color:var(--snz);min-height:20px"></div></div>
         ${shake ? `<div class="prog"><i id="mv" style="width:0%"></i></div><div id="mvN" style="font:300 40px var(--rnd);color:var(--ink)">0%</div>`
-          : `<div class="time" id="mvN" style="font-size:132px">3</div><div class="prog" style="height:8px;width:230px"><i id="mv" style="width:0%"></i></div>`}
+          : `<div class="time" id="mvN" style="font-size:132px">0</div><div class="steps" id="mvDots">${'<i></i>'.repeat(STEPS)}</div>`}
       </div>
     </div>`;
   },
@@ -1010,7 +1015,8 @@ function finishPhoto() {
 }
 
 /* ================= Movement task ================= */
-let motion = { prog: 0, last: 0, sensed: 0, holding: false, beta: null, held: 0, done: false, lastT: 0, mag: 9.8 };
+const freshMotion = () => ({ prog: 0, shake: 0, last: 0, sensed: 0, holding: false, beta: null, held: 0, steps: 0, lp: 9.8, armed: true, lastStep: 0, done: false, lastT: Date.now(), start: Date.now() });
+let motion = freshMotion();
 function askMotion() {
   // iPhone asks for motion access, and only from a tap.
   try { if (window.DeviceMotionEvent && DeviceMotionEvent.requestPermission) DeviceMotionEvent.requestPermission().catch(() => {}); } catch (e) {}
@@ -1021,12 +1027,15 @@ function onMotion(e) {
   motion.sensed = Date.now();
   const mag = Math.sqrt(a.x * a.x + a.y * a.y + a.z * a.z);
   const now = Date.now();
-  if (Math.abs(mag - 9.8) > 9 && now - motion.last > 140) { motion.last = now; motion.prog = Math.min(1, motion.prog + 0.045); }
+  if (Math.abs(mag - 9.8) > 9 && now - motion.last > 140) { motion.last = now; motion.shake = Math.min(1, motion.shake + 0.045); }
+  motion.lp = motion.lp * 0.75 + mag * 0.25;          // smooth out jitter
+  if (motion.armed && motion.lp > 11.3 && now - motion.lastStep > 300) { motion.steps++; motion.lastStep = now; motion.armed = false; }
+  else if (motion.lp < 9.9) motion.armed = true;
 }
 function onOrient(e) { if (e.beta == null) return; motion.sensed = Date.now(); motion.beta = e.beta; }
 const onDown = () => { motion.holding = true; }, onUp = () => { motion.holding = false; };
 function startMotion() {
-  motion = { prog: 0, last: 0, sensed: 0, holding: false, beta: null, held: 0, done: false, lastT: Date.now(), start: Date.now() };
+  motion = freshMotion();
   window.addEventListener('devicemotion', onMotion);
   window.addEventListener('deviceorientation', onOrient);
   const scr = document.getElementById('moveScr');
@@ -1048,19 +1057,21 @@ function moveTick(now) {
   if (hint && noSensor && !hint.textContent) hint.textContent = 'No motion sensor? Press and hold the screen instead';
   const bar = document.getElementById('mv'), n = document.getElementById('mvN');
   if (task.move === 'shake') {
-    if (motion.holding) motion.prog = Math.min(1, motion.prog + dt / 3);
+    if (motion.holding) motion.shake = Math.min(1, motion.shake + dt / 3);
+    motion.prog = motion.shake;
     if (bar) bar.style.width = Math.round(motion.prog * 100) + '%';
     if (n) n.textContent = Math.round(motion.prog * 100) + '%';
   } else {
-    const overhead = motion.beta != null && Math.abs(motion.beta) > 115;
-    if (overhead || motion.holding) motion.held += dt; else motion.held = Math.max(0, motion.held - dt * 2);
-    motion.prog = Math.min(1, motion.held / 3);
-    if (bar) bar.style.width = Math.round(motion.prog * 100) + '%';
-    if (n) n.textContent = Math.max(1, Math.ceil(3 - motion.held));
+    if (motion.holding) motion.held += dt;               // holding the screen: a step every 0.6 s
+    const steps = Math.min(STEPS, motion.steps + Math.floor(motion.held / 0.6));
+    motion.prog = steps / STEPS;
+    if (n && n.textContent !== String(steps)) { n.textContent = steps; if (steps && navigator.vibrate) navigator.vibrate(30); }
+    const dots = document.getElementById('mvDots');
+    if (dots) [...dots.children].forEach((d, i) => d.classList.toggle('on', i < steps));
   }
   if (motion.prog >= 1) {
     motion.done = true;
-    if (n) n.innerHTML = I.check(task.move === 'shake' ? 40 : 120);
+    if (n) n.innerHTML = I.check(task.move === 'shake' ? 40 : 110);
     if (navigator.vibrate) navigator.vibrate(80);
     setTimeout(wakeUp, 700);
   }
