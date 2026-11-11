@@ -325,6 +325,17 @@ svg,img{display:block;flex:none}
 .swatches{display:flex;gap:12px;margin-top:10px}
 .sw{width:36px;height:36px;border-radius:50%;box-shadow:0 0 0 2px var(--bg)}
 .sw.on{box-shadow:0 0 0 3px var(--bg),0 0 0 5px #d8d5f3}
+.pick-list{max-height:216px;overflow-y:auto;margin:8px -4px 0;-webkit-overflow-scrolling:touch}
+.pick{display:flex;align-items:center;gap:12px;width:100%;padding:8px 4px;text-align:left;font:600 16px var(--rnd);color:var(--title)}
+.pick span{flex:1}
+.pick .tick{width:24px;height:24px;border-radius:50%;border:1.5px solid var(--line2);flex:none;position:relative}
+.pick.on .tick{background:#d8d5f3;border-color:#d8d5f3}
+.pick.on .tick::after{content:"";position:absolute;left:8px;top:4px;width:5px;height:10px;border:solid var(--k);border-width:0 2.5px 2.5px 0;transform:rotate(45deg)}
+.leave{display:block;margin:28px auto 0;padding:10px 20px;font:700 16px var(--rnd);color:#e39a92}
+.confirm-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9}
+.scr>.confirm-bg{position:fixed !important;z-index:9 !important}
+.scr>.sheet.confirm{position:fixed !important;z-index:10 !important}
+.pill.danger{background:#e39a92;color:#2a1416;box-shadow:0 5px 0 #b06f68;align-self:stretch;text-align:center}
 </style>
 </head>
 <body>
@@ -389,8 +400,15 @@ let myGroups = Array.isArray(saved.groups) ? saved.groups.filter(g => typeof g =
 // Each group has a color its creator picks; IXD 415 is pink.
 const GROUP_COLORS = [['#8c4f78', '#6b3b5c'], ['#454f86', '#323a66'], ['#46705f', '#345446'], ['#5b4f86', '#433a64'], ['#3f6b78', '#2e505b'], ['#8a6a45', '#6a5034']];
 let groupColors = saved.groupColors && typeof saved.groupColors === 'object' ? saved.groupColors : {};
-const gcol = g => GROUP_COLORS[groupColors[g] != null ? groupColors[g] : (g === 'IXD 415' ? 0 : 1)] || GROUP_COLORS[0];
+const gcol = g => { let i = groupColors[g];
+  if (i == null && typeof groupDef === 'function') { const d = groupDef(g); if (d) i = d.color; }
+  return GROUP_COLORS[i != null ? i : (g === 'IXD 415' ? 0 : 1)] || GROUP_COLORS[0]; };
 const gvars = g => { const c = gcol(g); return `--gc:${c[0]};--gd:${c[1]}`; };
+// Groups I created: { name, color, members: [{ key, name }] }. Shared with everyone so the people I added get an invite.
+let ownGroups = Array.isArray(saved.ownGroups) ? saved.ownGroups.filter(g => g && typeof g.name === 'string') : [];
+// What I know about custom groups I'm in (from whoever created them).
+let groupDefs = saved.groupDefs && typeof saved.groupDefs === 'object' ? saved.groupDefs : {};
+let declinedGroups = [];
 let recent = Array.isArray(saved.recent) ? saved.recent.filter(x => x && typeof x === 'object').slice(0, 4) : [];
 const blankMe = () => ({ gen: 0, joinedAt: 0, round: 0, status: 'asleep', snoozes: 0, snoozeUntil: 0, upAt: 0, declined: 0 });
 let me = Object.assign(blankMe(), saved.me || {});
@@ -401,7 +419,7 @@ const peers = new Map();       // key -> latest message from that phone
 let ui = { sheet: nick ? null : 'first', groupInviteAt: 0, screen: '', view: 'home', task: null, draft: null, editMode: null, col: 'm', notifSeen: 0, lastHtml: '', prevStatus: {} };
 
 function save() {
-  try { sessionStorage.setItem(STORE, JSON.stringify({ key: myKey, nick, groups: myGroups, groupColors, recent, me, alarm, lastTs: resumed ? Date.now() : bootLast })); } catch (e) {}
+  try { sessionStorage.setItem(STORE, JSON.stringify({ key: myKey, nick, groups: myGroups, groupColors, ownGroups, groupDefs, recent, me, alarm, lastTs: resumed ? Date.now() : bootLast })); } catch (e) {}
 }
 
 /* ================= Alarm model ================= */
@@ -443,7 +461,8 @@ function adopt(a) {
 let client = null, live = false, brokerIx = 0, lastSent = '';
 function payload() {
   return { key: myKey, nick, joined: !!alarm && me.gen === alarm.gen, gen: me.gen, joinedAt: me.joinedAt,
-    round: me.round, status: me.status, snoozes: me.snoozes, snoozeUntil: me.snoozeUntil, upAt: me.upAt, alarm };
+    round: me.round, status: me.status, snoozes: me.snoozes, snoozeUntil: me.snoozeUntil, upAt: me.upAt, alarm,
+    groups: myGroups, og: ownGroups };
 }
 function publish(force) {
   save();
@@ -522,8 +541,12 @@ function computeTeam(now = Date.now()) {
     list.push({ key: p.key, name: clean(p.nick, 20) || 'Teammate', status, snoozes, upAt, joinedAt: num(p.joinedAt) });
   }
   list.sort((a, b) => a.joinedAt - b.joinedAt);
-  const nFake = Math.max(0, TEAM_SIZE - list.length - (me.gen === alarm.gen ? 0 : 1));
-  for (let i = 0; i < nFake; i++) {
+  let fakeIx;
+  if (alarm.team === MY_GROUP || !groupDef(alarm.team)) {
+    const nFake = Math.max(0, TEAM_SIZE - list.length - (me.gen === alarm.gen ? 0 : 1));
+    fakeIx = Array.from({ length: nFake }, (_, i) => i);
+  } else fakeIx = groupMembers(alarm.team).filter(m => m.fake).map(m => +m.key.slice(1));
+  for (const i of fakeIx) {
     const f = live ? fakeState(i, now) : { status: 'asleep', snoozes: 0 };
     list.push(Object.assign({ key: 'f' + i, fake: true, name: FAKES[i % FAKES.length] }, f));
   }
@@ -610,10 +633,56 @@ function remember(a) {
 // Member counts + faces for "My groups" (IXD 415 is the live class group).
 function groupMembers(g) {
   if (g === MY_GROUP) return roster();
-  return [{ key: myKey, me: true, name: nick || 'You' }];
+  const def = groupDef(g);
+  if (!def) return [{ key: myKey, me: true, name: nick || 'You' }];
+  const list = [], seen = new Set();
+  const add = (key, name) => { if (seen.has(key)) return; seen.add(key); list.push(key === myKey ? { key, me: true, name: nick || 'You' } : { key, fake: key[0] === 'f', name }); };
+  add(def.byKey, def.by);
+  def.members.forEach(m => add(m.key, m.name));
+  return list;
+}
+// A custom group's definition: my own, one I joined, or one someone is inviting me to.
+function groupDef(g) {
+  const own = ownGroups.find(x => x.name === g);
+  if (own) return { name: g, color: own.color, by: nick || 'You', byKey: myKey, members: own.members };
+  if (groupDefs[g]) return groupDefs[g];
+  const inv = groupInvites().find(x => x.name === g);
+  return inv || null;
+}
+// Custom groups other people created that include me and I haven't answered.
+function groupInvites() {
+  const out = [], now = Date.now();
+  for (const p of peers.values()) {
+    if (now - num(p.ts) > ONLINE_MS || !Array.isArray(p.og)) continue;
+    for (const g of p.og) {
+      if (!g || typeof g.name !== 'string' || !Array.isArray(g.members)) continue;
+      const name = clean(g.name, 30);
+      if (!name || myGroups.includes(name) || declinedGroups.includes(name) || !g.members.some(m => m && m.key === myKey)) continue;
+      out.push({ name, color: Math.max(0, Math.min(GROUP_COLORS.length - 1, num(g.color))), by: clean(p.nick, 20) || 'A teammate', byKey: p.key,
+        members: g.members.filter(m => m && typeof m.key === 'string').map(m => ({ key: m.key, name: clean(m.name, 20) || 'Teammate' })) });
+    }
+  }
+  return out;
+}
+function joinGroup(g) {
+  if (myGroups.includes(g)) return;
+  if (g !== MY_GROUP) { const inv = groupInvites().find(x => x.name === g); if (!inv) return; groupDefs[g] = inv; groupColors[g] = inv.color; }
+  myGroups.push(g);
+}
+function leaveGroup(g) {
+  myGroups = myGroups.filter(x => x !== g);
+  ownGroups = ownGroups.filter(x => x.name !== g);
+  delete groupDefs[g];
+  if (g !== MY_GROUP) declinedGroups.push(g);
+  if (alarm && alarm.team === g && me.gen === alarm.gen) me = blankMe();
+}
+function knownPeople() {
+  const seen = new Set([myKey]), out = [];
+  for (const g of myGroups) for (const p of groupMembers(g)) if (!seen.has(p.key)) { seen.add(p.key); out.push(p); }
+  return out.sort((a, b) => (a.fake ? 1 : 0) - (b.fake ? 1 : 0));
 }
 function groupInfo(g, crew) {
-  const list = g === MY_GROUP ? crew : groupMembers(g);
+  const list = g === MY_GROUP ? crew : groupMembers(g);   // custom groups list who was added
   return { n: list.length, faces: list.slice(0, 3) };
 }
 
@@ -676,7 +745,7 @@ const views = {
     const up = member && alarm && alarm.team === g && !(alarm.ringAt && Date.now() >= alarm.ringAt) ? alarm : null;
     return `<div class="scr dash">
       ${backBtn}
-      <div class="date" style="margin:0 4px">${member ? 'Group' : "You're invited"}</div>
+      <div class="date" style="margin:0 4px">${member ? 'Group' : g === MY_GROUP ? "You're invited" : `${esc((groupDef(g) || {}).by || 'Someone')} invited you`}</div>
       <div class="hello" style="margin:4px 4px 0">${esc(g)}</div>
       <div class="card-s" style="margin:4px 4px 0">${list.length} ${list.length === 1 ? 'member' : 'members'}</div>
       ${up ? `<button class="card" data-act="${joinedNow() ? 'open' : 'invite'}" style="margin-top:22px">
@@ -687,8 +756,15 @@ const views = {
       ${list.map(p => `<div class="hrow" style="justify-content:flex-start;gap:14px">
         <i class="dot av" style="width:42px;height:42px;font-size:17px;background:${personColor(p.name)}">${initial(p)}</i>
         <div style="flex:1;min-width:0"><div class="hrow-t">${p.me ? esc(p.name) + ' (you)' : esc(p.name)}</div></div></div>`).join('')}
+      ${member ? `<button class="leave" data-act="leaveask">Leave group</button>` : ''}
       <div style="height:110px"></div>
-      <div class="dock">${member ? `<button class="pill" data-act="group" data-g="${esc(g)}">Create alarm for ${esc(g)}</button>` : `<button class="pill" data-act="accept">Join ${esc(g)}</button>`}</div>
+      <div class="dock">${member ? `<button class="pill" data-act="group" data-g="${esc(g)}">Create alarm for ${esc(g)}</button>` : `<button class="pill" data-act="accept" data-g="${esc(g)}">Join ${esc(g)}</button>`}</div>
+      ${ui.leaveAsk ? `<div class="confirm-bg" data-act="leaveno"></div>
+      <div class="sheet confirm"><i class="grab"></i>
+        <div class="head" style="font-size:18px">Leave ${esc(g)}?</div>
+        <div class="card-s" style="margin:6px 0 0">You'll stop getting its alarms${ownGroups.some(x => x.name === g) ? ', and the people you added won\'t see it anymore' : ''}.</div>
+        <button class="pill danger" data-act="leave-group" style="margin-top:24px">Leave group</button>
+        <button class="link" data-act="leaveno" style="margin-top:14px">Cancel</button></div>` : ''}
     </div>`;
   },
 
@@ -700,6 +776,9 @@ const views = {
       <div class="field" style="margin-top:22px"><input id="groupIn" maxlength="30" placeholder="Group name" autocapitalize="words" enterkeyhint="done"></div>
       <div class="label" style="margin-top:22px;font-size:15px">Color</div>
       <div class="swatches">${GROUP_COLORS.map((c, i) => `<button type="button" class="sw ${i === 0 ? 'on' : ''}" data-gc="${i}" style="background:${c[0]}" aria-label="Color ${i + 1}"></button>`).join('')}</div>
+      <div class="label" style="margin-top:22px;font-size:15px">Add people</div>
+      <div class="pick-list">${knownPeople().map(p => `<button type="button" class="pick" data-pk="${esc(p.key)}" data-pn="${esc(p.name)}">
+        <i class="dot av" style="width:36px;height:36px;font-size:15px;background:${personColor(p.name)}">${initial(p)}</i><span>${esc(p.name)}</span><i class="tick"></i></button>`).join('')}</div>
       <button class="pill" id="groupGo" type="submit" style="margin-top:22px" disabled>Create group</button>
     </form>`,
 
@@ -707,7 +786,7 @@ const views = {
 
   home: team => {
     const now = new Date(), inv = invited(), joined = alarm && me.gen === alarm.gen && ui.closed !== doneKey();
-    const hr = now.getHours(), hello = hr < 12 ? 'Good morning' : hr < 18 ? 'Good afternoon' : 'Good evening';
+    const hr = now.getHours(), hello = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
     const date = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
     const crew = alarm && joined ? team : roster();
     const t = alarm ? fmt(alarm.hh, alarm.mm) : null;
@@ -723,6 +802,10 @@ const views = {
         <span style="flex:1;min-width:0"><b>You're invited to ${esc(MY_GROUP)}</b><small>Group · ${roster().filter(p => !p.me).length} members</small></span><em>now</em></div>
         <div class="nrow" style="margin-top:12px"><div class="mini" style="margin:0">${roster().filter(p => !p.me).slice(0, 4).map((p, i) => dot(p, null, i)).join('')}</div>
         <button class="pill sm" data-act="accept" style="margin:0 0 0 auto">Accept</button></div></div>` : ''}
+      ${groupInvites().map(gi => `<div class="notif ncol gcard" style="--gc:${GROUP_COLORS[gi.color][0]};--gd:${GROUP_COLORS[gi.color][1]}" data-act="opengroup" data-g="${esc(gi.name)}" role="button">
+        <div class="nrow"><span style="flex:1;min-width:0"><b>${esc(gi.by)} invited you to ${esc(gi.name)}</b><small>Group · ${gi.members.length + 1} members</small></span><em>now</em></div>
+        <div class="nrow" style="margin-top:12px"><div class="mini" style="margin:0">${[{ name: gi.by }].concat(gi.members.filter(m => m.key !== myKey)).slice(0, 4).map((p, i) => dot(p, null, i)).join('')}</div>
+        <button class="pill sm" data-act="accept" data-g="${esc(gi.name)}" style="margin:0 0 0 auto">Accept</button></div></div>`).join('')}
       ${inv ? `<div class="notif ncol gcard ${ui.notifSeen === alarm.gen ? '' : 'drop'}" style="${gvars(alarm.team)}" data-act="invite" role="button">
         <div class="nrow">
         <span style="flex:1;min-width:0"><b>${esc(alarm.by || 'A teammate')} created an alarm in ${esc(alarm.team)}</b><small>${esc(alarm.name)} · ${t.hm} ${t.ap}</small></span><em>now</em></div>
@@ -948,9 +1031,12 @@ function onEnter(screen) {
     const upd = () => { go.disabled = !clean(inp.value, 30); }; inp.addEventListener('input', upd);
     setTimeout(() => inp.focus(), 250);
     let pick = 0;
+    f.addEventListener('click', e => { const pk = e.target.closest('.pick'); if (pk) { pk.classList.toggle('on'); return; } });
     f.addEventListener('click', e => { const b = e.target.closest('[data-gc]'); if (!b) return; pick = +b.dataset.gc; f.querySelectorAll('.sw').forEach(x => x.classList.toggle('on', x === b)); });
     f.addEventListener('submit', e => { e.preventDefault(); const v = clean(inp.value, 30); if (!v) return;
-      if (!myGroups.includes(v)) myGroups.push(v); groupColors[v] = pick; ui.newGroup = false; publish(true); tick(); }); }
+      const members = [...f.querySelectorAll('.pick.on')].map(x => ({ key: x.dataset.pk, name: x.dataset.pn }));
+      if (!myGroups.includes(v)) myGroups.push(v); groupColors[v] = pick;
+      ownGroups = ownGroups.filter(x => x.name !== v).concat([{ name: v, color: pick, members }]); ui.newGroup = false; publish(true); tick(); }); }
   if (screen === 'name') { const f = document.getElementById('nameForm'), inp = document.getElementById('nameIn'), go = document.getElementById('nameGo');
     const upd = () => { go.disabled = !clean(inp.value, 20); }; upd(); inp.addEventListener('input', upd);
     setTimeout(() => inp.focus(), 250);
@@ -1098,7 +1184,10 @@ function doAct(act, b) {
     case 'opengroup': ui.groupName = data.g; ui.view = 'group'; break;
     case 'newgroup': ui.bgHtml = ui.lastHtml; ui.newGroup = true; break;
     case 'close': ui.closed = doneKey(); ui.view = 'home'; break;
-    case 'accept': if (!myGroups.includes(MY_GROUP)) myGroups.push(MY_GROUP); publish(true); break;
+    case 'accept': joinGroup(data.g || MY_GROUP); publish(true); break;
+    case 'leaveask': ui.leaveAsk = true; break;
+    case 'leaveno': ui.leaveAsk = false; break;
+    case 'leave-group': leaveGroup(ui.groupName); ui.leaveAsk = false; ui.view = 'home'; publish(true); break;
     case 'new': case 'group': ui.draft = { name: '', team: act === 'group' ? data.g : (myGroups[0] || ''), hh: soon().hh, mm: soon().mm, tasks: true, types: ['photo'] }; ui.editMode = 'new'; ui.col = 'none'; break;
     case 'reuse': { const x = history()[+data.i]; if (!x) break;
       ui.draft = { name: x.name, team: x.team, hh: x.hh, mm: x.mm, tasks: !!x.tasks, types: (x.types || ['photo', 'move']).slice() }; ui.editMode = 'new'; ui.col = 'none'; break; }
