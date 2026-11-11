@@ -54,6 +54,8 @@ svg,img{display:block;flex:none}
 .sel-opt.on{color:#fff}
 
 /* time picker */
+/* the down arrow hangs below the picker, so keep it above the spacer that follows */
+.scr>.picker{z-index:3 !important}
 .picker{display:flex;align-items:center;justify-content:center;gap:6px;margin:0 -30px;touch-action:none}
 .col{position:relative;width:140px;height:180px;border-radius:11px;border:1px solid transparent;overflow:hidden;touch-action:none;cursor:grab}
 .col.h{width:118px}
