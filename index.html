@@ -631,11 +631,11 @@ function pickerHtml(d) {
 
 const views = {
   group: () => {
-    const g = ui.groupName, list = groupMembers(g);
-    const up = alarm && alarm.team === g && !(alarm.ringAt && Date.now() >= alarm.ringAt) ? alarm : null;
+    const g = ui.groupName, member = myGroups.includes(g), list = groupMembers(g).filter(p => member || !p.me);
+    const up = member && alarm && alarm.team === g && !(alarm.ringAt && Date.now() >= alarm.ringAt) ? alarm : null;
     return `<div class="scr dash">
       ${backBtn}
-      <div class="date" style="margin:0 4px">Group</div>
+      <div class="date" style="margin:0 4px">${member ? 'Group' : "You're invited"}</div>
       <div class="hello" style="margin:4px 4px 0">${esc(g)}</div>
       <div class="card-s" style="margin:4px 4px 0">${list.length} ${list.length === 1 ? 'member' : 'members'}</div>
       ${up ? `<button class="card" data-act="${joinedNow() ? 'open' : 'invite'}" style="margin-top:22px">
@@ -647,7 +647,7 @@ const views = {
         <i class="dot av" style="width:42px;height:42px;font-size:17px;background:${personColor(p.name)}">${initial(p)}</i>
         <div style="flex:1;min-width:0"><div class="hrow-t">${p.me ? esc(p.name) + ' (you)' : esc(p.name)}</div></div></div>`).join('')}
       <div style="height:110px"></div>
-      <div class="dock"><button class="pill" data-act="group" data-g="${esc(g)}">Create alarm for ${esc(g)}</button></div>
+      <div class="dock">${member ? `<button class="pill" data-act="group" data-g="${esc(g)}">Create alarm for ${esc(g)}</button>` : `<button class="pill" data-act="accept">Join ${esc(g)}</button>`}</div>
     </div>`;
   },
 
@@ -675,9 +675,9 @@ const views = {
     return `<div class="scr dash">
       <div class="dtop"><div><div class="date">${date}</div><div class="hello">${hello}${nick ? ', ' + esc(nick) : ''}</div></div>
         <span class="dot av" style="width:44px;height:44px;font-size:18px;background:${nick ? personColor(nick) : 'var(--line)'};color:${nick ? '#1d1f34' : 'var(--sub)'}">${nick ? esc(nick[0].toUpperCase()) : '<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4.2"/><path d="M3.5 21c.8-4.4 4.3-7 8.5-7s7.7 2.6 8.5 7z"/></svg>'}</span></div>
-      ${groupInvite ? `<div class="notif ncol ${ui.giShown ? '' : 'drop'}">
+      ${groupInvite ? `<div class="notif ncol ${ui.giShown ? '' : 'drop'}" data-act="opengroup" data-g="${esc(MY_GROUP)}" role="button">
         <div class="nrow"><span class="appic">${I.people(20)}</span>
-        <span style="flex:1;min-width:0"><b>You're invited to ${esc(MY_GROUP)}</b><small>Group · ${roster().length} members</small></span><em>now</em></div>
+        <span style="flex:1;min-width:0"><b>You're invited to ${esc(MY_GROUP)}</b><small>Group · ${roster().filter(p => !p.me).length} members</small></span><em>now</em></div>
         <div class="nrow" style="margin-top:12px"><div class="mini" style="margin:0">${roster().filter(p => !p.me).slice(0, 4).map((p, i) => dot(p, null, i)).join('')}</div>
         <button class="pill sm" data-act="accept" style="margin:0 0 0 auto">Accept</button></div></div>` : ''}
       ${inv ? `<div class="notif ncol ${ui.notifSeen === alarm.gen ? '' : 'drop'}" data-act="invite" role="button">
