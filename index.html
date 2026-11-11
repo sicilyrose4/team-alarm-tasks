@@ -402,6 +402,7 @@ function until() {
   if (s >= 60) return Math.floor(s / 60) + 'm ' + String(s % 60).padStart(2, '0') + 's';
   return s + 's';
 }
+const doneKey = () => alarm ? alarm.gen + ':' + alarm.round : '';
 const joinedNow = () => !!alarm && me.gen === alarm.gen;
 const activeAlarm = () => !!alarm && !(alarm.ringAt && Date.now() >= alarm.ringAt && !joinedNow());
 // An invite shows on the home screen for alarms in my group I haven't answered yet, until it rings.
@@ -555,7 +556,7 @@ const views = {
   wait: () => `<div class="wait"><i></i></div>`,
 
   home: team => {
-    const now = new Date(), inv = invited(), joined = alarm && me.gen === alarm.gen;
+    const now = new Date(), inv = invited(), joined = alarm && me.gen === alarm.gen && ui.closed !== doneKey();
     const hr = now.getHours(), hello = hr < 12 ? 'Good morning' : hr < 18 ? 'Good afternoon' : 'Good evening';
     const date = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
     const crew = alarm && joined ? team : roster();
@@ -688,7 +689,7 @@ const views = {
       <div class="count"><b>${team.length}</b><span>teammates<br>up</span></div>
       <div class="sect"><div class="label">Turned off</div><div class="stgrid">${team.map(p => person(p, ST_COL)).join('')}</div></div>
       <div class="grow" style="min-height:40px"></div>
-      <button class="pill" data-act="next">Next alarm</button>
+      <button class="pill" data-act="close">Close</button>
     </div>`,
 
   photo: () => {
@@ -730,7 +731,7 @@ function screenFor(team, now) {
     if (ui.view === 'group') return 'group';
     return 'home';
   }
-  if (allUp(team)) return 'done';
+  if (allUp(team)) return ui.closed === doneKey() ? (ui.view === 'group' ? 'group' : 'home') : 'done';
   const st = myStatus(now);
   if (st !== 'asleep') return 'status';
   if (ui.task) return ui.task;
@@ -913,6 +914,7 @@ function doAct(act, b) {
     }
     case 'opengroup': ui.groupName = data.g; ui.view = 'group'; break;
     case 'newgroup': ui.bgHtml = ui.lastHtml; ui.newGroup = true; break;
+    case 'close': ui.closed = doneKey(); ui.view = 'home'; break;
     case 'accept': if (!myGroups.includes(MY_GROUP)) myGroups.push(MY_GROUP); publish(true); break;
     case 'new': case 'group': ui.draft = { name: '', team: act === 'group' ? data.g : (myGroups[0] || ''), hh: soon().hh, mm: soon().mm, tasks: true, types: ['photo'] }; ui.editMode = 'new'; ui.col = 'm'; break;
     case 'reuse': { const x = history()[+data.i]; if (!x) break;
