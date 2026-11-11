@@ -728,9 +728,9 @@ const views = {
       ${d.tasks ? `<div class="chips">
         <button class="chip ${d.types.includes('photo') ? 'on' : ''}" data-act="type" data-v="photo">${I.cam(18)}Photo</button>
         <button class="chip ${d.types.includes('move') ? 'on' : ''}" data-act="type" data-v="move">${I.shake(18)}Move</button></div>` : ''}
-      <div style="height:${(d.tasks ? 64 : 84) + 130}px"></div>
-      <div class="dock col-dock"><button class="pill" data-act="create">${ui.editMode === 'new' ? 'Create' : 'Save'}</button>
-        <button class="link" data-act="cancel">Cancel</button></div>
+      <div class="grow" style="min-height:${d.tasks ? 64 : 110}px"></div>
+      <button class="pill" data-act="create">${ui.editMode === 'new' ? 'Create' : 'Save'}</button>
+      <button class="link" data-act="cancel">Cancel</button>
       ${img(A.glowCreate, 642, 448, 'glow bot')}
     </div>`;
   },
