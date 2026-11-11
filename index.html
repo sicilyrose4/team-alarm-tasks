@@ -41,7 +41,7 @@ svg,img{display:block;flex:none}
 .field{height:72px;border-radius:24px;background:var(--deep);border:1px solid var(--line);display:flex;align-items:center;padding:0 17px}
 .field input{background:none;border:0;outline:0;width:100%;font:400 32px var(--sf);color:var(--ink);-webkit-user-select:text;user-select:text}
 .field input::placeholder{color:var(--line)}
-.scr>.sel-slot{height:53px;margin-top:26px;position:relative;z-index:5}
+.scr>.sel-slot{height:53px;margin-top:26px;position:relative;z-index:5 !important}
 .sel{position:absolute;left:0;right:0;top:0;border-radius:24px;background:var(--line);border:1px solid var(--line2);overflow:hidden}
 .sel.open{box-shadow:0 18px 40px rgba(6,6,15,.55)}
 .sel-btn{height:51px;width:100%;display:flex;align-items:center;justify-content:space-between;padding:0 14px 0 17px;font:400 18px var(--sf);color:var(--ph);text-align:left}
@@ -141,10 +141,6 @@ svg,img{display:block;flex:none}
 .roster{display:grid;grid-template-columns:repeat(6,1fr);gap:14px 6px;margin-top:16px}
 .roster .dot{width:40px;height:40px;font-size:16px}
 .roster .pp span{font-size:12px}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.stats .card{padding:14px 12px;margin:0}
-.stats b{display:block;font:300 30px/1 var(--rnd);color:var(--ink)}
-.stats span{display:block;font:400 12px var(--sf);color:var(--sub);margin-top:6px}
 .hrow{display:flex;justify-content:space-between;align-items:center;padding:13px 4px;border-bottom:1px solid var(--line)}
 .hrow-t{font:500 16px var(--sf);color:var(--title)}
 .notif .appic{width:38px;height:38px;border-radius:10px;background:var(--up);color:#1d1f34;display:flex;align-items:center;justify-content:center;flex:none}
@@ -156,12 +152,15 @@ svg,img{display:block;flex:none}
 @keyframes up{0%{transform:translateY(100%)}100%{transform:none}}
 
 /* home notification */
-.scr>.notif-slot{position:fixed;left:12px;right:12px;top:calc(env(safe-area-inset-top) + 8px);z-index:6;max-width:496px;margin:0 auto}
-.notif{display:flex;gap:12px;align-items:center;width:100%;padding:14px 16px;box-shadow:0 14px 34px rgba(6,6,15,.5);border-radius:24px;background:var(--line);border:1px solid var(--line2);color:var(--btn)}
+.grow-row{width:100%;gap:14px;justify-content:flex-start}
+.reuse{flex:none;border:1px solid var(--line2);color:var(--btn);border-radius:18px;padding:7px 16px;font:500 15px var(--sf);margin-left:12px}
+.reuse:active{background:var(--line)}
+.reuse:disabled{opacity:.35}
+.notif{display:flex;gap:12px;align-items:center;width:100%;padding:14px 16px;margin-bottom:12px;border-radius:24px;background:var(--line);border:1px solid var(--line2);color:var(--btn)}
 .notif b{display:block;font:500 16px var(--sf);color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .notif small{display:block;font:400 14px var(--sf);color:var(--sub);margin-top:3px}
 .notif.drop{animation:drop .5s cubic-bezier(.2,.9,.3,1.2)}
-@keyframes drop{0%{transform:translateY(-140%);opacity:0}100%{transform:none;opacity:1}}
+@keyframes drop{0%{transform:translateY(-12px) scale(.97);opacity:0}100%{transform:none;opacity:1}}
 
 /* photo */
 .cam{position:fixed;inset:0;background:#06060f;display:flex;flex-direction:column}
@@ -221,6 +220,7 @@ let saved = {};
 try { saved = JSON.parse(localStorage.getItem(STORE)) || {}; } catch (e) {}
 const myKey = saved.key || 'p' + Math.random().toString(36).slice(2, 10);
 let nick = clean(saved.nick, 20);
+let recent = Array.isArray(saved.recent) ? saved.recent.filter(x => x && typeof x === 'object').slice(0, 4) : [];
 const blankMe = () => ({ gen: 0, joinedAt: 0, round: 0, status: 'asleep', snoozes: 0, snoozeUntil: 0, upAt: 0, declined: 0 });
 let me = Object.assign(blankMe(), saved.me || {});
 let alarm = cleanAlarm(saved.alarm);
@@ -230,7 +230,7 @@ const peers = new Map();       // key -> latest message from that phone
 let ui = { screen: '', view: 'home', task: null, draft: null, editMode: null, col: 'm', notifSeen: 0, lastHtml: '', prevStatus: {} };
 
 function save() {
-  try { localStorage.setItem(STORE, JSON.stringify({ key: myKey, nick, me, alarm, lastTs: resumed ? Date.now() : bootLast })); } catch (e) {}
+  try { localStorage.setItem(STORE, JSON.stringify({ key: myKey, nick, recent, me, alarm, lastTs: resumed ? Date.now() : bootLast })); } catch (e) {}
 }
 
 /* ================= Alarm model ================= */
@@ -421,24 +421,35 @@ function roster() {
   for (let i = 0; list.length < TEAM_SIZE; i++) list.push({ key: 'f' + i, fake: true, name: FAKES[i % FAKES.length] });
   return list;
 }
-// Past mornings for the dashboard (same on every phone for a given day).
+// Recent alarms for the dashboard: ones this phone set or joined, then sample past mornings
+// (same on every phone for a given day). Each row has what "Reuse" needs to prefill Create.
 function history() {
   const day0 = new Date(); day0.setHours(0, 0, 0, 0);
   const r = rand(Math.floor(day0.getTime() / 864e5));
-  const rows = [], names = ['Morning workout', 'Early lift', 'Morning workout', 'Film session'];
-  let total = 0;
-  for (let i = 1, n = 0; n < 4 && i < 10; i++) {
+  const dayName = t => { const d = new Date(t); d.setHours(0, 0, 0, 0); const n = Math.round((day0 - d) / 864e5);
+    return n <= 0 ? 'Today' : n === 1 ? 'Yesterday' : d.toLocaleDateString('en-US', { weekday: 'short' }); };
+  const rows = recent.map(x => Object.assign({}, x, { day: dayName(x.at) }));
+  const names = ['Morning workout', 'Early lift', 'Morning workout', 'Film session'];
+  for (let i = 1, n = 0; rows.length < 4 && i < 12; i++) {
     const d = new Date(day0.getTime() - i * 864e5);
     if (d.getDay() === 0 || d.getDay() === 6) continue;
-    const of = TEAM_SIZE, up = r() < 0.75 ? of : of - 1, secs = 90 + Math.floor(r() * 200);
-    total += secs;
-    rows.push({ title: names[n], day: n === 0 && i === 1 ? 'Yesterday' : d.toLocaleDateString('en-US', { weekday: 'short' }),
-      time: (r() < 0.5 ? '5:45' : '6:00') + ' AM', up, of, all: up === of, tt: Math.floor(secs / 60) + ':' + String(secs % 60).padStart(2, '0') + ' team time' });
+    const early = r() < 0.5;
+    rows.push({ name: names[n % names.length], team: MY_GROUP, hh: 5 + (early ? 0 : 1), mm: early ? 45 : 0, tasks: r() < 0.7, types: ['photo', 'move'], day: dayName(d.getTime()) });
     n++;
   }
-  let streak = 0; for (const x of rows) { if (x.all) streak++; else break; }
-  const avg = Math.round(total / rows.length);
-  return { rows, streak, avg: Math.floor(avg / 60) + ':' + String(avg % 60).padStart(2, '0'), onTime: Math.round(rows.filter(x => x.all).length / rows.length * 100) };
+  return rows.slice(0, 4);
+}
+function remember(a) {
+  recent = [{ name: a.name, team: a.team, hh: a.hh, mm: a.mm, tasks: a.tasks, types: a.types.slice(), at: Date.now() }]
+    .concat(recent.filter(x => !(x.name === a.name && x.team === a.team && x.hh === a.hh && x.mm === a.mm))).slice(0, 4);
+  save();
+}
+// Member counts + faces for "My groups" (IXD 415 is the live class group).
+function groupInfo(g, crew) {
+  if (g === MY_GROUP) return { n: crew.length, faces: crew.slice(0, 3) };
+  const r = rand(g.length * 7919 + g.charCodeAt(0));
+  const n = 6 + Math.floor(r() * 9), start = Math.floor(r() * FAKES.length);
+  return { n, faces: [0, 1, 2].map(i => ({ name: FAKES[(start + i * 3) % FAKES.length] })) };
 }
 
 /* ================= Views ================= */
@@ -496,34 +507,26 @@ const views = {
         <div class="time" style="font-size:72px;justify-content:flex-start;margin-top:10px">${timeBig(alarm.hh, alarm.mm)}</div>
         <div class="card-t">${esc(alarm.name)}</div><div class="card-s">${esc(alarm.team)}${alarm.tasks ? ' · wake-up task on' : ''}</div>
         <div class="mini">${team.slice(0, 5).map((p, i) => dot(p, null, i)).join('')}<span>${team.length} going</span></div></button>`;
-    else if (inv) card = `<div class="card new">
-        <div class="card-top"><span class="label">New alarm</span><span class="chipx hot">Invite</span></div>
-        <div class="time" style="font-size:72px;justify-content:flex-start;margin-top:10px">${timeBig(alarm.hh, alarm.mm)}</div>
-        <div class="card-t">${esc(alarm.name)}</div><div class="card-s">${esc(alarm.by || 'A teammate')} invited ${esc(alarm.team)}</div>
-        <button class="pill sm" data-act="invite">View invite</button></div>`;
     else card = `<div class="card">
         <div class="card-top"><span class="label">Next alarm</span></div>
         <div class="card-t" style="margin-top:14px;color:var(--sub)">No alarm set</div>
         <div class="card-s">Wake up together with ${esc(MY_GROUP)}.</div>
         ${activeAlarm() || !heard ? '' : `<button class="pill sm" data-act="new">Create alarm</button>`}</div>`;
-    const h = history();
-    return `<div class="scr dash" style="${inv ? 'padding-top:calc(env(safe-area-inset-top) + 104px)' : ''}">
-      <div class="notif-slot">${inv ? `<button class="notif ${ui.notifSeen === alarm.gen ? '' : 'drop'}" data-act="invite">
-        <span class="appic">${I.bell(20)}</span>
-        <span style="flex:1;min-width:0;text-align:left"><b>${esc(alarm.by || 'A teammate')} invited you to an alarm</b><small>${esc(alarm.name)} · ${t.hm} ${t.ap}</small></span><em>now</em></button>` : ''}</div>
+    const rows = history(), busy = activeAlarm();
+    return `<div class="scr dash">
       <div class="dtop"><div><div class="date">${date}</div><div class="hello">${hello}${nick ? ', ' + esc(nick) : ''}</div></div>
         <span class="dot av" style="width:44px;height:44px;font-size:18px;background:${nick ? personColor(nick) : 'var(--line)'};color:${nick ? '#1d1f34' : 'var(--sub)'}">${nick ? esc(nick[0].toUpperCase()) : '<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4.2"/><path d="M3.5 21c.8-4.4 4.3-7 8.5-7s7.7 2.6 8.5 7z"/></svg>'}</span></div>
-      ${card}
-      <div class="card">
-        <div class="card-top"><span class="card-t" style="margin:0">${esc(MY_GROUP)}</span><span class="label">${crew.length} members</span></div>
-        <div class="roster">${crew.slice(0, 12).map(p => person(p)).join('')}</div></div>
-      <div class="stats">
-        <div class="card"><b>${h.streak}</b><span>day streak</span></div>
-        <div class="card"><b>${h.avg}</b><span>avg team time</span></div>
-        <div class="card"><b>${h.onTime}%</b><span>up on time</span></div></div>
-      <div class="label" style="margin:28px 0 6px">Recent</div>
-      ${h.rows.map(x => `<div class="hrow"><div><div class="hrow-t">${x.title}</div><div class="card-s" style="margin:2px 0 0">${x.day} · ${x.time}</div></div>
-        <div style="text-align:right"><div class="hrow-t" style="color:${x.all ? 'var(--up)' : 'var(--sleep)'}">${x.up}/${x.of} up</div><div class="card-s" style="margin:2px 0 0">${x.tt}</div></div></div>`).join('')}
+      ${inv ? `<button class="notif ${ui.notifSeen === alarm.gen ? '' : 'drop'}" data-act="invite">
+        <span class="appic">${I.bell(20)}</span>
+        <span style="flex:1;min-width:0;text-align:left"><b>${esc(alarm.by || 'A teammate')} invited you to an alarm</b><small>${esc(alarm.name)} · ${t.hm} ${t.ap}</small></span><em>now</em></button>` : card}
+      <div class="label" style="margin:26px 4px 4px">My groups</div>
+      ${GROUPS.map(g => { const gi = groupInfo(g, crew); return `<button class="hrow grow-row" data-act="group" data-g="${esc(g)}">
+        <div class="mini" style="margin:0;width:78px">${gi.faces.map((p, i) => dot(p, null, i)).join('')}</div>
+        <div style="flex:1;min-width:0;text-align:left"><div class="hrow-t">${esc(g)}</div><div class="card-s" style="margin:2px 0 0">${gi.n} members</div></div>
+        <img src="assets/chevron-down.svg" width="27" height="27" alt="" style="transform:rotate(-90deg)"></button>`; }).join('')}
+      <div class="label" style="margin:26px 4px 4px">Recent</div>
+      ${rows.map((x, i) => { const f = fmt(x.hh, x.mm); return `<div class="hrow"><div style="min-width:0"><div class="hrow-t">${esc(x.name)}</div><div class="card-s" style="margin:2px 0 0">${x.day} · ${f.hm} ${f.ap} · ${esc(x.team)}</div></div>
+        <button class="reuse" data-act="reuse" data-i="${i}" ${busy ? 'disabled' : ''}>Reuse</button></div>`; }).join('')}
     </div>`;
   },
 
@@ -757,13 +760,14 @@ document.addEventListener('click', e => {
   unlockAudio();
   const act = b.dataset.act;
   // First join or create asks for a first name, then carries on.
-  if (!nick && (act === 'join' || act === 'new')) { ui.bgHtml = ui.lastHtml; ui.sheet = act; tick(); return; }
+  if (!nick && ['join', 'new', 'group', 'reuse'].includes(act)) { ui.bgHtml = ui.lastHtml; ui.sheet = act; ui.sheetData = Object.assign({}, b.dataset); tick(); return; }
+  if (act === 'reuse' && b.disabled) return;
   if (act === 'unsheet') { ui.sheet = null; tick(); return; }
   doAct(act, b);
   tick();
 });
 function doAct(act, b) {
-  const now = Date.now();
+  const now = Date.now(), data = b ? b.dataset : (ui.sheetData || {});
   switch (act) {
     case 'tasks': ui.draft.tasks = !ui.draft.tasks; rerender(); break;
     case 'type': {
@@ -780,9 +784,11 @@ function doAct(act, b) {
         alarm = cleanAlarm(Object.assign({ gen: now * 1000 + Math.floor(Math.random() * 1000), v: 1, t: now, creator: myKey, by: nick, round: 1 }, fields));
         me = Object.assign(blankMe(), { gen: alarm.gen, joinedAt: now });
       }
-      ui.draft = null; ui.editMode = null; ui.view = 'lobby'; keepAwake(); publish(); break;
+      remember(alarm); ui.draft = null; ui.editMode = null; ui.view = 'lobby'; keepAwake(); publish(); break;
     }
-    case 'new': ui.draft = { name: '', team: '', hh: soon().hh, mm: soon().mm, tasks: true, types: ['photo', 'move'] }; ui.editMode = 'new'; ui.col = 'm'; break;
+    case 'new': case 'group': if (activeAlarm()) break; ui.draft = { name: '', team: act === 'group' ? data.g : '', hh: soon().hh, mm: soon().mm, tasks: true, types: ['photo', 'move'] }; ui.editMode = 'new'; ui.col = 'm'; break;
+    case 'reuse': { const x = history()[+data.i]; if (!x || activeAlarm()) break;
+      ui.draft = { name: x.name, team: x.team, hh: x.hh, mm: x.mm, tasks: !!x.tasks, types: (x.types || ['photo', 'move']).slice() }; ui.editMode = 'new'; ui.col = 'm'; break; }
     case 'home': ui.view = 'home'; break;
     case 'invite': ui.view = 'invite'; break;
     case 'open': ui.view = 'lobby'; break;
@@ -792,7 +798,7 @@ function doAct(act, b) {
     case 'edit': ui.draft = draftFrom(alarm, { hh: alarm.hh, mm: alarm.mm }); ui.editMode = 'edit'; break;
     case 'next': ui.draft = draftFrom(alarm, soon()); ui.editMode = 'next'; break;
     case 'cancel': ui.draft = null; ui.editMode = null; break;
-    case 'join': me = Object.assign(blankMe(), { gen: alarm.gen, joinedAt: now }); ui.view = 'lobby'; keepAwake(); publish(); break;
+    case 'join': me = Object.assign(blankMe(), { gen: alarm.gen, joinedAt: now }); remember(alarm); ui.view = 'lobby'; keepAwake(); publish(); break;
     case 'snooze':
       if (me.snoozes >= MAX_SNOOZE) break;
       Object.assign(me, { round: alarm.round, status: 'snoozed', snoozes: me.snoozes + 1, snoozeUntil: now + SNOOZE_MS });
