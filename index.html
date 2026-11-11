@@ -321,6 +321,21 @@ svg,img{display:block;flex:none}
 <div id="app"></div>
 <script src="https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js"></script>
 <script>
+// GitHub Pages lets browsers keep this page for 10 minutes. If a newer version is live, load it once.
+(async () => {
+  try {
+    if (sessionStorage.getItem('tat-fresh') === location.search) return;
+    const r = await fetch(location.pathname, { cache: 'no-store', method: 'HEAD' });
+    const live = Date.parse(r.headers.get('last-modified') || ''), mine = Date.parse(document.lastModified);
+    if (live && mine && live - mine > 2000) {
+      const u = new URL(location.href); u.searchParams.set('v', String(live));
+      sessionStorage.setItem('tat-fresh', u.search);
+      location.replace(u.toString());
+    }
+  } catch (e) {}
+})();
+</script>
+<script>
 (() => {
 /* ================= Constants ================= */
 const TEAM_SIZE = 11, SNOOZE_MS = 30000, MAX_SNOOZE = 2, LEAD_MS = 15000;
