@@ -60,14 +60,14 @@ svg,img{display:block;flex:none}
 .picker .ap-col{margin-left:auto}
 /* hour wheel: fixed width, digits flush right, so the layout never moves (one or two digits, active or not) */
 .col.h{width:106px}
-.col.h .it,.col.h:not(.on) .it{text-align:right;padding-right:4px}
-.col{position:relative;width:112px;height:136px;border-radius:11px;border:1px solid transparent;overflow:hidden;touch-action:none;cursor:grab}
+.picker .col.h .it{text-align:right;padding-right:4px}
+.col{position:relative;width:106px;height:136px;border-radius:11px;border:1px solid transparent;overflow:hidden;touch-action:none;cursor:grab}
 
 .col.on{background:var(--deep);border-color:var(--line)}
 .col .it{position:absolute;left:0;right:0;top:0;height:84px;text-align:center;font:300 84px/1 var(--rnd);color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:-1px;will-change:transform;pointer-events:none}
 .col .it.nb{opacity:.4}
 .col:not(.on) .it.nb{display:none}
-.col.h:not(.on) .it{text-align:right;padding-right:10px}
+.col.h:not(.on) .it{text-align:right;padding-right:4px}
 .chev{position:absolute;left:50%;margin-left:-23.5px;width:27px;height:27px;padding:10px;box-sizing:content-box;border-radius:50%;display:none;z-index:2;cursor:pointer;transition:background .12s}
 .chev:active,.chev.press{background:rgba(203,205,223,.16)}
 .col-wrap{position:relative}
