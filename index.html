@@ -316,6 +316,15 @@ svg,img{display:block;flex:none}
 .ringpulse .ap{animation:ringglow 1s ease-in-out infinite}
 @keyframes ringglow{0%,100%{color:#9c9cae}45%{color:#ffffff}}
 .scr>.fab{width:auto;height:56px;border-radius:28px;padding:0 22px 0 18px;gap:8px;font:800 17px var(--rnd)}
+/* group colors: the group's own color on its invite, its alarms' invites and its row */
+.notif.gcard,.notif.gcard[data-act="invite"]{background:var(--gc);box-shadow:0 5px 0 var(--gd)}
+.notif.gcard .mini .dot{box-shadow:0 0 0 2.5px var(--gc)}
+.notif.gcard .pill,.notif.gcard[data-act="invite"] .pill{color:var(--gc)}
+.grow-row[style*="--gc"]{background:var(--gc);box-shadow:0 4px 0 var(--gd)}
+.grow-row[style*="--gc"] .mini .dot{box-shadow:0 0 0 2.5px var(--gc)}
+.swatches{display:flex;gap:12px;margin-top:10px}
+.sw{width:36px;height:36px;border-radius:50%;box-shadow:0 0 0 2px var(--bg)}
+.sw.on{box-shadow:0 0 0 3px var(--bg),0 0 0 5px #d8d5f3}
 </style>
 </head>
 <body>
@@ -377,6 +386,11 @@ try { saved = JSON.parse(sessionStorage.getItem(STORE)) || {}; } catch (e) {}
 const myKey = saved.key || 'p' + Math.random().toString(36).slice(2, 10);
 let nick = clean(saved.nick, 20);
 let myGroups = Array.isArray(saved.groups) ? saved.groups.filter(g => typeof g === 'string').slice(0, 8) : [];
+// Each group has a color its creator picks; IXD 415 is pink.
+const GROUP_COLORS = [['#8c4f78', '#6b3b5c'], ['#454f86', '#323a66'], ['#46705f', '#345446'], ['#5b4f86', '#433a64'], ['#3f6b78', '#2e505b'], ['#8a6a45', '#6a5034']];
+let groupColors = saved.groupColors && typeof saved.groupColors === 'object' ? saved.groupColors : {};
+const gcol = g => GROUP_COLORS[groupColors[g] != null ? groupColors[g] : (g === 'IXD 415' ? 0 : 1)] || GROUP_COLORS[0];
+const gvars = g => { const c = gcol(g); return `--gc:${c[0]};--gd:${c[1]}`; };
 let recent = Array.isArray(saved.recent) ? saved.recent.filter(x => x && typeof x === 'object').slice(0, 4) : [];
 const blankMe = () => ({ gen: 0, joinedAt: 0, round: 0, status: 'asleep', snoozes: 0, snoozeUntil: 0, upAt: 0, declined: 0 });
 let me = Object.assign(blankMe(), saved.me || {});
@@ -387,7 +401,7 @@ const peers = new Map();       // key -> latest message from that phone
 let ui = { sheet: nick ? null : 'first', groupInviteAt: 0, screen: '', view: 'home', task: null, draft: null, editMode: null, col: 'm', notifSeen: 0, lastHtml: '', prevStatus: {} };
 
 function save() {
-  try { sessionStorage.setItem(STORE, JSON.stringify({ key: myKey, nick, groups: myGroups, recent, me, alarm, lastTs: resumed ? Date.now() : bootLast })); } catch (e) {}
+  try { sessionStorage.setItem(STORE, JSON.stringify({ key: myKey, nick, groups: myGroups, groupColors, recent, me, alarm, lastTs: resumed ? Date.now() : bootLast })); } catch (e) {}
 }
 
 /* ================= Alarm model ================= */
@@ -684,6 +698,8 @@ const views = {
       <div class="head" style="font-size:18px">New group</div>
       <div class="card-s" style="margin:6px 0 0">Name it after your team or class.</div>
       <div class="field" style="margin-top:22px"><input id="groupIn" maxlength="30" placeholder="Group name" autocapitalize="words" enterkeyhint="done"></div>
+      <div class="label" style="margin-top:22px;font-size:15px">Color</div>
+      <div class="swatches">${GROUP_COLORS.map((c, i) => `<button type="button" class="sw ${i === 0 ? 'on' : ''}" data-gc="${i}" style="background:${c[0]}" aria-label="Color ${i + 1}"></button>`).join('')}</div>
       <button class="pill" id="groupGo" type="submit" style="margin-top:22px" disabled>Create group</button>
     </form>`,
 
@@ -702,12 +718,12 @@ const views = {
     return `<div class="scr dash">
       <div class="dtop"><div><div class="date">${date}</div><div class="hello">${hello}${nick ? ',<br>' + esc(nick) : ''}</div></div>
         <span class="dot av" style="width:44px;height:44px;font-size:18px;background:${nick ? personColor(nick) : 'var(--line)'};color:${nick ? '#1d1f34' : 'var(--sub)'}">${nick ? esc(nick[0].toUpperCase()) : '<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4.2"/><path d="M3.5 21c.8-4.4 4.3-7 8.5-7s7.7 2.6 8.5 7z"/></svg>'}</span></div>
-      ${groupInvite ? `<div class="notif ncol ${ui.giShown ? '' : 'drop'}" data-act="opengroup" data-g="${esc(MY_GROUP)}" role="button">
+      ${groupInvite ? `<div class="notif ncol gcard ${ui.giShown ? '' : 'drop'}" style="${gvars(MY_GROUP)}" data-act="opengroup" data-g="${esc(MY_GROUP)}" role="button">
         <div class="nrow">
         <span style="flex:1;min-width:0"><b>You're invited to ${esc(MY_GROUP)}</b><small>Group · ${roster().filter(p => !p.me).length} members</small></span><em>now</em></div>
         <div class="nrow" style="margin-top:12px"><div class="mini" style="margin:0">${roster().filter(p => !p.me).slice(0, 4).map((p, i) => dot(p, null, i)).join('')}</div>
         <button class="pill sm" data-act="accept" style="margin:0 0 0 auto">Accept</button></div></div>` : ''}
-      ${inv ? `<div class="notif ncol ${ui.notifSeen === alarm.gen ? '' : 'drop'}" data-act="invite" role="button">
+      ${inv ? `<div class="notif ncol gcard ${ui.notifSeen === alarm.gen ? '' : 'drop'}" style="${gvars(alarm.team)}" data-act="invite" role="button">
         <div class="nrow">
         <span style="flex:1;min-width:0"><b>${esc(alarm.by || 'A teammate')} created an alarm in ${esc(alarm.team)}</b><small>${esc(alarm.name)} · ${t.hm} ${t.ap}</small></span><em>now</em></div>
         <div class="nrow" style="margin-top:12px"><span class="card-s" style="margin:0">Tap for details</span>
@@ -718,9 +734,9 @@ const views = {
         <div class="time" style="font-size:92px;justify-content:flex-start;margin-top:28px">${timeBig(alarm.hh, alarm.mm)}</div>
         <div class="card-t">${esc(alarm.name)}</div></button>` : empty('No upcoming alarms', 'new', 'Create an alarm')}
       <div class="label sec">My groups</div>
-      ${myGroups.length ? myGroups.map(g => { const gi = groupInfo(g, crew); return `<button class="hrow grow-row" data-act="opengroup" data-g="${esc(g)}">
+      ${myGroups.length ? myGroups.map(g => { const gi = groupInfo(g, crew); return `<button class="hrow grow-row" style="${gvars(g)}" data-act="opengroup" data-g="${esc(g)}">
         <div class="mini" style="margin:0;width:78px">${gi.faces.map((p, i) => dot(p, null, i)).join('')}</div>
-        <div style="flex:1;min-width:0;text-align:left"><div class="hrow-t">${esc(g)}</div><div class="card-s" style="margin:2px 0 0">${gi.n} members</div></div>
+        <div style="flex:1;min-width:0;text-align:left"><div class="hrow-t">${esc(g)}</div><div class="card-s" style="margin:2px 0 0">${gi.n} ${gi.n === 1 ? "member" : "members"}</div></div>
         <img src="assets/chevron-down.svg" width="27" height="27" alt="" style="transform:rotate(-90deg)"></button>`; }).join('') : empty('No groups yet', 'newgroup', 'Create a group')}
       ${rows.length ? `<div class="label sec">Recent</div>
       ${rows.map((x, i) => { const f = fmt(x.hh, x.mm); return `<div class="hrow"><div style="min-width:0"><div class="hrow-t">${esc(x.name)}</div><div class="card-s" style="margin:2px 0 0">${x.day} · ${f.hm} ${f.ap} · ${esc(x.team)}</div></div>
@@ -931,8 +947,10 @@ function onEnter(screen) {
   if (screen === 'newgroup') { const f = document.getElementById('groupForm'), inp = document.getElementById('groupIn'), go = document.getElementById('groupGo');
     const upd = () => { go.disabled = !clean(inp.value, 30); }; inp.addEventListener('input', upd);
     setTimeout(() => inp.focus(), 250);
+    let pick = 0;
+    f.addEventListener('click', e => { const b = e.target.closest('[data-gc]'); if (!b) return; pick = +b.dataset.gc; f.querySelectorAll('.sw').forEach(x => x.classList.toggle('on', x === b)); });
     f.addEventListener('submit', e => { e.preventDefault(); const v = clean(inp.value, 30); if (!v) return;
-      if (!myGroups.includes(v)) myGroups.push(v); ui.newGroup = false; publish(true); tick(); }); }
+      if (!myGroups.includes(v)) myGroups.push(v); groupColors[v] = pick; ui.newGroup = false; publish(true); tick(); }); }
   if (screen === 'name') { const f = document.getElementById('nameForm'), inp = document.getElementById('nameIn'), go = document.getElementById('nameGo');
     const upd = () => { go.disabled = !clean(inp.value, 20); }; upd(); inp.addEventListener('input', upd);
     setTimeout(() => inp.focus(), 250);
