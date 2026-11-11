@@ -58,11 +58,9 @@ svg,img{display:block;flex:none}
 .scr>.picker{z-index:3 !important}
 .picker{display:flex;align-items:center;justify-content:flex-start;gap:4px;margin:0;touch-action:none}
 .picker .ap-col{margin-left:auto}
-/* hour wheel: digits sit flush right so they never move; at rest a single digit's box shrinks to the digit (left edge lines up with the form), when active the box grows leftward */
+/* hour wheel: fixed width, digits flush right, so the layout never moves (one or two digits, active or not) */
 .col.h{width:106px}
 .col.h .it,.col.h:not(.on) .it{text-align:right;padding-right:4px}
-.col-wrap.one:not(.on) .col.h{width:58px}
-.col-wrap.one.on{margin-left:-48px}
 .col{position:relative;width:112px;height:136px;border-radius:11px;border:1px solid transparent;overflow:hidden;touch-action:none;cursor:grab}
 
 .col.on{background:var(--deep);border-color:var(--line)}
