@@ -41,7 +41,7 @@ svg,img{display:block;flex:none}
 .field{height:72px;border-radius:24px;background:var(--deep);border:1px solid var(--line);display:flex;align-items:center;padding:0 17px}
 .field input{background:none;border:0;outline:0;width:100%;font:400 32px var(--sf);color:var(--ink);-webkit-user-select:text;user-select:text}
 .field input::placeholder{color:var(--line)}
-.scr>.sel-slot{height:53px;margin-top:26px;position:relative;z-index:5 !important}
+.scr>.sel-slot{height:53px;margin-top:36px;position:relative;z-index:5 !important}
 .sel{position:absolute;left:0;right:0;top:0;border-radius:24px;background:var(--line);border:1px solid var(--line2);overflow:hidden}
 .sel.open{box-shadow:0 18px 40px rgba(6,6,15,.55)}
 .sel-btn{height:51px;width:100%;display:flex;align-items:center;justify-content:space-between;padding:0 14px 0 17px;font:400 18px var(--sf);color:var(--ph);text-align:left}
@@ -640,9 +640,9 @@ const views = {
     if (d.types.length > 1) d.types = [d.types[0]];
     return `<div class="scr">
       <div class="head">${ui.editMode === 'edit' ? 'Edit alarm' : ui.editMode === 'next' ? 'Next alarm' : 'Create new alarm'}</div>
-      <div class="field" style="margin-top:36px"><input id="anName" maxlength="40" placeholder="Title" value="${esc(d.name)}" autocapitalize="sentences"></div>
       <div class="sel-slot"><div class="sel" id="sel"><button class="sel-btn ${d.team ? 'has' : ''}" id="selBtn" type="button"><span id="selTxt">${esc(d.team || 'Select group')}</span>${img(A.chev, 27, 27)}</button>
         <div class="sel-list">${(myGroups.length ? myGroups : [MY_GROUP]).map(g => `<button class="sel-opt ${g === d.team ? 'on' : ''}" type="button" data-g="${esc(g)}">${esc(g)}</button>`).join('')}</div></div></div>
+      <div class="field" style="margin-top:44px"><input id="anName" maxlength="40" placeholder="Title" value="${esc(d.name)}" autocapitalize="sentences"></div>
       <div class="grow" style="min-height:70px"></div>
       <div class="picker" id="picker">${pickerHtml(d)}</div>
       <div class="grow" style="min-height:56px"></div>
