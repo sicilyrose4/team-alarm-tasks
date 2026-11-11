@@ -62,10 +62,11 @@ svg,img{display:block;flex:none}
 .col .it.nb{opacity:.4}
 .col:not(.on) .it.nb{display:none}
 .col.h:not(.on) .it{text-align:right;padding-right:10px}
-.chev{position:absolute;left:50%;margin-left:-13.5px;width:27px;height:27px;display:none;z-index:2}
+.chev{position:absolute;left:50%;margin-left:-23.5px;width:27px;height:27px;padding:10px;box-sizing:content-box;border-radius:50%;display:none;z-index:2;cursor:pointer;transition:background .12s}
+.chev:active,.chev.press{background:rgba(203,205,223,.16)}
 .col-wrap{position:relative}
 .col-wrap.on .chev{display:block}
-.chev.up{top:-43px;transform:scaleY(-1)}.chev.dn{bottom:-38px}
+.chev.up{top:-53px;transform:scaleY(-1)}.chev.dn{bottom:-48px}
 .colon{font:300 114px/1 var(--rnd);color:var(--ink);margin-top:-14px}
 .ap-col{display:flex;flex-direction:column;gap:9px;width:53px}
 .ap-col button{height:37px;border-radius:18.5px;font:500 21px var(--rnd);color:var(--ampm)}
@@ -153,12 +154,17 @@ svg,img{display:block;flex:none}
 @keyframes up{0%{transform:translateY(100%)}100%{transform:none}}
 
 /* home notification */
+.addrow{display:flex;align-items:center;gap:12px;width:100%;padding:12px 4px;font:400 15px var(--sf);color:#6a6d8f;text-align:left}
+.addic{width:36px;height:36px;border-radius:50%;border:1.5px dashed var(--line2);color:#6a6d8f;display:flex;align-items:center;justify-content:center;flex:none}
+.addrow:active .addic{background:var(--line)}
+.scr>.dock{position:fixed !important;left:0;right:0;bottom:0;padding:16px 20px calc(env(safe-area-inset-bottom) + 20px);background:linear-gradient(to bottom,rgba(29,31,52,0),var(--bg) 35%);display:flex;justify-content:center;z-index:8 !important;max-width:430px;margin:0 auto}
+.dock .pill{padding:6px 34px;font-size:22px;line-height:30px}
 .notif.ncol{flex-direction:column;align-items:stretch;cursor:pointer}
 .notif.ncol b{white-space:normal;line-height:21px}
 .nrow{display:flex;gap:12px;align-items:center;width:100%}
 .notif .pill.sm{font-size:17px;padding:7px 24px}
 .sec{margin:26px 4px 8px}
-.empty{font:400 15px var(--sf);color:#56566c;padding:16px 4px;border-bottom:1px solid var(--line)}
+.empty{font:400 15px var(--sf);color:#56566c;padding:10px 4px 2px}
 .scr>.fab{position:fixed !important;z-index:8 !important;right:max(20px,calc(50% - 240px));bottom:calc(env(safe-area-inset-bottom) + 24px);width:62px;height:62px;border-radius:50%;background:var(--btn);color:#1d1f34;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 28px rgba(6,6,15,.55);z-index:8;transition:transform .1s}
 .fab:active{transform:scale(.94)}
 .fab:disabled{opacity:.35}
@@ -451,11 +457,13 @@ function remember(a) {
   save();
 }
 // Member counts + faces for "My groups" (IXD 415 is the live class group).
+function groupMembers(g) {
+  if (g === MY_GROUP) return roster();
+  return [{ key: myKey, me: true, name: nick || 'You' }];
+}
 function groupInfo(g, crew) {
-  if (g === MY_GROUP) return { n: crew.length, faces: crew.slice(0, 3) };
-  const r = rand(g.length * 7919 + g.charCodeAt(0));
-  const n = 6 + Math.floor(r() * 9), start = Math.floor(r() * FAKES.length);
-  return { n, faces: [0, 1, 2].map(i => ({ name: FAKES[(start + i * 3) % FAKES.length] })) };
+  const list = g === MY_GROUP ? crew : groupMembers(g);
+  return { n: list.length, faces: list.slice(0, 3) };
 }
 
 /* ================= Views ================= */
@@ -516,6 +524,36 @@ function pickerHtml(d) {
 }
 
 const views = {
+  group: () => {
+    const g = ui.groupName, list = groupMembers(g);
+    const up = alarm && alarm.team === g && !(alarm.ringAt && Date.now() >= alarm.ringAt) ? alarm : null;
+    return `<div class="scr dash">
+      ${backBtn}
+      <div class="date" style="margin:0 4px">Group</div>
+      <div class="hello" style="margin:4px 4px 0">${esc(g)}</div>
+      <div class="card-s" style="margin:4px 4px 0">${list.length} ${list.length === 1 ? 'member' : 'members'}</div>
+      ${up ? `<button class="card" data-act="${joinedNow() ? 'open' : 'invite'}" style="margin-top:22px">
+        <div class="card-top"><span class="label">Upcoming</span><span class="chipx">in ${until()}</span></div>
+        <div class="card-t">${esc(up.name)} · ${fmt(up.hh, up.mm).hm} ${fmt(up.hh, up.mm).ap}</div>
+        <div class="card-s">${joinedNow() ? 'You joined' : 'Tap to see and join'}</div></button>` : ''}
+      <div class="label sec">Members</div>
+      ${list.map(p => `<div class="hrow" style="justify-content:flex-start;gap:14px">
+        <i class="dot av" style="width:42px;height:42px;font-size:17px;background:${personColor(p.name)}">${initial(p)}</i>
+        <div style="flex:1;min-width:0"><div class="hrow-t">${p.me ? esc(p.name) + ' (you)' : esc(p.name)}</div></div></div>`).join('')}
+      <div style="height:110px"></div>
+      <div class="dock"><button class="pill" data-act="group" data-g="${esc(g)}">Create alarm for ${esc(g)}</button></div>
+    </div>`;
+  },
+
+  newgroup: () => `<div class="backdrop" data-act="unsheet">${ui.bgHtml || ''}</div>
+    <form class="sheet" id="groupForm" autocomplete="off">
+      <i class="grab"></i>
+      <div class="head" style="font-size:18px">New group</div>
+      <div class="card-s" style="margin:6px 0 0">Name it after your team or class.</div>
+      <div class="field" style="margin-top:22px"><input id="groupIn" maxlength="30" placeholder="Group name" autocapitalize="words" enterkeyhint="done"></div>
+      <button class="pill" id="groupGo" type="submit" style="margin-top:22px" disabled>Create group</button>
+    </form>`,
+
   wait: () => `<div class="wait"><i></i></div>`,
 
   home: team => {
@@ -526,7 +564,7 @@ const views = {
     const t = alarm ? fmt(alarm.hh, alarm.mm) : null;
     const rows = history(), busy = activeAlarm();
     const groupInvite = nick && !myGroups.includes(MY_GROUP) && Date.now() >= ui.groupInviteAt;
-    const empty = txt => `<div class="empty">${txt}</div>`;
+    const empty = (txt, act, label) => `<div class="empty">${txt}</div><button class="addrow" data-act="${act}"><span class="addic">${I.plus(20)}</span>${label}</button>`;
     setTimeout(() => { if (groupInvite) ui.giShown = true; }, 0);
     return `<div class="scr dash">
       <div class="dtop"><div><div class="date">${date}</div><div class="hello">${hello}${nick ? ', ' + esc(nick) : ''}</div></div>
@@ -546,12 +584,12 @@ const views = {
         <div class="card-top"><span class="label">${esc(alarm.team)}</span><span class="chipx">${ringing() ? 'Ringing' : 'in ' + until()}</span></div>
         <div class="time" style="font-size:72px;justify-content:flex-start;margin-top:10px">${timeBig(alarm.hh, alarm.mm)}</div>
         <div class="card-t">${esc(alarm.name)}</div><div class="card-s">${alarm.tasks ? 'Wake-up task on' : 'No wake-up task'}</div>
-        <div class="mini">${team.slice(0, 5).map((p, i) => dot(p, null, i)).join('')}<span>${team.length} going</span></div></button>` : empty('No upcoming alarms')}
+        <div class="mini">${team.slice(0, 5).map((p, i) => dot(p, null, i)).join('')}<span>${team.length} going</span></div></button>` : empty('No upcoming alarms', 'new', 'Create an alarm')}
       <div class="label sec">My groups</div>
-      ${myGroups.length ? myGroups.map(g => { const gi = groupInfo(g, crew); return `<button class="hrow grow-row" data-act="group" data-g="${esc(g)}" >
+      ${myGroups.length ? myGroups.map(g => { const gi = groupInfo(g, crew); return `<button class="hrow grow-row" data-act="opengroup" data-g="${esc(g)}">
         <div class="mini" style="margin:0;width:78px">${gi.faces.map((p, i) => dot(p, null, i)).join('')}</div>
         <div style="flex:1;min-width:0;text-align:left"><div class="hrow-t">${esc(g)}</div><div class="card-s" style="margin:2px 0 0">${gi.n} members</div></div>
-        <img src="assets/chevron-down.svg" width="27" height="27" alt="" style="transform:rotate(-90deg)"></button>`; }).join('') : empty("You're not in any groups yet")}
+        <img src="assets/chevron-down.svg" width="27" height="27" alt="" style="transform:rotate(-90deg)"></button>`; }).join('') : empty('No groups yet', 'newgroup', 'Create a group')}
       ${rows.length ? `<div class="label sec">Recent</div>
       ${rows.map((x, i) => { const f = fmt(x.hh, x.mm); return `<div class="hrow"><div style="min-width:0"><div class="hrow-t">${esc(x.name)}</div><div class="card-s" style="margin:2px 0 0">${x.day} · ${f.hm} ${f.ap} · ${esc(x.team)}</div></div>
         <button class="reuse" data-act="reuse" data-i="${i}" >Reuse</button></div>`; }).join('')}` : ''}
@@ -571,6 +609,7 @@ const views = {
 
   create: () => {
     const d = ui.draft;
+    if (d.types.length > 1) d.types = [d.types[0]];
     return `<div class="scr">
       <div class="head">${ui.editMode === 'edit' ? 'Edit alarm' : ui.editMode === 'next' ? 'Next alarm' : 'Create new alarm'}</div>
       <div class="field" style="margin-top:36px"><input id="anName" maxlength="40" placeholder="Title" value="${esc(d.name)}" autocapitalize="sentences"></div>
@@ -682,12 +721,14 @@ const views = {
 /* ================= Screen logic ================= */
 function screenFor(team, now) {
   if (ui.sheet) return 'name';
+  if (ui.newGroup) return 'newgroup';
   if (ui.editMode && ui.draft) return 'create';
-  if (!alarm) return 'home';
+  if (!alarm) return ui.view === 'group' ? 'group' : 'home';
   const joined = me.gen === alarm.gen;
   if (!joined || !alarm.ringAt || now < alarm.ringAt) {
     if (ui.view === 'invite' && !joined && !(alarm.ringAt && now >= alarm.ringAt)) return 'join';
     if (ui.view === 'lobby' && joined) return 'lobby';
+    if (ui.view === 'group') return 'group';
     return 'home';
   }
   if (allUp(team)) return 'done';
@@ -696,7 +737,7 @@ function screenFor(team, now) {
   if (ui.task) return ui.task;
   return 'ring';
 }
-const STABLE = new Set(['name', 'create', 'photo', 'move']);
+const STABLE = new Set(['name', 'newgroup', 'create', 'photo', 'move']);
 
 function tick() {
   const now = Date.now();
@@ -733,6 +774,11 @@ function tick() {
 
 function onEnter(screen) {
   document.body.style.background = screen === 'ring' || screen === 'photo' ? '#06060f' : '#1d1f34';
+  if (screen === 'newgroup') { const f = document.getElementById('groupForm'), inp = document.getElementById('groupIn'), go = document.getElementById('groupGo');
+    const upd = () => { go.disabled = !clean(inp.value, 30); }; inp.addEventListener('input', upd);
+    setTimeout(() => inp.focus(), 250);
+    f.addEventListener('submit', e => { e.preventDefault(); const v = clean(inp.value, 30); if (!v) return;
+      if (!myGroups.includes(v)) myGroups.push(v); ui.newGroup = false; publish(true); tick(); }); }
   if (screen === 'name') { const f = document.getElementById('nameForm'), inp = document.getElementById('nameIn'), go = document.getElementById('nameGo');
     const upd = () => { go.disabled = !clean(inp.value, 20); }; upd(); inp.addEventListener('input', upd);
     setTimeout(() => inp.focus(), 250);
@@ -783,8 +829,8 @@ function animateWheel(col, target, fold = true) {     // glide (with notches pas
 function nudge(col, dir) {                            // arrows: by 1, sliding in from the side it came from
   cancelAnimationFrame(wheel.anim);
   shiftWheel(col, dir, true);
-  wheel[col].off = -dir * PITCH;
-  animateWheel(col, 0, false);
+  wheel[col].off = 0;
+  paintWheel(col);
 }
 function selectCol(col) {
   if (ui.col === col) return;
@@ -799,6 +845,11 @@ function wirePicker() {
     if (ap) { const d = ui.draft; d.hh = (d.hh % 12) + (ap.dataset.ap === 'pm' ? 12 : 0); pk.innerHTML = pickerHtml(d); return; }
     const ch = e.target.closest('.chev');
     if (ch) nudge(ui.col || 'm', ch.classList.contains('up') ? 1 : -1);
+  });
+  // Pressed look for the arrows (iOS doesn't show :active without this).
+  pk.addEventListener('pointerdown', e => { const ch = e.target.closest('.chev'); if (ch) ch.classList.add('press'); });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => pk.addEventListener(t, () => pk.querySelectorAll('.chev.press').forEach(c => c.classList.remove('press'))));
+  pk.addEventListener('click', () => {
   });
   pk.addEventListener('pointerdown', e => {
     const c = e.target.closest('[data-col]'); if (!c) return;
@@ -838,7 +889,7 @@ document.addEventListener('click', e => {
   const act = b.dataset.act;
   // First join or create asks for a first name, then carries on.
   if (!nick && ['join', 'new', 'group', 'reuse'].includes(act)) { ui.bgHtml = ui.lastHtml; ui.sheet = act; ui.sheetData = Object.assign({}, b.dataset); tick(); return; }
-  if (act === 'unsheet') { ui.sheet = null; tick(); return; }
+  if (act === 'unsheet') { if (ui.sheet !== 'first') ui.sheet = null; ui.newGroup = false; tick(); return; }
   doAct(act, b);
   tick();
 });
@@ -847,8 +898,7 @@ function doAct(act, b) {
   switch (act) {
     case 'tasks': ui.draft.tasks = !ui.draft.tasks; rerender(); break;
     case 'type': {
-      const v = b.dataset.v, ts = ui.draft.types;
-      if (ts.includes(v)) { if (ts.length > 1) ts.splice(ts.indexOf(v), 1); } else ts.push(v);
+      ui.draft.types = [b.dataset.v];               // one task type: photo or move
       rerender(); break;
     }
     case 'create': {
@@ -862,8 +912,10 @@ function doAct(act, b) {
       }
       remember(alarm); ui.draft = null; ui.editMode = null; ui.view = 'lobby'; keepAwake(); publish(); break;
     }
+    case 'opengroup': ui.groupName = data.g; ui.view = 'group'; break;
+    case 'newgroup': ui.bgHtml = ui.lastHtml; ui.newGroup = true; break;
     case 'accept': if (!myGroups.includes(MY_GROUP)) myGroups.push(MY_GROUP); publish(true); break;
-    case 'new': case 'group': ui.draft = { name: '', team: act === 'group' ? data.g : (myGroups[0] || ''), hh: soon().hh, mm: soon().mm, tasks: true, types: ['photo', 'move'] }; ui.editMode = 'new'; ui.col = 'm'; break;
+    case 'new': case 'group': ui.draft = { name: '', team: act === 'group' ? data.g : (myGroups[0] || ''), hh: soon().hh, mm: soon().mm, tasks: true, types: ['photo'] }; ui.editMode = 'new'; ui.col = 'm'; break;
     case 'reuse': { const x = history()[+data.i]; if (!x) break;
       ui.draft = { name: x.name, team: x.team, hh: x.hh, mm: x.mm, tasks: !!x.tasks, types: (x.types || ['photo', 'move']).slice() }; ui.editMode = 'new'; ui.col = 'm'; break; }
     case 'home': ui.view = 'home'; break;
