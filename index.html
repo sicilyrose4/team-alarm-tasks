@@ -946,6 +946,13 @@ function selectCol(col) {
   ui.col = col;
   document.getElementById('picker').innerHTML = pickerHtml(ui.draft);
 }
+// Tapping anywhere outside the time picker clears the highlighted column.
+document.addEventListener('pointerdown', e => {
+  const pk = document.getElementById('picker');
+  if (!pk || pk.contains(e.target) || ui.col === 'none') return;
+  ui.col = 'none';
+  pk.innerHTML = pickerHtml(ui.draft);
+}, true);
 function wirePicker() {
   const pk = document.getElementById('picker');
   let drag = null;
