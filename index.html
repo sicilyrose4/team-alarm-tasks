@@ -737,7 +737,7 @@ const views = {
       ${myGroups.length ? myGroups.map(g => { const gi = groupInfo(g, crew); return `<button class="hrow grow-row" style="${gvars(g)}" data-act="opengroup" data-g="${esc(g)}">
         <div class="mini" style="margin:0;width:78px">${gi.faces.map((p, i) => dot(p, null, i)).join('')}</div>
         <div style="flex:1;min-width:0;text-align:left"><div class="hrow-t">${esc(g)}</div><div class="card-s" style="margin:2px 0 0">${gi.n} ${gi.n === 1 ? "member" : "members"}</div></div>
-        <img src="assets/chevron-down.svg" width="27" height="27" alt="" style="transform:rotate(-90deg)"></button>`; }).join('') : empty('No groups yet', 'newgroup', 'Create a group')}
+        <img src="assets/chevron-down.svg" width="27" height="27" alt="" style="transform:rotate(-90deg)"></button>`; }).join('') + `<button class="addrow" data-act="newgroup"><span class="addic">${I.plus(20)}</span>Create a group</button>` : empty('No groups yet', 'newgroup', 'Create a group')}
       ${rows.length ? `<div class="label sec">Recent</div>
       ${rows.map((x, i) => { const f = fmt(x.hh, x.mm); return `<div class="hrow"><div style="min-width:0"><div class="hrow-t">${esc(x.name)}</div><div class="card-s" style="margin:2px 0 0">${x.day} · ${f.hm} ${f.ap} · ${esc(x.team)}</div></div>
         <button class="reuse" data-act="reuse" data-i="${i}" >Reuse</button></div>`; }).join('')}` : ''}
