@@ -639,6 +639,7 @@ const views = {
     const d = ui.draft;
     if (d.types.length > 1) d.types = [d.types[0]];
     return `<div class="scr">
+      ${backBtn.replace('data-act="home"', 'data-act="cancel"')}
       <div class="head">${ui.editMode === 'edit' ? 'Edit alarm' : ui.editMode === 'next' ? 'Next alarm' : 'Create new alarm'}</div>
       <div class="sel-slot"><div class="sel" id="sel"><button class="sel-btn ${d.team ? 'has' : ''}" id="selBtn" type="button"><span id="selTxt">${esc(d.team || 'Select group')}</span>${img(A.chev, 27, 27)}</button>
         <div class="sel-list">${(myGroups.length ? myGroups : [MY_GROUP]).map(g => `<button class="sel-opt ${g === d.team ? 'on' : ''}" type="button" data-g="${esc(g)}">${esc(g)}</button>`).join('')}</div></div></div>
