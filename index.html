@@ -308,6 +308,12 @@ svg,img{display:block;flex:none}
 .prog i{background:#8fc4a6}
 .okmark div{background:#8fc4a6}
 .count b{font-weight:700}
+/* ringing: the time pulses brighter in step with the beep (delay keeps the beat steady across redraws) */
+.ringpulse{animation:ringpulse 1s ease-in-out infinite;transform-origin:50% 60%;will-change:transform}
+.ringpulse,.ringpulse .ap{color:#a9a9b8}
+@keyframes ringpulse{0%,100%{transform:scale(1);color:#9c9cae;text-shadow:0 0 0 rgba(255,255,255,0)}
+  45%{transform:scale(1.07);color:#ffffff;text-shadow:0 0 28px rgba(200,200,255,.55),0 0 60px rgba(160,165,255,.3)}}
+.ringpulse .ap{animation:inherit;animation-delay:inherit}
 </style>
 </head>
 <body>
@@ -774,7 +780,7 @@ const views = {
       <div class="fade"></div>
       <div style="font:500 32px var(--rd);color:#56566c;text-align:center;line-height:42px;margin-top:1px">${esc(alarm.name)}</div>
       <div style="font:400 16px var(--sf);color:#3e3e52;text-align:center;margin-top:15px">${esc(alarm.team)}</div>
-      <div class="time" style="font-size:${tsz(t.hm)}px;color:#a9a9b8;margin-top:52px"><span>${t.hm}</span><span class="ap" style="font-weight:300;font-size:27px;color:#a9a9b8">${t.ap}</span></div>
+      <div class="time ringpulse" style="font-size:${tsz(t.hm)}px;margin-top:52px;animation-delay:-${Date.now() % 1000}ms"><span>${t.hm}</span><span class="ap" style="font-weight:300;font-size:27px">${t.ap}</span></div>
       <div class="ringgrid" style="margin-top:72px">${team.map(p => dot(p, RING_COL)).join('')}</div>
       <div class="grow" style="min-height:40px"></div>
       <button class="pill" data-act="${alarm.tasks ? 'task' : 'off'}" style="background:#8e92bd;font:600 32px var(--rd);line-height:42px">Off</button>
