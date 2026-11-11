@@ -777,7 +777,7 @@ const views = {
       <div class="label" style="margin-top:22px;font-size:15px">Color</div>
       <div class="swatches">${GROUP_COLORS.map((c, i) => `<button type="button" class="sw ${i === 0 ? 'on' : ''}" data-gc="${i}" style="background:${c[0]}" aria-label="Color ${i + 1}"></button>`).join('')}</div>
       <div class="label" style="margin-top:22px;font-size:15px">Add people</div>
-      <div class="pick-list">${knownPeople().map(p => `<button type="button" class="pick" data-pk="${esc(p.key)}" data-pn="${esc(p.name)}">
+      <div class="pick-list">${knownPeople().length ? '' : `<button type="button" class="addrow" id="shareInvite"><span class="addic">${I.plus(20)}</span><span>Invite people</span></button>`}${knownPeople().map(p => `<button type="button" class="pick" data-pk="${esc(p.key)}" data-pn="${esc(p.name)}">
         <i class="dot av" style="width:36px;height:36px;font-size:15px;background:${personColor(p.name)}">${initial(p)}</i><span>${esc(p.name)}</span><i class="tick"></i></button>`).join('')}</div>
       <button class="pill" id="groupGo" type="submit" style="margin-top:22px" disabled>Create group</button>
     </form>`,
@@ -1032,6 +1032,13 @@ function onEnter(screen) {
     setTimeout(() => inp.focus(), 250);
     let pick = 0;
     f.addEventListener('click', e => { const pk = e.target.closest('.pick'); if (pk) { pk.classList.toggle('on'); return; } });
+    // Nobody to pick yet: share the app link so friends can join.
+    const sh = document.getElementById('shareInvite');
+    if (sh) sh.addEventListener('click', async () => {
+      const url = location.origin + location.pathname, lbl = sh.querySelector('span:last-child');
+      try { if (navigator.share) { await navigator.share({ title: 'Join my alarm group', url }); return; } await navigator.clipboard.writeText(url); lbl.textContent = 'Link copied'; }
+      catch (err) { if (err && err.name !== 'AbortError') lbl.textContent = url; }
+    });
     f.addEventListener('click', e => { const b = e.target.closest('[data-gc]'); if (!b) return; pick = +b.dataset.gc; f.querySelectorAll('.sw').forEach(x => x.classList.toggle('on', x === b)); });
     f.addEventListener('submit', e => { e.preventDefault(); const v = clean(inp.value, 30); if (!v) return;
       const members = [...f.querySelectorAll('.pick.on')].map(x => ({ key: x.dataset.pk, name: x.dataset.pn }));
