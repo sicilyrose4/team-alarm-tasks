@@ -111,8 +111,52 @@ svg,img{display:block;flex:none}
 .sect{margin-top:47px}
 .sect+.sect{margin-top:43px}
 
+/* avatars */
+.dot.av{display:flex;align-items:center;justify-content:center;font:600 18px var(--sf);color:#1d1f34}
+.stack .dot.av{font-size:19px;box-shadow:0 0 0 2px var(--bg)}
+.ringgrid .dot.av{font-size:17px}
+.stgrid .dot.av{font-size:22px}
+.pp{display:flex;flex-direction:column;align-items:center;gap:7px;min-width:0}
+.pp span{font:400 13px var(--sf);color:var(--sub);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stgrid{row-gap:16px}
+
+/* dashboard */
+.dash{padding-left:20px;padding-right:20px;padding-bottom:calc(env(safe-area-inset-bottom) + 30px);min-height:auto}
+.dtop{display:flex;justify-content:space-between;align-items:center;margin:4px 4px 22px}
+.date{font:400 14px var(--sf);color:var(--sub)}
+.hello{font:500 28px var(--sf);color:var(--title);margin-top:4px}
+.card{display:block;width:100%;text-align:left;background:var(--deep);border:1px solid var(--line);border-radius:24px;padding:18px 20px;margin-bottom:12px;color:var(--ink)}
+.card.new{border-color:var(--line2);background:linear-gradient(160deg,#2a2c48,#15172b 70%)}
+.card-top{display:flex;justify-content:space-between;align-items:center}
+.card .label{font-size:15px}
+.chipx{font:500 13px var(--sf);color:var(--btn);background:var(--line);border-radius:12px;padding:4px 10px}
+.chipx.hot{background:#755972;color:#f3e6f0}
+.card-t{font:500 20px var(--sf);color:var(--title);margin-top:6px}
+.card-s{font:400 14px var(--sf);color:var(--sub);margin-top:3px}
+.mini{display:flex;align-items:center;margin-top:14px}
+.mini .dot{width:30px;height:30px;margin-left:-8px;font-size:13px;box-shadow:0 0 0 2px var(--deep)}
+.mini .dot:first-child{margin-left:0}
+.mini span{font:400 14px var(--sf);color:var(--sub);margin-left:10px}
+.pill.sm{font-size:18px;line-height:24px;padding:9px 26px;margin-top:16px;align-self:flex-start;display:inline-block}
+.roster{display:grid;grid-template-columns:repeat(6,1fr);gap:14px 6px;margin-top:16px}
+.roster .dot{width:40px;height:40px;font-size:16px}
+.roster .pp span{font-size:12px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stats .card{padding:14px 12px;margin:0}
+.stats b{display:block;font:300 30px/1 var(--rnd);color:var(--ink)}
+.stats span{display:block;font:400 12px var(--sf);color:var(--sub);margin-top:6px}
+.hrow{display:flex;justify-content:space-between;align-items:center;padding:13px 4px;border-bottom:1px solid var(--line)}
+.hrow-t{font:500 16px var(--sf);color:var(--title)}
+.notif .appic{width:38px;height:38px;border-radius:10px;background:var(--up);color:#1d1f34;display:flex;align-items:center;justify-content:center;flex:none}
+.notif em{font:400 13px var(--sf);color:var(--sub);font-style:normal;align-self:flex-start}
+.backdrop{position:fixed;inset:0;overflow:hidden;filter:brightness(.45);pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;background:var(--bg);border-top:1px solid var(--line2);border-radius:28px 28px 0 0;padding:12px 24px calc(env(safe-area-inset-bottom) + 24px);display:flex;flex-direction:column;animation:up .3s ease-out;z-index:10;max-width:520px;margin:0 auto}
+.sheet .grab{width:40px;height:5px;border-radius:3px;background:var(--line2);align-self:center;margin-bottom:18px}
+.sheet .pill{align-self:stretch;text-align:center}
+@keyframes up{0%{transform:translateY(100%)}100%{transform:none}}
+
 /* home notification */
-.scr>.notif-slot{position:absolute;left:16px;right:16px;top:calc(env(safe-area-inset-top) + 10px);z-index:6}
+.scr>.notif-slot{position:fixed;left:12px;right:12px;top:calc(env(safe-area-inset-top) + 8px);z-index:6;max-width:496px;margin:0 auto}
 .notif{display:flex;gap:12px;align-items:center;width:100%;padding:14px 16px;box-shadow:0 14px 34px rgba(6,6,15,.5);border-radius:24px;background:var(--line);border:1px solid var(--line2);color:var(--btn)}
 .notif b{display:block;font:500 16px var(--sf);color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .notif small{display:block;font:400 14px var(--sf);color:var(--sub);margin-top:3px}
@@ -147,7 +191,7 @@ svg,img{display:block;flex:none}
 /* ================= Constants ================= */
 const TEAM_SIZE = 11, SNOOZE_MS = 30000, MAX_SNOOZE = 2, LEAD_MS = 15000;
 const RING_STALE = 10 * 60e3, GONE_MS = 10 * 60e3, ONLINE_MS = 35000;
-const FAKES = ['Maya', 'Jordan', 'Theo', 'Priya', 'Leo', 'Ava', 'Marcus', 'Nina', 'Sam', 'Kai'];
+const FAKES = ['Maya', 'Jordan', 'Theo', 'Priya', 'Leo', 'Ava', 'Marcus', 'Nina', 'Sam', 'Kai', 'Zoe', 'Eli'];
 const PHOTO_PROMPTS = ['Something blue', 'Your shoes', 'Outside', 'Your toothbrush', 'Something green', 'A plant', 'Your water bottle', 'Something red', 'A door', 'Your sink'];
 const MOVE_TASKS = ['shake', 'hold'];
 // Everyone is in IXD 415 (the class QR code links to ?group=ixd415, which lands in the same place).
@@ -369,6 +413,34 @@ function keepAwake() {
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && me.gen) keepAwake(); });
 document.addEventListener('pointerdown', () => { unlockAudio(); if (me.gen) keepAwake(); }, { capture: true });
 
+/* ================= Roster + history (home) ================= */
+function roster() {
+  const now = Date.now(), list = [];
+  if (nick) list.push({ key: myKey, me: true, name: nick });
+  for (const p of peers.values()) if (now - num(p.ts) < ONLINE_MS && clean(p.nick, 20)) list.push({ key: p.key, name: clean(p.nick, 20) });
+  for (let i = 0; list.length < TEAM_SIZE; i++) list.push({ key: 'f' + i, fake: true, name: FAKES[i % FAKES.length] });
+  return list;
+}
+// Past mornings for the dashboard (same on every phone for a given day).
+function history() {
+  const day0 = new Date(); day0.setHours(0, 0, 0, 0);
+  const r = rand(Math.floor(day0.getTime() / 864e5));
+  const rows = [], names = ['Morning workout', 'Early lift', 'Morning workout', 'Film session'];
+  let total = 0;
+  for (let i = 1, n = 0; n < 4 && i < 10; i++) {
+    const d = new Date(day0.getTime() - i * 864e5);
+    if (d.getDay() === 0 || d.getDay() === 6) continue;
+    const of = TEAM_SIZE, up = r() < 0.75 ? of : of - 1, secs = 90 + Math.floor(r() * 200);
+    total += secs;
+    rows.push({ title: names[n], day: n === 0 && i === 1 ? 'Yesterday' : d.toLocaleDateString('en-US', { weekday: 'short' }),
+      time: (r() < 0.5 ? '5:45' : '6:00') + ' AM', up, of, all: up === of, tt: Math.floor(secs / 60) + ':' + String(secs % 60).padStart(2, '0') + ' team time' });
+    n++;
+  }
+  let streak = 0; for (const x of rows) { if (x.all) streak++; else break; }
+  const avg = Math.round(total / rows.length);
+  return { rows, streak, avg: Math.floor(avg / 60) + ':' + String(avg % 60).padStart(2, '0'), onTime: Math.round(rows.filter(x => x.all).length / rows.length * 100) };
+}
+
 /* ================= Views ================= */
 const $app = document.getElementById('app');
 const GROUPS = [MY_GROUP, 'Westside Warriors', 'Eastside Eagles', 'North End Knights'];
@@ -379,10 +451,15 @@ const A = { chev: 'assets/chevron-down.svg', check: 'assets/check-circle.svg', g
 const img = (src, w, h, cls = '') => `<img src="${src}" width="${w}" height="${h}" alt="" class="${cls}">`;
 const timeBig = (hh, mm, size) => { const t = fmt(hh, mm); return `<span>${t.hm}</span><span class="ap">${t.ap}</span>`; };
 const tsz = hm => (hm.length > 4 ? 108 : 132);
+const PERSON = ['#e8cee2', '#9bbba7', '#9093ac', '#e0dfa2', '#e7a099', '#b0b4d9'];
+function personColor(name) { let h = 0; for (const c of String(name)) h = (h * 31 + c.charCodeAt(0)) >>> 0; return PERSON[h % PERSON.length]; }
+const initial = p => esc((p.name || '?').trim()[0] || '?').toUpperCase();
 function dot(p, colors, i) {
-  if (!colors) return `<i class="dot" style="background:${STACK[i % STACK.length]};position:relative;z-index:${3 - i}"></i>`;
-  return `<i class="dot ${p.me ? 'me' : ''}" data-k="${p.key}" style="background:${colors[p.status]}"></i>`;
+  if (!colors) return `<i class="dot av" style="background:${personColor(p.name)};position:relative;z-index:${5 - i}">${initial(p)}</i>`;
+  return `<i class="dot av ${p.me ? 'me' : ''}" data-k="${p.key}" style="background:${colors[p.status]}">${initial(p)}</i>`;
 }
+// A circle with the person's first name underneath (status screens, home roster).
+const person = (p, colors) => `<div class="pp">${colors ? dot(p, colors) : `<i class="dot av" style="background:${personColor(p.name)}">${initial(p)}</i>`}<span>${p.me ? 'You' : esc(p.name)}</span></div>`;
 function stack(team) {
   const shown = team.slice(0, 3), more = team.length - shown.length;
   return `<div class="stack">${shown.map((p, i) => dot(p, null, i)).join('')}</div>${more > 0 ? `<div class="more">+ ${more} more</div>` : ''}`;
@@ -390,7 +467,7 @@ function stack(team) {
 const backBtn = `<button data-act="home" aria-label="Back" style="width:44px;height:44px;margin:-10px 0 6px -14px;display:flex;align-items:center;justify-content:center"><img src="${'assets/chevron-down.svg'}" width="27" height="27" alt="" style="transform:rotate(90deg)"></button>`;
 function invitedLine() {
   const mine = alarm.creator === myKey;
-  return `${backBtn}<div style="display:flex;align-items:center;gap:6px"><i class="dot" style="width:27px;height:27px;background:#9598b7"></i>
+  return `${backBtn}<div style="display:flex;align-items:center;gap:6px"><i class="dot av" style="width:27px;height:27px;font-size:12px;background:${personColor(mine ? nick : alarm.by)}">${esc(((mine ? nick : alarm.by) || '?')[0].toUpperCase())}</i>
     <span style="font:400 16px var(--sf);color:var(--sub)">${mine ? `You invited ${esc(alarm.team)} to` : `${esc(alarm.by || 'Your coach')} invited you to`}</span></div>
     <div style="font:500 32px var(--sf);color:var(--title);margin-top:21px;line-height:38px">${esc(alarm.name)}</div>`;
 }
@@ -408,33 +485,56 @@ const views = {
   wait: () => `<div class="wait"><i></i></div>`,
 
   home: team => {
-    const inv = invited(), joined = alarm && me.gen === alarm.gen;
-    const t = joined ? fmt(alarm.hh, alarm.mm) : null;
-    return `<div class="scr">
+    const now = new Date(), inv = invited(), joined = alarm && me.gen === alarm.gen;
+    const hr = now.getHours(), hello = hr < 12 ? 'Good morning' : hr < 18 ? 'Good afternoon' : 'Good evening';
+    const date = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+    const crew = alarm ? team : roster();
+    const t = alarm ? fmt(alarm.hh, alarm.mm) : null;
+    let card;
+    if (joined) card = `<button class="card" data-act="open">
+        <div class="card-top"><span class="label">Next alarm</span><span class="chipx">${ringing() ? 'Ringing' : 'in ' + until()}</span></div>
+        <div class="time" style="font-size:72px;justify-content:flex-start;margin-top:10px">${timeBig(alarm.hh, alarm.mm)}</div>
+        <div class="card-t">${esc(alarm.name)}</div><div class="card-s">${esc(alarm.team)}${alarm.tasks ? ' · wake-up task on' : ''}</div>
+        <div class="mini">${team.slice(0, 5).map((p, i) => dot(p, null, i)).join('')}<span>${team.length} going</span></div></button>`;
+    else if (inv) card = `<div class="card new">
+        <div class="card-top"><span class="label">New alarm</span><span class="chipx hot">Invite</span></div>
+        <div class="time" style="font-size:72px;justify-content:flex-start;margin-top:10px">${timeBig(alarm.hh, alarm.mm)}</div>
+        <div class="card-t">${esc(alarm.name)}</div><div class="card-s">${esc(alarm.by || 'A teammate')} invited ${esc(alarm.team)}</div>
+        <button class="pill sm" data-act="invite">View invite</button></div>`;
+    else card = `<div class="card">
+        <div class="card-top"><span class="label">Next alarm</span></div>
+        <div class="card-t" style="margin-top:14px;color:var(--sub)">No alarm set</div>
+        <div class="card-s">Wake up together with ${esc(MY_GROUP)}.</div>
+        ${activeAlarm() || !heard ? '' : `<button class="pill sm" data-act="new">Create alarm</button>`}</div>`;
+    const h = history();
+    return `<div class="scr dash" style="${inv ? 'padding-top:calc(env(safe-area-inset-top) + 104px)' : ''}">
       <div class="notif-slot">${inv ? `<button class="notif ${ui.notifSeen === alarm.gen ? '' : 'drop'}" data-act="invite">
-        <i class="dot" style="width:27px;height:27px;background:#9598b7"></i>
-        <span style="flex:1;min-width:0;text-align:left"><b>${esc(alarm.by || 'A teammate')} invited you to an alarm</b><small>${esc(alarm.name)} · ${fmt(alarm.hh, alarm.mm).hm} ${fmt(alarm.hh, alarm.mm).ap}</small></span></button>` : ''}</div>
-      <div class="head" style="color:var(--sub)">${esc(MY_GROUP)}</div>
-      <div style="font:500 32px var(--sf);color:var(--title);margin-top:21px;line-height:38px">${joined ? esc(alarm.name) : `Hi, ${esc(nick)}`}</div>
-      <div class="grow"></div>
-      ${joined ? `<button data-act="open" style="display:block;width:100%"><div class="time" style="font-size:${tsz(t.hm)}px">${timeBig(alarm.hh, alarm.mm)}</div>
-        <div style="margin-top:20px">${stack(team)}</div>
-        <div class="more" style="margin-top:14px">${ringing() ? 'ringing' : 'in ' + until()}</div></button>`
-        : `<div style="font:300 132px/1 var(--rnd);color:var(--line);text-align:center;letter-spacing:-1px">--:--</div>`}
-      <div class="grow"></div>
-      ${activeAlarm() ? '<div style="height:46px"></div>' : `<button class="pill" data-act="new">Create alarm</button>`}
-      ${img(A.glowCreate, 642, 448, 'glow bot')}
+        <span class="appic">${I.bell(20)}</span>
+        <span style="flex:1;min-width:0;text-align:left"><b>${esc(alarm.by || 'A teammate')} invited you to an alarm</b><small>${esc(alarm.name)} · ${t.hm} ${t.ap}</small></span><em>now</em></button>` : ''}</div>
+      <div class="dtop"><div><div class="date">${date}</div><div class="hello">${hello}${nick ? ', ' + esc(nick) : ''}</div></div>
+        <span class="dot av" style="width:44px;height:44px;font-size:18px;background:${nick ? personColor(nick) : 'var(--line)'};color:${nick ? '#1d1f34' : 'var(--sub)'}">${nick ? esc(nick[0].toUpperCase()) : '<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4.2"/><path d="M3.5 21c.8-4.4 4.3-7 8.5-7s7.7 2.6 8.5 7z"/></svg>'}</span></div>
+      ${card}
+      <div class="card">
+        <div class="card-top"><span class="card-t" style="margin:0">${esc(MY_GROUP)}</span><span class="label">${crew.length} members</span></div>
+        <div class="roster">${crew.slice(0, 12).map(p => person(p)).join('')}</div></div>
+      <div class="stats">
+        <div class="card"><b>${h.streak}</b><span>day streak</span></div>
+        <div class="card"><b>${h.avg}</b><span>avg team time</span></div>
+        <div class="card"><b>${h.onTime}%</b><span>up on time</span></div></div>
+      <div class="label" style="margin:28px 0 6px">Recent</div>
+      ${h.rows.map(x => `<div class="hrow"><div><div class="hrow-t">${x.title}</div><div class="card-s" style="margin:2px 0 0">${x.day} · ${x.time}</div></div>
+        <div style="text-align:right"><div class="hrow-t" style="color:${x.all ? 'var(--up)' : 'var(--sleep)'}">${x.up}/${x.of} up</div><div class="card-s" style="margin:2px 0 0">${x.tt}</div></div></div>`).join('')}
     </div>`;
   },
 
-  name: () => `<div class="scr">
-    <div class="head">Your first name</div>
-    <form id="nameForm" style="display:contents" autocomplete="off">
-      <div class="field" style="margin-top:36px"><input id="nameIn" maxlength="20" placeholder="Name" value="${esc(nick)}" autocapitalize="words" enterkeyhint="go"></div>
-      <div class="grow"></div>
-      <button class="pill" id="nameGo" type="submit">Next</button>
-    </form>
-    ${img(A.glowCreate, 642, 448, 'glow bot')}</div>`,
+  name: () => `<div class="backdrop" data-act="unsheet">${ui.bgHtml || ''}</div>
+    <form class="sheet" id="nameForm" autocomplete="off">
+      <i class="grab"></i>
+      <div class="head" style="font-size:18px">What's your first name?</div>
+      <div class="card-s" style="margin:6px 0 0">So ${esc(MY_GROUP)} knows who's up.</div>
+      <div class="field" style="margin-top:22px"><input id="nameIn" maxlength="20" placeholder="First name" value="${esc(nick)}" autocapitalize="words" enterkeyhint="go"></div>
+      <button class="pill" id="nameGo" type="submit" style="margin-top:22px">Continue</button>
+    </form>`,
 
   create: () => {
     const d = ui.draft;
@@ -504,7 +604,7 @@ const views = {
     team.forEach(p => groups[p.status].push(p));
     groups.up.sort((a, b) => (a.upAt || 0) - (b.upAt || 0));
     const n = groups.asleep.length;
-    const sect = (k, label) => groups[k].length ? `<div class="sect"><div class="label">${label}</div><div class="stgrid">${groups[k].map(p => dot(p, ST_COL)).join('')}</div></div>` : '';
+    const sect = (k, label) => groups[k].length ? `<div class="sect"><div class="label">${label}</div><div class="stgrid">${groups[k].map(p => person(p, ST_COL)).join('')}</div></div>` : '';
     return `<div class="scr st">
       <div class="st-h">${esc(alarm.name)}</div>
       <div class="count"><b>${n}</b><span>${n === 1 ? 'teammate' : 'teammates'}<br>still sleeping</span></div>
@@ -515,7 +615,7 @@ const views = {
   done: team => `<div class="scr st">
       <div class="st-h">${esc(alarm.name)}</div>
       <div class="count"><b>${team.length}</b><span>teammates<br>up</span></div>
-      <div class="sect"><div class="label">Turned off</div><div class="stgrid">${team.map(p => dot(p, ST_COL)).join('')}</div></div>
+      <div class="sect"><div class="label">Turned off</div><div class="stgrid">${team.map(p => person(p, ST_COL)).join('')}</div></div>
       <div class="grow" style="min-height:40px"></div>
       <button class="pill" data-act="next">Next alarm</button>
     </div>`,
@@ -548,8 +648,7 @@ const views = {
 
 /* ================= Screen logic ================= */
 function screenFor(team, now) {
-  if (!nick) return 'name';
-  if (!heard) return 'wait';
+  if (ui.sheet) return 'name';
   if (ui.editMode && ui.draft) return 'create';
   if (!alarm) return 'home';
   const joined = me.gen === alarm.gen;
@@ -603,7 +702,8 @@ function onEnter(screen) {
   document.body.style.background = screen === 'ring' || screen === 'photo' ? '#06060f' : '#1d1f34';
   if (screen === 'name') { const f = document.getElementById('nameForm'), inp = document.getElementById('nameIn'), go = document.getElementById('nameGo');
     const upd = () => { go.disabled = !clean(inp.value, 20); }; upd(); inp.addEventListener('input', upd);
-    f.addEventListener('submit', e => { e.preventDefault(); const v = clean(inp.value, 20); if (!v) return; unlockAudio(); nick = v; publish(true); }); }
+    setTimeout(() => inp.focus(), 250);
+    f.addEventListener('submit', e => { e.preventDefault(); const v = clean(inp.value, 20); if (!v) return; unlockAudio(); nick = v; const act = ui.sheet; ui.sheet = null; publish(true); doAct(act); }); }
   if (screen === 'create') {
     document.getElementById('anName').addEventListener('input', e => { ui.draft.name = e.target.value; });
     const sel = document.getElementById('sel');
@@ -655,7 +755,15 @@ document.addEventListener('click', e => {
   const b = e.target.closest('[data-act]');
   if (!b) return;
   unlockAudio();
-  const act = b.dataset.act, now = Date.now();
+  const act = b.dataset.act;
+  // First join or create asks for a first name, then carries on.
+  if (!nick && (act === 'join' || act === 'new')) { ui.bgHtml = ui.lastHtml; ui.sheet = act; tick(); return; }
+  if (act === 'unsheet') { ui.sheet = null; tick(); return; }
+  doAct(act, b);
+  tick();
+});
+function doAct(act, b) {
+  const now = Date.now();
   switch (act) {
     case 'tasks': ui.draft.tasks = !ui.draft.tasks; rerender(); break;
     case 'type': {
@@ -698,8 +806,7 @@ document.addEventListener('click', e => {
     case 'back': ui.task = null; break;
     case 'shoot': shoot(); break;
   }
-  tick();
-});
+}
 function rerender() { ui.screen = ''; tick(); }
 function wakeUp() {
   Object.assign(me, { round: alarm.round, status: 'up', upAt: Date.now() });
