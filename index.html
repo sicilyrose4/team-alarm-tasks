@@ -1,0 +1,690 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#0b0b0c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Team Alarm</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0b0c;--ink:#fff;--volt:#d4ff2e;--orange:#ff5a1f;--dim:#7c7c85;--line:#26262b;--tile:#1c1c20}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;overscroll-behavior:none}
+body{-webkit-user-select:none;user-select:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input{font:inherit;color:inherit}
+#app{min-height:100dvh}
+.scr{min-height:100dvh;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top) + 18px) 24px calc(env(safe-area-inset-bottom) + 24px);max-width:520px;margin:0 auto;position:relative}
+.grow{flex:1}
+.big{font-family:Anton,Impact,sans-serif;text-transform:uppercase;font-weight:400;letter-spacing:.5px;line-height:1}
+.time{font-family:Anton,Impact,sans-serif;line-height:.95;letter-spacing:-1px;font-variant-numeric:tabular-nums}
+.time small{font-size:.3em;margin-left:.15em;letter-spacing:.5px;color:var(--volt)}
+.btn{height:68px;border-radius:6px;display:flex;align-items:center;justify-content:center;gap:12px;font:400 26px Anton,Impact,sans-serif;text-transform:uppercase;letter-spacing:.5px;width:100%;transition:transform .08s}
+.btn:active{transform:scale(.98)}
+.btn.volt{background:var(--volt);color:var(--bg)}
+.btn.dark{background:var(--bg);color:var(--volt)}
+.btn:disabled{opacity:.35}
+.k{font:400 15px Inter,system-ui,sans-serif;color:var(--dim)}
+.row{display:flex;justify-content:space-between;align-items:center;padding:16px 0;border-bottom:1px solid var(--line);gap:16px;min-height:58px}
+.row input{background:none;border:0;outline:0;text-align:right;font:600 17px Inter,system-ui,sans-serif;flex:1;min-width:0;-webkit-user-select:text;user-select:text}
+.tog{width:58px;height:34px;border-radius:4px;background:#33333a;position:relative;flex:none;transition:background .15s}
+.tog:after{content:"";position:absolute;left:4px;top:4px;width:26px;height:26px;border-radius:2px;background:#7c7c85;transition:left .15s,background .15s}
+.tog.on{background:var(--volt)}
+.tog.on:after{left:28px;background:var(--bg)}
+.chip{padding:10px 14px;border:2px solid #33333a;color:#55555e;font:400 18px Anton,Impact,sans-serif;text-transform:uppercase;display:inline-flex;gap:8px;align-items:center;border-radius:4px;letter-spacing:.5px}
+.chip.on{border-color:var(--volt);color:var(--volt)}
+.chips{display:flex;gap:10px;padding-top:16px;flex-wrap:wrap}
+svg{display:block;flex:none}
+
+/* name */
+.name-in{background:none;border:0;border-bottom:2px solid var(--line);outline:0;width:100%;font:400 52px Anton,Impact,sans-serif;text-transform:uppercase;padding:8px 0;color:#fff;-webkit-user-select:text;user-select:text;border-radius:0}
+.name-in::placeholder{color:#3a3a41}
+.name-in:focus{border-color:var(--volt)}
+.go{width:68px;height:68px;border-radius:6px;background:var(--volt);color:var(--bg);display:flex;align-items:center;justify-content:center;flex:none}
+.go:disabled{background:#1c1c20;color:#3a3a41}
+
+/* create */
+.top{display:flex;justify-content:space-between;align-items:center;min-height:32px}
+.timepick{position:relative;text-align:center;margin:30px 0 22px}
+.timepick input{position:absolute;inset:0;opacity:0;width:100%;height:100%;font-size:16px}
+
+/* tiles */
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.tile{aspect-ratio:1;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;font:400 30px Anton,Impact,sans-serif;text-transform:uppercase;position:relative;background:var(--tile);color:#fff;transition:background .3s,color .3s}
+.tile small{font:800 9px Inter,system-ui,sans-serif;letter-spacing:1.5px;margin-top:2px;min-height:11px}
+.tile.up{background:var(--volt);color:var(--bg)}
+.tile.zz{background:var(--orange);color:var(--bg)}
+.tile.sl{background:var(--tile);color:#5b5b64;outline:2px dashed #3a3a41;outline-offset:-2px}
+.tile.me{box-shadow:0 0 0 3px var(--bg),0 0 0 5px #fff}
+.tile.pop{animation:pop .5s}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.12)}100%{transform:scale(1)}}
+.list .li{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid #222;font:400 22px Anton,Impact,sans-serif;text-transform:uppercase}
+.list .li span:last-child{font-size:18px}
+.c-up{color:var(--volt)}.c-zz{color:var(--orange)}.c-sl{color:#6b6b74}
+
+/* ringing */
+.ring{background:var(--orange);color:var(--bg)}
+.bars{display:grid;gap:4px;margin-top:20px}
+.bars i{height:10px;border-radius:2px;transition:background .3s}
+.pips{display:flex;gap:6px;margin-left:6px}
+.pips i{width:9px;height:9px;background:currentColor;display:block}
+.pulse{animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(1.03)}}
+
+/* photo */
+.cam{position:fixed;inset:0;background:#000;display:flex;flex-direction:column}
+.cam-top{padding:calc(env(safe-area-inset-top) + 14px) 24px 14px;display:flex;align-items:center;justify-content:center;position:relative;min-height:70px}
+.cam-x{position:absolute;left:16px;top:calc(env(safe-area-inset-top) + 8px);width:44px;height:44px;display:flex;align-items:center;justify-content:center}
+.cam-view{flex:1;position:relative;overflow:hidden;background:#141416}
+.cam-view video,.cam-view img,.cam-view canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.cam-bot{display:flex;justify-content:center;align-items:center;padding:24px 0 calc(env(safe-area-inset-bottom) + 24px);min-height:130px}
+.shutter{width:82px;height:82px;border-radius:50%;border:4px solid #fff;padding:5px}
+.shutter i{display:block;width:100%;height:100%;border-radius:50%;background:var(--volt)}
+.shutter:active i{transform:scale(.9)}
+.okmark{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(11,11,12,.35)}
+.okmark div{width:120px;height:120px;border-radius:50%;background:var(--volt);display:flex;align-items:center;justify-content:center;animation:pop .4s}
+
+/* move */
+.prog{width:100%;height:28px;background:var(--tile);border-radius:4px;overflow:hidden}
+.prog i{display:block;height:100%;background:repeating-linear-gradient(-45deg,var(--volt) 0 12px,#b6db1f 12px 24px);transition:width .15s}
+
+/* done */
+.done{background:var(--volt);color:var(--bg)}
+.snz{background:var(--orange);color:var(--bg);border-radius:6px;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;margin-bottom:16px}
+.wait{min-height:100dvh;display:flex;align-items:center;justify-content:center}
+.wait i{width:14px;height:14px;background:var(--volt);border-radius:2px;animation:pulse 1s infinite}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js"></script>
+<script>
+(() => {
+/* ================= Constants ================= */
+const TEAM_SIZE = 11, SNOOZE_MS = 30000, MAX_SNOOZE = 2, LEAD_MS = 15000;
+const RING_STALE = 10 * 60e3, IDLE_STALE = 60 * 60e3, GONE_MS = 3 * 60e3, ONLINE_MS = 35000;
+const FAKES = ['Maya', 'Jordan', 'Theo', 'Priya', 'Leo', 'Ava', 'Marcus', 'Nina', 'Sam', 'Kai'];
+const PHOTO_PROMPTS = ['Something blue', 'Your shoes', 'Outside', 'Your toothbrush', 'Something green', 'A plant', 'Your water bottle', 'Something red', 'A door', 'Your sink'];
+const MOVE_TASKS = ['shake', 'hold'];
+const DEFAULTS = { name: 'Morning lift', team: 'Westside Warriors', hh: 5, mm: 45 };
+const STORE = 'team-alarm-tasks-v1';
+const ROOM = (new URLSearchParams(location.search).get('team') || 'squad-r8x4').replace(/[^a-z0-9-]/gi, '').slice(0, 40) || 'squad-r8x4';
+const BASE = 'team-alarm-tasks-proto/' + ROOM;
+const BROKERS = ['wss://broker.hivemq.com:8884/mqtt', 'wss://broker.emqx.io:8084/mqtt'];
+
+const I = {
+  cam: (s = 24) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M3 8h4l2-3h6l2 3h4v11H3z"/><circle cx="12" cy="13" r="3.6"/></svg>`,
+  up: (s = 24) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="9" width="8" height="13" rx="2"/><path d="M12 6V1M8.5 4.5L12 1l3.5 3.5"/></svg>`,
+  shake: (s = 24) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="4" width="8" height="16" rx="2"/><path d="M4 8v8M1 10v4M20 8v8M23 10v4"/></svg>`,
+  check: (s = 24) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>`,
+  zz: (s = 24) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h7l-7 9h7M14 4h6l-6 7h6"/></svg>`,
+  arrow: (s = 30) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>`,
+  x: (s = 26) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>`,
+};
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const clean = (v, n) => String(v || '').replace(/\s+/g, ' ').trim().slice(0, n);
+const num = x => (typeof x === 'number' && isFinite(x) ? x : 0);
+
+/* ================= Local state ================= */
+let saved = {};
+try { saved = JSON.parse(localStorage.getItem(STORE)) || {}; } catch (e) {}
+const myKey = saved.key || 'p' + Math.random().toString(36).slice(2, 10);
+let nick = clean(saved.nick, 20);
+const blankMe = () => ({ gen: 0, joinedAt: 0, round: 0, status: 'asleep', snoozes: 0, snoozeUntil: 0, upAt: 0 });
+let me = Object.assign(blankMe(), saved.me || {});
+let alarm = cleanAlarm(saved.alarm);
+const bootLast = num(saved.lastTs);
+let resumed = false, heard = false;
+const peers = new Map();       // key -> latest message from that phone
+let ui = { screen: '', task: null, draft: null, lastHtml: '', prevStatus: {} };
+
+function save() {
+  try { localStorage.setItem(STORE, JSON.stringify({ key: myKey, nick, me, alarm, lastTs: resumed ? Date.now() : bootLast })); } catch (e) {}
+}
+
+/* ================= Alarm model ================= */
+function cleanAlarm(a) {
+  if (!a || typeof a !== 'object' || !(num(a.gen) > 0)) return null;
+  const types = Array.isArray(a.types) ? a.types.filter(t => t === 'photo' || t === 'move') : [];
+  return {
+    gen: num(a.gen), v: num(a.v), t: num(a.t), creator: clean(a.creator, 40),
+    name: clean(a.name, 40) || DEFAULTS.name, team: clean(a.team, 40) || DEFAULTS.team,
+    hh: Math.min(23, Math.max(0, Math.round(num(a.hh)))), mm: Math.min(59, Math.max(0, Math.round(num(a.mm)))),
+    tasks: a.tasks === true, types: types.length ? types : ['photo', 'move'],
+    round: Math.max(1, num(a.round)), ringAt: num(a.ringAt), fakes: Math.min(TEAM_SIZE - 1, Math.max(0, num(a.fakes)))
+  };
+}
+const newer = (a, b) => !!a && (!b || a.gen > b.gen || (a.gen === b.gen && (a.v > b.v || (a.v === b.v && a.t > b.t))));
+function bump(patch) {
+  alarm = Object.assign({}, alarm, patch, { v: alarm.v + 1, t: Date.now() });
+}
+function lastSeen(gen) {
+  let last = 0;
+  for (const p of peers.values()) if (p.key !== myKey && p.joined && p.gen === gen) last = Math.max(last, num(p.ts));
+  if (me.gen === gen) last = Math.max(last, resumed ? Date.now() : bootLast);
+  return last;
+}
+function expired(a, now = Date.now()) {
+  if (!a) return true;
+  if (a.ringAt ? now - a.ringAt > RING_STALE : now - a.t > IDLE_STALE) return true;
+  return now - Math.max(lastSeen(a.gen), a.t) > GONE_MS;
+}
+function adopt(a) {
+  if (!a || !newer(a, alarm) || expired(a)) return false;
+  if (!alarm || a.gen !== alarm.gen) { me = blankMe(); ui.task = null; ui.draft = null; }
+  else if (a.round !== alarm.round) { me = Object.assign(blankMe(), { gen: me.gen, joinedAt: me.joinedAt }); ui.task = null; }
+  alarm = a;
+  return true;
+}
+
+/* ================= Sync (public MQTT, retained message per phone) ================= */
+let client = null, live = false, brokerIx = 0, lastSent = '';
+function payload() {
+  return { key: myKey, nick, joined: !!alarm && me.gen === alarm.gen, gen: me.gen, joinedAt: me.joinedAt,
+    round: me.round, status: me.status, snoozes: me.snoozes, snoozeUntil: me.snoozeUntil, upAt: me.upAt, alarm };
+}
+function publish(force) {
+  save();
+  const p = payload(), s = JSON.stringify(p);
+  if (!force && s === lastSent) return;
+  lastSent = s;
+  if (live && nick) client.publish(BASE + '/p/' + myKey, JSON.stringify(Object.assign(p, { ts: Date.now() })), { retain: true, qos: 1 });
+}
+function connect() {
+  if (!window.mqtt) { setTimeout(() => { heard = true; }, 300); return; }
+  client = mqtt.connect(BROKERS[brokerIx], { connectTimeout: 8000, reconnectPeriod: 2500, clean: true, clientId: 'tat-' + Math.random().toString(36).slice(2, 12) });
+  const fail = setTimeout(() => { if (!live) { client.end(true); brokerIx = (brokerIx + 1) % BROKERS.length; connect(); } }, 9000);
+  client.on('connect', () => {
+    clearTimeout(fail); live = true;
+    client.subscribe(BASE + '/p/+', { qos: 1 }, () => setTimeout(() => { heard = true; publish(true); }, 1500));
+  });
+  client.on('close', () => { live = false; });
+  client.on('message', (topic, buf) => {
+    const key = topic.slice(topic.lastIndexOf('/') + 1);
+    if (!buf || !buf.length) { peers.delete(key); return; }
+    try {
+      const p = JSON.parse(buf.toString());
+      if (!p || typeof p !== 'object' || key === myKey) return;
+      p.key = key;
+      peers.set(key, p);
+      if (adopt(cleanAlarm(p.alarm))) publish();
+    } catch (e) {}
+  });
+}
+setTimeout(() => { heard = true; }, 12000);     // no broker at all: carry on solo
+setInterval(() => publish(true), 10000);        // heartbeat
+
+/* ================= Team ================= */
+function rand(seed) {
+  return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+}
+const ringing = (now = Date.now()) => !!alarm && alarm.ringAt > 0 && now >= alarm.ringAt;
+function myStatus(now = Date.now()) {
+  if (!ringing(now) || me.round !== alarm.round) return 'asleep';
+  if (me.status === 'snoozed' && now >= me.snoozeUntil) return 'asleep';
+  return me.status;
+}
+function realPeers(now) {
+  const out = [];
+  for (const p of peers.values()) {
+    if (!p.joined || p.gen !== alarm.gen) continue;
+    const online = now - num(p.ts) < ONLINE_MS;
+    const inRound = alarm.ringAt && p.round === alarm.round;
+    if (!online && !inRound) continue;
+    out.push(p);
+  }
+  return out.sort((a, b) => num(a.joinedAt) - num(b.joinedAt));
+}
+function fakeState(i, now) {
+  const t = (now - alarm.ringAt) / 1000;
+  const r = rand(alarm.gen % 100000 * 31 + alarm.round * 977 + i * 131);
+  const upAt = 3 + r() * 25;                     // everyone simulated is up within ~30 s
+  const snoozer = r() < 0.3, snoozeAt = 1.5 + r() * 2;
+  const upMs = alarm.ringAt + upAt * 1000;
+  if (t >= upAt) return { status: 'up', upAt: upMs, snoozes: snoozer ? 1 : 0 };
+  if (snoozer && t >= snoozeAt) return { status: 'snoozed', snoozes: 1 };
+  return { status: 'asleep', snoozes: 0 };
+}
+function computeTeam(now = Date.now()) {
+  const list = [];
+  const live = ringing(now);
+  if (me.gen === alarm.gen) list.push({ key: myKey, me: true, name: nick || 'You', status: myStatus(now), snoozes: me.snoozes, upAt: me.upAt, joinedAt: me.joinedAt });
+  for (const p of realPeers(now)) {
+    let status = 'asleep', snoozes = 0, upAt = 0;
+    if (live && p.round === alarm.round) {
+      status = p.status === 'up' || p.status === 'snoozed' ? p.status : 'asleep';
+      if (status === 'snoozed' && now >= num(p.snoozeUntil)) status = 'asleep';
+      snoozes = num(p.snoozes); upAt = num(p.upAt);
+    }
+    list.push({ key: p.key, name: clean(p.nick, 20) || 'Teammate', status, snoozes, upAt, joinedAt: num(p.joinedAt) });
+  }
+  list.sort((a, b) => a.joinedAt - b.joinedAt);
+  const nFake = alarm.ringAt ? alarm.fakes : Math.max(0, TEAM_SIZE - list.length - (me.gen === alarm.gen ? 0 : 1));
+  for (let i = 0; i < nFake; i++) {
+    const f = live ? fakeState(i, now) : { status: 'asleep', snoozes: 0 };
+    list.push(Object.assign({ key: 'f' + i, fake: true, name: FAKES[i % FAKES.length] }, f));
+  }
+  return list;
+}
+const allUp = team => team.length > 0 && team.every(p => p.status === 'up');
+function todaysTask() {
+  const r = rand(alarm.gen % 100000 + alarm.round * 7919);
+  const type = alarm.types[Math.floor(r() * alarm.types.length)];
+  if (type === 'photo') return { type, prompt: PHOTO_PROMPTS[Math.floor(r() * PHOTO_PROMPTS.length)] };
+  return { type, move: MOVE_TASKS[Math.floor(r() * MOVE_TASKS.length)] };
+}
+function clockAt(offsetSec) {
+  let t = alarm.hh * 3600 + alarm.mm * 60 + Math.floor(offsetSec);
+  t = ((t % 86400) + 86400) % 86400;
+  const H = Math.floor(t / 3600), M = Math.floor(t / 60) % 60;
+  return { hm: (H % 12 || 12) + ':' + String(M).padStart(2, '0'), ss: String(t % 60).padStart(2, '0'), ap: H >= 12 ? 'PM' : 'AM' };
+}
+const fmt = (hh, mm) => ({ hm: (hh % 12 || 12) + ':' + String(mm).padStart(2, '0'), ap: hh >= 12 ? 'PM' : 'AM' });
+
+/* ================= Sound, buzz, screen ================= */
+let audio = null, lastBeep = 0, wakeLock = null;
+function unlockAudio() {
+  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
+  if (!audio) { try { audio = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+  if (audio && audio.state === 'suspended') audio.resume();
+}
+function tone(loud) {
+  if (!audio || audio.state !== 'running') return;
+  const t = audio.currentTime;
+  const seq = loud ? [[0, 880], [0.14, 1175], [0.28, 880], [0.42, 1175]] : [[0, 880], [0.16, 1175]];
+  seq.forEach(([d, f]) => {
+    const o = audio.createOscillator(), g = audio.createGain();
+    o.type = loud ? 'square' : 'sine'; o.frequency.value = f;
+    g.gain.setValueAtTime(0.0001, t + d);
+    g.gain.exponentialRampToValueAtTime(loud ? 0.22 : 0.12, t + d + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + d + 0.12);
+    o.connect(g); g.connect(audio.destination); o.start(t + d); o.stop(t + d + 0.13);
+  });
+}
+function keepAwake() {
+  if (wakeLock || !navigator.wakeLock) return;
+  navigator.wakeLock.request('screen').then(l => { wakeLock = l; l.addEventListener('release', () => { wakeLock = null; }); }).catch(() => {});
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && me.gen) keepAwake(); });
+document.addEventListener('pointerdown', () => { unlockAudio(); if (me.gen) keepAwake(); }, { capture: true });
+
+/* ================= Views ================= */
+const $app = document.getElementById('app');
+function tile(p) {
+  const cls = p.status === 'up' ? 'up' : p.status === 'snoozed' ? 'zz' : ringing() ? 'sl' : '';
+  const lab = !ringing() ? '' : p.status === 'up' ? 'UP' : p.status === 'snoozed' ? 'Z'.repeat(Math.max(1, p.snoozes)) : '—';
+  return `<div class="tile ${cls} ${p.me ? 'me' : ''}" data-k="${p.key}">${esc(p.name[0] || '?')}<small>${lab}</small></div>`;
+}
+function bars(team, onBg) {
+  const up = team.filter(p => p.status === 'up').length;
+  return `<div class="bars" style="grid-template-columns:repeat(${team.length},1fr)">${team.map((p, i) =>
+    `<i style="background:${i < up ? onBg : onBg === '#0b0b0c' ? 'rgba(11,11,12,.22)' : '#26262b'}"></i>`).join('')}</div>`;
+}
+function taskChips(a) {
+  if (!a.tasks) return '';
+  return `<div class="chips">${a.types.includes('photo') ? `<span class="chip on">${I.cam()}Photo</span>` : ''}${a.types.includes('move') ? `<span class="chip on">${I.shake()}Move</span>` : ''}</div>`;
+}
+
+const views = {
+  wait: () => `<div class="wait"><i></i></div>`,
+
+  name: () => `<div class="scr">
+    <div class="grow" style="display:flex;flex-direction:column;justify-content:center;gap:28px">
+      <div style="color:var(--volt)">${I.up(64)}</div>
+      <form id="nameForm" style="display:flex;gap:14px;align-items:flex-end" autocomplete="off">
+        <input class="name-in" id="nameIn" maxlength="20" placeholder="First name" value="${esc(nick)}" autocapitalize="words" enterkeyhint="go">
+        <button class="go" id="nameGo" type="submit" aria-label="Go">${I.arrow()}</button>
+      </form>
+    </div></div>`,
+
+  create: () => {
+    const d = ui.draft, t = fmt(d.hh, d.mm);
+    return `<div class="scr">
+      <div class="top"><span style="width:60px"></span><span class="big" style="font-size:24px">New alarm</span>
+        <button class="big" style="font-size:20px;color:var(--volt);width:60px;text-align:right;height:44px" data-act="create">Create</button></div>
+      <label class="timepick"><div class="time" id="tpShow" style="font-size:124px">${t.hm}<small>${t.ap}</small></div>
+        <input type="time" id="tp" value="${String(d.hh).padStart(2, '0')}:${String(d.mm).padStart(2, '0')}" aria-label="Wake-up time"></label>
+      <label class="row"><span class="k">Name</span><input id="anName" maxlength="40" value="${esc(d.name)}" autocapitalize="sentences"></label>
+      <label class="row"><span class="k">Team</span><input id="anTeam" maxlength="40" value="${esc(d.team)}" autocapitalize="words"></label>
+      <button class="row" data-act="tasks" style="width:100%"><span style="font:600 15px Inter,system-ui,sans-serif">Wake-up task</span><span class="tog ${d.tasks ? 'on' : ''}"></span></button>
+      ${d.tasks ? `<div class="chips">
+        <button class="chip ${d.types.includes('photo') ? 'on' : ''}" data-act="type" data-v="photo">${I.cam()}Photo</button>
+        <button class="chip ${d.types.includes('move') ? 'on' : ''}" data-act="type" data-v="move">${I.shake()}Move</button></div>` : ''}
+      <div class="grow"></div>
+    </div>`;
+  },
+
+  join: team => {
+    const t = fmt(alarm.hh, alarm.mm);
+    return `<div class="scr">
+      <div style="font:600 17px Inter,system-ui,sans-serif">${esc(alarm.team)}</div>
+      <div class="grow" style="display:flex;flex-direction:column;justify-content:center;padding:24px 0">
+        <div class="big" style="font-size:26px">${esc(alarm.name)}</div>
+        <div class="time" style="font-size:150px">${t.hm}<small>${t.ap}</small></div>
+        ${taskChips(alarm)}
+        <div class="tiles" style="margin-top:26px">${team.map(tile).join('')}</div>
+      </div>
+      <button class="btn volt" data-act="join">Join</button>
+    </div>`;
+  },
+
+  lobby: team => {
+    const t = fmt(alarm.hh, alarm.mm);
+    return `<div class="scr">
+      <div style="font:600 17px Inter,system-ui,sans-serif">${esc(alarm.team)}</div>
+      <div class="grow" style="display:flex;flex-direction:column;justify-content:center;padding:24px 0">
+        <div class="big" style="font-size:26px">${esc(alarm.name)}</div>
+        <div class="time" style="font-size:150px">${t.hm}<small>${t.ap}</small></div>
+        ${taskChips(alarm)}
+        <div class="tiles" style="margin-top:26px">${team.map(tile).join('')}</div>
+      </div>
+      <button class="btn volt" data-act="start">Start test</button>
+    </div>`;
+  },
+
+  count: team => {
+    const left = Math.max(0, (alarm.ringAt - Date.now()) / 1000);
+    const c = clockAt(-Math.ceil(left));
+    return `<div class="scr">
+      <div style="font:600 17px Inter,system-ui,sans-serif;color:var(--dim)">${esc(alarm.team)}</div>
+      <div class="grow" style="display:flex;flex-direction:column;justify-content:center">
+        <div class="big" style="font-size:26px">${esc(alarm.name)}</div>
+        <div class="time" style="font-size:150px">${c.hm}<small>${c.ss}</small></div>
+        ${bars(team, '#d4ff2e')}
+      </div>
+    </div>`;
+  },
+
+  ring: team => {
+    const task = alarm.tasks ? todaysTask() : null;
+    const left = MAX_SNOOZE - me.snoozes;
+    const label = !task ? 'Off' : task.type === 'photo' ? `${I.cam(28)}${esc(task.prompt)}`
+      : task.move === 'shake' ? `${I.shake(28)}Shake it` : `${I.up(28)}Hold it up`;
+    return `<div class="ring"><div class="scr">
+      <div style="font:600 17px Inter,system-ui,sans-serif">${esc(alarm.team)}</div>
+      <div class="grow" style="display:flex;flex-direction:column;justify-content:center">
+        <div class="big" style="font-size:26px">${esc(alarm.name)}</div>
+        <div class="time pulse" style="font-size:180px;transform-origin:left center">${clockAt(0).hm}</div>
+        ${bars(team, '#0b0b0c')}
+      </div>
+      <button class="btn dark" data-act="${task ? 'task' : 'off'}" style="height:78px">${label}</button>
+      ${left > 0 ? `<button class="btn" data-act="snooze" style="background:rgba(11,11,12,.15);color:#0b0b0c;margin-top:10px">Snooze<span class="pips">${'<i></i>'.repeat(left)}</span></button>` : ''}
+    </div></div>`;
+  },
+
+  status: team => {
+    const up = team.filter(p => p.status === 'up').length;
+    const order = { asleep: 0, snoozed: 1, up: 2 };
+    const sorted = team.slice().sort((a, b) => order[a.status] - order[b.status] || (a.upAt || 0) - (b.upAt || 0));
+    const mySt = myStatus();
+    const snzLeft = Math.max(0, Math.ceil((me.snoozeUntil - Date.now()) / 1000));
+    return `<div class="scr">
+      ${mySt === 'snoozed' ? `<div class="snz">${I.zz(26)}<span class="big" style="font-size:34px">0:${String(snzLeft).padStart(2, '0')}</span></div>` : ''}
+      <div style="display:flex;align-items:flex-end;justify-content:space-between">
+        <div><div class="big" style="font-size:20px;color:var(--dim)">${esc(alarm.name)} · ${fmt(alarm.hh, alarm.mm).hm}</div>
+        <div class="big" style="font-size:96px;line-height:.95">${up}<span style="color:#55555e">/${team.length}</span></div></div>
+        <div class="big" style="font-size:26px;color:var(--volt);padding-bottom:12px">Up</div>
+      </div>
+      <div class="tiles" style="margin-top:18px">${team.map(tile).join('')}</div>
+      <div class="list" style="margin-top:18px">${sorted.map(p => {
+        const c = p.status === 'up' ? 'up' : p.status === 'snoozed' ? 'zz' : 'sl';
+        const right = p.status === 'up' ? clockAt(((p.upAt || alarm.ringAt) - alarm.ringAt) / 1000).hm
+          : p.status === 'snoozed' ? 'Snooze ×' + Math.max(1, p.snoozes) : 'Asleep';
+        return `<div class="li"><span style="color:${c === 'sl' ? '#6b6b74' : c === 'zz' ? 'var(--orange)' : '#fff'}">${esc(p.name)}</span><span class="c-${c}">${right}</span></div>`;
+      }).join('')}</div>
+    </div>`;
+  },
+
+  done: team => {
+    const last = team.slice().sort((a, b) => (b.upAt || 0) - (a.upAt || 0))[0];
+    const secs = Math.max(0, Math.round(((last && last.upAt) || alarm.ringAt) - alarm.ringAt) / 1000);
+    const tt = Math.floor(secs / 60) + ':' + String(Math.floor(secs % 60)).padStart(2, '0');
+    return `<div class="done"><div class="scr">
+      <div class="grow" style="display:flex;flex-direction:column;justify-content:center">
+        <div class="bars" style="grid-template-columns:repeat(${team.length},1fr);margin:0 0 28px">${team.map(() => '<i style="height:46px;border-radius:6px;background:#0b0b0c"></i>').join('')}</div>
+        <div class="big" style="font-size:104px;line-height:1">All<br>${team.length} up</div>
+        <div style="display:flex;gap:40px;margin-top:24px">
+          <div><div style="font:400 15px Inter,system-ui,sans-serif">Team time</div><div class="big" style="font-size:36px">${tt}</div></div>
+          <div><div style="font:400 15px Inter,system-ui,sans-serif">Last up</div><div class="big" style="font-size:36px">${esc(last ? last.name : '')}</div></div>
+        </div>
+      </div>
+      <button class="btn dark" data-act="again">New round</button>
+    </div></div>`;
+  },
+
+  photo: () => {
+    const task = todaysTask();
+    return `<div class="cam">
+      <div class="cam-top"><button class="cam-x" data-act="back" aria-label="Back">${I.x()}</button>
+        <div class="big" style="font-size:34px;color:var(--volt);text-align:center">${esc(task.prompt)}</div></div>
+      <div class="cam-view" id="camView"><video id="vid" playsinline muted autoplay></video></div>
+      <div class="cam-bot"><button class="shutter" data-act="shoot" aria-label="Take photo"><i></i></button>
+        <input type="file" id="fileIn" accept="image/*" capture="environment" style="display:none"></div>
+    </div>`;
+  },
+
+  move: () => {
+    const task = todaysTask();
+    const shake = task.move === 'shake';
+    return `<div class="scr" id="moveScr" style="touch-action:none">
+      <div class="top"><button class="cam-x" style="position:static;margin-left:-10px" data-act="back" aria-label="Back">${I.x()}</button></div>
+      <div class="grow" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px">
+        <div style="color:${shake ? 'var(--volt)' : '#fff'}">${shake ? I.shake(120) : I.up(90)}</div>
+        <div class="big" style="font-size:64px;text-align:center">${shake ? 'Shake it' : 'Hold it up'}</div>
+        ${shake ? `<div class="prog"><i id="mv" style="width:0%"></i></div><div class="big" id="mvN" style="font-size:40px;color:var(--volt)">0%</div>`
+          : `<div class="time" id="mvN" style="font-size:170px;color:var(--volt)">3</div><div class="prog" style="height:6px;width:230px"><i id="mv" style="width:0%;background:var(--volt)"></i></div>`}
+      </div>
+    </div>`;
+  },
+};
+
+/* ================= Screen logic ================= */
+function screenFor(team, now) {
+  if (!nick) return 'name';
+  if (!heard) return 'wait';
+  if (!alarm) return 'create';
+  if (me.gen !== alarm.gen) return 'join';
+  if (!alarm.ringAt) return 'lobby';
+  if (now < alarm.ringAt) return 'count';
+  if (allUp(team)) return 'done';
+  const st = myStatus(now);
+  if (st !== 'asleep') return 'status';
+  if (ui.task) return ui.task;
+  return 'ring';
+}
+const STABLE = new Set(['name', 'create', 'photo', 'move']);
+
+function tick() {
+  const now = Date.now();
+  if (heard && !resumed) {
+    resumed = true;
+    if (alarm && expired(alarm, now)) { alarm = null; me = blankMe(); }
+    publish(true);
+  }
+  if (alarm && resumed && expired(alarm, now)) { alarm = null; me = blankMe(); ui.task = null; publish(); }
+  if (me.status === 'snoozed' && now >= me.snoozeUntil) { me.status = 'asleep'; publish(); }
+  if (!alarm && nick && heard && !ui.draft) ui.draft = Object.assign({ tasks: true, types: ['photo', 'move'] }, DEFAULTS);
+  const team = alarm ? computeTeam(now) : [];
+  const screen = screenFor(team, now);
+  if (screen !== 'photo' && screen !== 'move') stopTask();
+  let html = null;
+  if (screen !== ui.screen || !STABLE.has(screen)) html = views[screen](team);
+  if (html !== null && (screen !== ui.screen || html !== ui.lastHtml)) {
+    $app.innerHTML = html; ui.lastHtml = html;
+    if (screen !== ui.screen) { window.scrollTo(0, 0); onEnter(screen); }
+    ui.screen = screen;
+    // Tiles that just changed state get a little pop.
+    team.forEach(p => { if (ui.prevStatus[p.key] && ui.prevStatus[p.key] !== p.status) { const el = $app.querySelector(`[data-k="${p.key}"]`); if (el) el.classList.add('pop'); } });
+  }
+  team.forEach(p => { ui.prevStatus[p.key] = p.status; });
+  // Sound: loud while it's ringing for me; softer while I'm up but teammates still sleep.
+  const mine = ringing(now) && !allUp(team) && myStatus(now) === 'asleep';
+  const others = ringing(now) && !allUp(team) && team.some(p => p.status === 'asleep');
+  if (mine && now - lastBeep >= 1000) { lastBeep = now; tone(true); if (navigator.vibrate) navigator.vibrate([400, 200, 400]); }
+  else if (!mine && others && now - lastBeep >= 2000) { lastBeep = now; tone(false); }
+  if (screen === 'move') moveTick(now);
+}
+
+function onEnter(screen) {
+  if (screen === 'name') { const f = document.getElementById('nameForm'), inp = document.getElementById('nameIn'), go = document.getElementById('nameGo');
+    const upd = () => { go.disabled = !clean(inp.value, 20); }; upd(); inp.addEventListener('input', upd);
+    f.addEventListener('submit', e => { e.preventDefault(); const v = clean(inp.value, 20); if (!v) return; unlockAudio(); nick = v; publish(true); }); }
+  if (screen === 'create') {
+    const tp = document.getElementById('tp');
+    tp.addEventListener('input', () => { const [h, m] = (tp.value || '').split(':').map(Number); if (isFinite(h) && isFinite(m)) { ui.draft.hh = h; ui.draft.mm = m; const t = fmt(h, m); document.getElementById('tpShow').innerHTML = `${t.hm}<small>${t.ap}</small>`; } });
+    document.getElementById('anName').addEventListener('input', e => { ui.draft.name = e.target.value; });
+    document.getElementById('anTeam').addEventListener('input', e => { ui.draft.team = e.target.value; });
+  }
+  if (screen === 'photo') startCamera();
+  if (screen === 'move') startMotion();
+}
+
+/* ================= Actions ================= */
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]');
+  if (!b) return;
+  unlockAudio();
+  const act = b.dataset.act, now = Date.now();
+  switch (act) {
+    case 'tasks': ui.draft.tasks = !ui.draft.tasks; rerender(); break;
+    case 'type': {
+      const v = b.dataset.v, ts = ui.draft.types;
+      if (ts.includes(v)) { if (ts.length > 1) ts.splice(ts.indexOf(v), 1); } else ts.push(v);
+      rerender(); break;
+    }
+    case 'create': {
+      const d = ui.draft;
+      alarm = cleanAlarm({ gen: now * 1000 + Math.floor(Math.random() * 1000), v: 1, t: now, creator: myKey,
+        name: d.name, team: d.team, hh: d.hh, mm: d.mm, tasks: d.tasks, types: d.types, round: 1, ringAt: 0, fakes: 0 });
+      me = Object.assign(blankMe(), { gen: alarm.gen, joinedAt: now });
+      ui.draft = null; keepAwake(); publish(); break;
+    }
+    case 'join': me = Object.assign(blankMe(), { gen: alarm.gen, joinedAt: now }); keepAwake(); publish(); break;
+    case 'start': {
+      const real = computeTeam(now).filter(p => !p.fake).length;
+      bump({ ringAt: now + LEAD_MS, fakes: Math.max(0, TEAM_SIZE - real) });
+      keepAwake(); publish(); break;
+    }
+    case 'snooze':
+      if (me.snoozes >= MAX_SNOOZE) break;
+      Object.assign(me, { round: alarm.round, status: 'snoozed', snoozes: me.snoozes + 1, snoozeUntil: now + SNOOZE_MS });
+      publish(); break;
+    case 'off': wakeUp(); break;
+    case 'task': {
+      const task = todaysTask();
+      if (task.type === 'move') askMotion();
+      ui.task = task.type; break;
+    }
+    case 'back': ui.task = null; break;
+    case 'shoot': shoot(); break;
+    case 'again': bump({ round: alarm.round + 1, ringAt: 0, fakes: 0 }); me = Object.assign(blankMe(), { gen: me.gen, joinedAt: me.joinedAt }); publish(); break;
+  }
+  tick();
+});
+function rerender() { ui.screen = ''; tick(); }
+function wakeUp() {
+  Object.assign(me, { round: alarm.round, status: 'up', upAt: Date.now() });
+  ui.task = null; publish();
+}
+
+/* ================= Photo task ================= */
+let stream = null, shot = false;
+function startCamera() {
+  shot = false;
+  const vid = document.getElementById('vid');
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false })
+    .then(s => { if (ui.screen !== 'photo') { s.getTracks().forEach(t => t.stop()); return; } stream = s; vid.srcObject = s; vid.play().catch(() => {}); })
+    .catch(() => { stream = null; });
+  const fi = document.getElementById('fileIn');
+  fi.addEventListener('change', () => {
+    const f = fi.files && fi.files[0]; if (!f) return;
+    const img = new Image(); img.src = URL.createObjectURL(f);
+    document.getElementById('camView').innerHTML = ''; document.getElementById('camView').appendChild(img);
+    finishPhoto();
+  });
+}
+function shoot() {
+  if (shot) return;
+  const vid = document.getElementById('vid');
+  if (!stream || !vid || !vid.videoWidth) { document.getElementById('fileIn').click(); return; }
+  const c = document.createElement('canvas'); c.width = vid.videoWidth; c.height = vid.videoHeight;
+  c.getContext('2d').drawImage(vid, 0, 0);
+  const view = document.getElementById('camView'); view.innerHTML = ''; view.appendChild(c);
+  stopTask();
+  finishPhoto();
+}
+function finishPhoto() {
+  shot = true;
+  const view = document.getElementById('camView');
+  view.insertAdjacentHTML('beforeend', `<div class="okmark"><div style="color:#0b0b0c">${I.check(64)}</div></div>`);
+  setTimeout(wakeUp, 900);
+}
+
+/* ================= Movement task ================= */
+let motion = { prog: 0, last: 0, sensed: 0, holding: false, beta: null, held: 0, done: false, lastT: 0, mag: 9.8 };
+function askMotion() {
+  // iPhone asks for motion access, and only from a tap.
+  try { if (window.DeviceMotionEvent && DeviceMotionEvent.requestPermission) DeviceMotionEvent.requestPermission().catch(() => {}); } catch (e) {}
+  try { if (window.DeviceOrientationEvent && DeviceOrientationEvent.requestPermission) DeviceOrientationEvent.requestPermission().catch(() => {}); } catch (e) {}
+}
+function onMotion(e) {
+  const a = e.accelerationIncludingGravity; if (!a || a.x == null) return;
+  motion.sensed = Date.now();
+  const mag = Math.sqrt(a.x * a.x + a.y * a.y + a.z * a.z);
+  const now = Date.now();
+  if (Math.abs(mag - 9.8) > 9 && now - motion.last > 140) { motion.last = now; motion.prog = Math.min(1, motion.prog + 0.045); }
+}
+function onOrient(e) { if (e.beta == null) return; motion.sensed = Date.now(); motion.beta = e.beta; }
+const onDown = () => { motion.holding = true; }, onUp = () => { motion.holding = false; };
+function startMotion() {
+  motion = { prog: 0, last: 0, sensed: 0, holding: false, beta: null, held: 0, done: false, lastT: Date.now(), start: Date.now() };
+  window.addEventListener('devicemotion', onMotion);
+  window.addEventListener('deviceorientation', onOrient);
+  const scr = document.getElementById('moveScr');
+  scr.addEventListener('pointerdown', onDown); window.addEventListener('pointerup', onUp); window.addEventListener('pointercancel', onUp);
+}
+function stopTask() {
+  if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+  window.removeEventListener('devicemotion', onMotion);
+  window.removeEventListener('deviceorientation', onOrient);
+  window.removeEventListener('pointerup', onUp); window.removeEventListener('pointercancel', onUp);
+}
+function moveTick(now) {
+  if (motion.done) return;
+  const task = todaysTask();
+  const dt = Math.min(0.5, (now - motion.lastT) / 1000); motion.lastT = now;
+  // Without sensors (or if access was declined), pressing and holding the screen does the job.
+  const noSensor = !motion.sensed && now - motion.start > 2500;
+  const bar = document.getElementById('mv'), n = document.getElementById('mvN');
+  if (task.move === 'shake') {
+    if (noSensor && motion.holding) motion.prog = Math.min(1, motion.prog + dt / 3);
+    if (bar) bar.style.width = Math.round(motion.prog * 100) + '%';
+    if (n) n.textContent = Math.round(motion.prog * 100) + '%';
+  } else {
+    const overhead = motion.beta != null && Math.abs(motion.beta) > 115;
+    if (overhead || (noSensor && motion.holding)) motion.held += dt; else motion.held = Math.max(0, motion.held - dt * 2);
+    motion.prog = Math.min(1, motion.held / 3);
+    if (bar) bar.style.width = Math.round(motion.prog * 100) + '%';
+    if (n) n.textContent = Math.max(1, Math.ceil(3 - motion.held));
+  }
+  if (motion.prog >= 1) {
+    motion.done = true;
+    if (n) n.innerHTML = I.check(task.move === 'shake' ? 40 : 120);
+    if (navigator.vibrate) navigator.vibrate(80);
+    setTimeout(wakeUp, 700);
+  }
+}
+
+/* ================= Go ================= */
+connect();
+setInterval(tick, 250);
+tick();
+})();
+</script>
+</body>
+</html>
