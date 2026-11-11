@@ -56,11 +56,11 @@ svg,img{display:block;flex:none}
 /* time picker */
 /* the down arrow hangs below the picker, so keep it above the spacer that follows */
 .scr>.picker{z-index:3 !important}
-.picker{display:flex;align-items:center;justify-content:center;gap:6px;margin:0 -30px;touch-action:none}
-.col{position:relative;width:140px;height:180px;border-radius:11px;border:1px solid transparent;overflow:hidden;touch-action:none;cursor:grab}
-.col.h{width:118px}
+.picker{display:flex;align-items:center;justify-content:space-between;gap:4px;margin:0;touch-action:none}
+.col{position:relative;width:112px;height:136px;border-radius:11px;border:1px solid transparent;overflow:hidden;touch-action:none;cursor:grab}
+.col.h{width:98px}
 .col.on{background:var(--deep);border-color:var(--line)}
-.col .it{position:absolute;left:0;right:0;top:0;height:114px;text-align:center;font:300 114px/1 var(--rnd);color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:-1px;will-change:transform;pointer-events:none}
+.col .it{position:absolute;left:0;right:0;top:0;height:84px;text-align:center;font:300 84px/1 var(--rnd);color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:-1px;will-change:transform;pointer-events:none}
 .col .it.nb{opacity:.4}
 .col:not(.on) .it.nb{display:none}
 .col.h:not(.on) .it{text-align:right;padding-right:10px}
@@ -69,8 +69,8 @@ svg,img{display:block;flex:none}
 .col-wrap{position:relative}
 .col-wrap.on .chev{display:block}
 .chev.up{top:-53px;transform:scaleY(-1)}.chev.dn{bottom:-48px}
-.colon{font:300 114px/1 var(--rnd);color:var(--ink);margin-top:-14px}
-.ap-col{display:flex;flex-direction:column;gap:9px;width:53px}
+.colon{font:300 84px/1 var(--rnd);color:var(--ink);margin-top:-10px;width:22px;text-align:center;flex:none}
+.ap-col{display:flex;flex-direction:column;gap:9px;width:52px;flex:none}
 .ap-col button{height:37px;border-radius:18.5px;font:500 21px var(--rnd);color:var(--ampm)}
 .ap-col button.on{background:rgba(217,217,217,.2)}
 
@@ -607,7 +607,7 @@ function invitedLine() {
     <div style="font:500 32px var(--sf);color:var(--title);margin-top:21px;line-height:38px">${esc(alarm.name)}</div>`;
 }
 // Time picker: two wheels. Swipe to roll by 1; the arrows nudge by 1.
-const PITCH = 119;                                   // distance between numbers on a wheel
+const PITCH = 88;                                   // distance between numbers on a wheel
 const wheel = { h: { off: 0 }, m: { off: 0 }, anim: null };
 const pad2 = n => String(n).padStart(2, '0');
 function wheelVal(col, k) {                          // value k rows above (+) or below (-) the center
@@ -618,7 +618,7 @@ function wheelVal(col, k) {                          // value k rows above (+) o
 function stripHtml(col) {
   const off = wheel[col].off;
   let h = '';
-  for (let k = -2; k <= 2; k++) h += `<span class="it ${k ? 'nb' : 'd'}" style="transform:translateY(${33 - k * PITCH + off}px)">${wheelVal(col, k)}</span>`;
+  for (let k = -2; k <= 2; k++) h += `<span class="it ${k ? 'nb' : 'd'}" style="transform:translateY(${26 - k * PITCH + off}px)">${wheelVal(col, k)}</span>`;
   return h;
 }
 function pickerHtml(d) {
