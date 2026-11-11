@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<meta name="theme-color" content="#1d1f34">
+<meta name="theme-color" content="#15142e">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Team Alarm</title>
@@ -205,29 +205,105 @@ svg,img{display:block;flex:none}
 .wait{min-height:100dvh;display:flex;align-items:center;justify-content:center}
 .wait i{width:14px;height:14px;background:var(--sub);border-radius:50%;animation:breathe 1s infinite}
 
-/* ===== depth: gradients, glows, soft light ===== */
-:root{--grad-card:linear-gradient(160deg,#272a4d 0%,#1a1c34 55%,#15172b 100%);--grad-pill:linear-gradient(180deg,#eceef8 0%,#c3c6de 100%);--grad-lav:linear-gradient(135deg,#d9daf0 0%,#e8cee2 100%)}
-.dash::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
-  background:radial-gradient(70% 40% at 100% -5%,rgba(117,89,114,.55),transparent 70%),
-             radial-gradient(60% 35% at -10% 10%,rgba(72,78,140,.45),transparent 70%),
-             radial-gradient(80% 40% at 50% 115%,rgba(48,52,87,.7),transparent 70%)}
-.dash>*{position:relative;z-index:1}
-.card{background:var(--grad-card);border-color:rgba(176,180,217,.14);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 14px 34px rgba(6,6,15,.35)}
-.notif{background:linear-gradient(135deg,#3b3f6e 0%,#43395f 60%,#4f3b5e 100%);border-color:rgba(232,206,226,.22);box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 16px 36px rgba(6,6,15,.4)}
-.notif .appic{background:linear-gradient(145deg,#c4e0cd,#86a993);box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
-.pill{background:var(--grad-pill);box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 10px 26px rgba(6,6,15,.35)}
-.scr>.fab{background:var(--grad-lav);box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 12px 30px rgba(117,89,114,.55),0 4px 10px rgba(6,6,15,.4)}
-.chipx{background:linear-gradient(135deg,#3a3e6b,#2f3257);box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
-.dash .time span:first-child,.join-time span:first-child{background:linear-gradient(180deg,#ffffff 20%,#b9bcd9 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
-.dot.av{position:relative;overflow:hidden}
-.dot.av::after{content:"";position:absolute;inset:0;border-radius:50%;background:linear-gradient(150deg,rgba(255,255,255,.42) 0%,rgba(255,255,255,0) 55%,rgba(29,31,52,.12) 100%);pointer-events:none}
-.field{background:linear-gradient(180deg,#131528,#181a31);box-shadow:inset 0 2px 6px rgba(0,0,0,.25)}
-.sel{background:linear-gradient(160deg,#363a63,#2c2f52)}
-.col.on{background:linear-gradient(180deg,#121426 0%,#191b33 50%,#121426 100%);box-shadow:inset 0 2px 10px rgba(0,0,0,.35)}
-.tog.on{background:linear-gradient(135deg,#b4d3bf,#86a993)}
-.reuse{background:linear-gradient(135deg,rgba(203,205,223,.08),rgba(232,206,226,.06))}
-.sheet{background:linear-gradient(180deg,#262948 0%,#1d1f34 60%);box-shadow:0 -20px 50px rgba(6,6,15,.5)}
-.hrow{border-bottom-color:rgba(71,75,113,.6)}
+/* ===== playful bold theme ===== */
+:root{--bg:#15142e;--deep:#0f0e24;--line:#2a2950;--line2:#3d3c6b;--ink:#ffffff;--ampm:#c9c7ff;--title:#ffffff;--sub:#a9a7d6;--ph:#8a88c0;--btn:#ffffff;
+  --sleep:#ff7a6b;--snz:#ffd23f;--up:#3ddc97;
+  --blue:#5b6cff;--blue-d:#3a47c9;--coral:#ff6b5b;--coral-d:#c9473a;--yellow:#ffd23f;--yellow-d:#c9a019;--mint:#3ddc97;--mint-d:#22a46c;--violet:#a66bff;--violet-d:#7a45d1;--pink:#ff7ac6;--pink-d:#c94f95;--k:#15142e}
+.hello{font:800 32px var(--rnd);letter-spacing:-.5px;color:#fff}
+.date{font:700 14px var(--rnd);color:var(--yellow);letter-spacing:.3px}
+.label.sec{font:800 13px var(--rnd);text-transform:uppercase;letter-spacing:1.6px;color:var(--sub)}
+.head{font:800 20px var(--rnd);line-height:24px}
+.st-h{font-family:var(--rnd);font-weight:800;color:#fff}
+.label{font-family:var(--rnd);font-weight:700}
+.time span:first-child{font-weight:600}
+
+/* pills: chunky, pressable */
+.pill{background:var(--yellow);color:var(--k);font-family:var(--rnd);font-weight:800;box-shadow:0 5px 0 var(--yellow-d);transition:transform .08s,box-shadow .08s}
+.pill:active{transform:translateY(3px);box-shadow:0 2px 0 var(--yellow-d)}
+.link{font-family:var(--rnd);font-weight:700;color:var(--sub)}
+
+/* upcoming alarm card: blue block */
+.card{background:var(--blue);border:0;border-radius:28px;color:#fff;box-shadow:0 6px 0 var(--blue-d)}
+.card.new{background:var(--blue)}
+.card .label{color:rgba(255,255,255,.85);font-size:15px}
+.card-t{font:800 22px var(--rnd)}
+.card .card-t{color:#fff}
+.card .card-s,.card .mini span{color:rgba(255,255,255,.85)}
+.card .time,.card .time .ap{color:#fff}
+.card .mini .dot{box-shadow:0 0 0 2.5px var(--blue)}
+.chipx{background:#fff;color:var(--blue);font:800 13px var(--rnd)}
+.card:active,.notif:active,.grow-row:active{transform:translateY(3px)}
+
+/* invites: coral (alarm) and yellow (group) blocks */
+.notif{border:0;border-radius:28px;background:var(--yellow);color:var(--k);box-shadow:0 6px 0 var(--yellow-d)}
+.notif b{font:800 17px var(--rnd);color:var(--k)}
+.notif small,.notif em,.notif .card-s{color:rgba(21,20,46,.7)}
+.notif .appic{background:var(--k);color:var(--yellow);border-radius:12px}
+.notif .pill{background:var(--k);color:#fff;box-shadow:0 4px 0 rgba(0,0,0,.35)}
+.notif .mini .dot{box-shadow:0 0 0 2.5px var(--yellow)}
+.notif[data-act="invite"]{background:var(--coral);box-shadow:0 6px 0 var(--coral-d)}
+.notif[data-act="invite"] b{color:#fff}
+.notif[data-act="invite"] small,.notif[data-act="invite"] em,.notif[data-act="invite"] .card-s{color:rgba(255,255,255,.85)}
+.notif[data-act="invite"] .appic{background:#fff;color:var(--coral)}
+.notif[data-act="invite"] .pill{background:#fff;color:var(--coral)}
+
+/* groups: mint blocks */
+.grow-row{background:var(--mint);border:0 !important;border-radius:24px;padding:14px 16px;margin-bottom:14px;box-shadow:0 5px 0 var(--mint-d);transition:transform .08s}
+.grow-row .hrow-t{font:800 18px var(--rnd);color:var(--k)}
+.grow-row .card-s{color:rgba(21,20,46,.7)}
+.grow-row img{filter:brightness(0);opacity:.55}
+.grow-row .mini .dot{box-shadow:0 0 0 2.5px var(--mint)}
+
+/* recent: violet blocks */
+.hrow:has(.reuse){background:var(--violet);border:0;border-radius:24px;padding:14px 16px;margin-bottom:14px;box-shadow:0 5px 0 var(--violet-d)}
+.hrow:has(.reuse) .hrow-t{font:800 17px var(--rnd);color:#fff}
+.hrow:has(.reuse) .card-s{color:rgba(255,255,255,.8)}
+.reuse{background:#fff;color:var(--violet);border:0;font:800 15px var(--rnd)}
+.reuse:active{background:#f1e8ff}
+.hrow{border-bottom-color:var(--line)}
+.hrow-t{font-family:var(--rnd);font-weight:700}
+
+/* empty state stays quiet */
+.addrow{font-family:var(--rnd);font-weight:600}
+.empty{font-family:var(--rnd);color:#5f5d8f}
+
+/* FAB */
+.scr>.fab{background:var(--pink);color:var(--k);box-shadow:0 6px 0 var(--pink-d),0 14px 30px rgba(255,122,198,.3)}
+.fab:active{transform:translateY(3px)}
+
+/* avatars: flat and bright */
+.dot.av{font-family:var(--rnd);font-weight:800;color:var(--k)}
+
+/* create screen */
+.field{background:#fff;border:0;box-shadow:0 5px 0 #b9b6ec}
+.field input{color:var(--k);font-family:var(--rnd);font-weight:700}
+.field input::placeholder{color:#b5b3d6}
+.sel{background:var(--blue);border:0;box-shadow:0 5px 0 var(--blue-d)}
+.sel-btn,.sel-btn.has{color:#fff;font-family:var(--rnd);font-weight:700}
+.sel-btn img{filter:brightness(0) invert(1)}
+.sel-opt{color:#fff;border-top-color:rgba(255,255,255,.2);font-family:var(--rnd);font-weight:600}
+.sel-opt.on{background:rgba(255,255,255,.14)}
+.col.on{background:var(--blue);border-color:transparent;box-shadow:0 6px 0 var(--blue-d)}
+.col .it{font-weight:600}
+.colon{font-weight:600}
+.ap-col button{font-family:var(--rnd);font-weight:800}
+.ap-col button.on{background:var(--yellow);color:var(--k)}
+.chev:active,.chev.press{background:rgba(255,255,255,.16)}
+.trow .label{color:#fff}
+.tog{background:var(--line);border-color:var(--line2)}
+.tog.on{background:var(--mint);border-color:var(--mint)}
+.tog.on:after{background:#fff}
+.chip{font-family:var(--rnd);font-weight:700;color:#6c6aa0;border-color:var(--line2)}
+.chip.on{background:var(--yellow);border-color:var(--yellow);color:var(--k)}
+.scr>.dock,.scr>.dock.col-dock{background:linear-gradient(to bottom,rgba(21,20,46,0),rgba(21,20,46,.94) 40%,var(--bg) 70%)}
+
+/* sheet, tasks */
+.sheet{background:var(--bg);border-top:0;box-shadow:0 -14px 40px rgba(0,0,0,.45)}
+.steps i.on{background:var(--mint);border-color:var(--mint)}
+.prog{background:var(--deep);border-color:var(--line2)}
+.prog i{background:var(--mint)}
+.okmark div{background:var(--mint)}
+.count b{font-weight:700}
 </style>
 </head>
 <body>
@@ -239,7 +315,7 @@ svg,img{display:block;flex:none}
 const TEAM_SIZE = 11, SNOOZE_MS = 30000, MAX_SNOOZE = 2, LEAD_MS = 15000;
 const RING_STALE = 10 * 60e3, GONE_MS = 10 * 60e3, ONLINE_MS = 35000;
 const FAKES = ['Maya', 'Jordan', 'Theo', 'Priya', 'Leo', 'Ava', 'Marcus', 'Nina', 'Sam', 'Kai', 'Zoe', 'Eli'];
-const PHOTO_PROMPTS = ['Something blue', 'Your shoes', 'Outside', 'Your toothbrush', 'Something green', 'A plant', 'Your water bottle', 'Something red', 'A door', 'Your sink'];
+const PHOTO_PROMPTS = ['Your toothbrush', 'Your shoes', 'Your sink', 'A light switch', 'A door handle', 'A towel', 'A window'];
 const MOVE_TASKS = ['shake', 'walk'];
 const STEPS = 5;
 // Everyone is in IXD 415 (the class QR code links to ?group=ixd415, which lands in the same place).
@@ -503,14 +579,14 @@ function groupInfo(g, crew) {
 /* ================= Views ================= */
 const $app = document.getElementById('app');
 const GROUPS = [MY_GROUP, 'Westside Warriors', 'Eastside Eagles', 'North End Knights'];
-const STACK = ['#e8cee2', '#9bbba7', '#9093ac'];
-const ST_COL = { asleep: '#e7a099', snoozed: '#e0dfa2', up: '#9bbba7' };
-const RING_COL = { asleep: '#de857d', snoozed: '#e0dfa2', up: '#9bbba7' };
+const STACK = ['#ff7ac6', '#3ddc97', '#7d8bff'];
+const ST_COL = { asleep: '#ff7a6b', snoozed: '#ffd23f', up: '#3ddc97' };
+const RING_COL = { asleep: '#ff6b5b', snoozed: '#ffd23f', up: '#3ddc97' };
 const A = { chev: 'assets/chevron-down.svg', check: 'assets/check-circle.svg', glowCreate: 'assets/glow-create.svg', glowJoin: 'assets/glow-join.svg', glowRing: 'assets/glow-ring.svg' };
 const img = (src, w, h, cls = '') => `<img src="${src}" width="${w}" height="${h}" alt="" class="${cls}">`;
 const timeBig = (hh, mm, size) => { const t = fmt(hh, mm); return `<span>${t.hm}</span><span class="ap">${t.ap}</span>`; };
 const tsz = hm => (hm.length > 4 ? 108 : 132);
-const PERSON = ['#e8cee2', '#9bbba7', '#9093ac', '#e0dfa2', '#e7a099', '#b0b4d9'];
+const PERSON = ['#ff7ac6', '#3ddc97', '#7d8bff', '#ffd23f', '#ff8a6b', '#c08bff'];
 function personColor(name) { let h = 0; for (const c of String(name)) h = (h * 31 + c.charCodeAt(0)) >>> 0; return PERSON[h % PERSON.length]; }
 const initial = p => esc((p.name || '?').trim()[0] || '?').toUpperCase();
 function dot(p, colors, i) {
@@ -807,7 +883,7 @@ function tick() {
 }
 
 function onEnter(screen) {
-  document.body.style.background = screen === 'ring' || screen === 'photo' ? '#06060f' : '#1d1f34';
+  document.body.style.background = screen === 'ring' || screen === 'photo' ? '#06060f' : '#15142e';
   if (screen === 'newgroup') { const f = document.getElementById('groupForm'), inp = document.getElementById('groupIn'), go = document.getElementById('groupGo');
     const upd = () => { go.disabled = !clean(inp.value, 30); }; inp.addEventListener('input', upd);
     setTimeout(() => inp.focus(), 250);
