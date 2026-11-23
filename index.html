@@ -26,7 +26,7 @@
 })();
 </script>
 <style>
-:root{--blue:#7383f5;--lime:#fbf59a;--purple:#b48cff;--navy:#2a2350;--white:#fff;--bg:#ece8fb;--card:rgba(255,255,255,.58);--muted:rgba(42,35,80,.6);--line:rgba(42,35,80,.08);--faint:rgba(42,35,80,.4);--red:#ff5d7d;
+:root{--blue:#7383f5;--lime:#a6efc6;--purple:#b48cff;--navy:#2a2350;--white:#fff;--bg:#ece8fb;--card:rgba(255,255,255,.58);--muted:rgba(42,35,80,.6);--line:rgba(42,35,80,.08);--faint:rgba(42,35,80,.4);--red:#ff5d7d;
   --glass:rgba(255,255,255,.5);--edge:rgba(255,255,255,.75);--blur:blur(22px) saturate(1.5);
   --grad:radial-gradient(90% 45% at 10% 0%,#9fb0fb 0%,rgba(159,176,251,0) 70%),radial-gradient(80% 45% at 100% 28%,#f2bfe9 0%,rgba(242,191,233,0) 70%),radial-gradient(90% 45% at 20% 75%,#c7d2ff 0%,rgba(199,210,255,0) 70%),radial-gradient(80% 40% at 90% 100%,#ffd6c4 0%,rgba(255,214,196,0) 70%),#e7e3fa;
   --f:"Urbanist",system-ui,-apple-system,sans-serif;--sys:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;
@@ -303,10 +303,10 @@ const BROKERS = ['wss://broker.hivemq.com:8884/mqtt', 'wss://broker.emqx.io:8084
 const JOIN = (Q.get('join') || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
 // Team colors: [background, text, accent]
 // Team colors: [background, text, accent, solid]
-const TEAM_COLORS = [['linear-gradient(140deg,#7b8bff 0%,#a68cff 100%)', '#ffffff', '#fbf59a', '#8a8bff'], ['linear-gradient(140deg,#b07cff 0%,#f29ad6 100%)', '#ffffff', '#fbf59a', '#cf8be9'],
+const TEAM_COLORS = [['linear-gradient(140deg,#7b8bff 0%,#a68cff 100%)', '#ffffff', '#a6efc6', '#8a8bff'], ['linear-gradient(140deg,#b07cff 0%,#f29ad6 100%)', '#ffffff', '#a6efc6', '#cf8be9'],
   ['linear-gradient(140deg,#ff9f8f 0%,#ffcb7a 100%)', '#3b1f3f', '#3b1f3f', '#ffb184'], ['linear-gradient(140deg,#7ddcc4 0%,#93c3ff 100%)', '#143049', '#143049', '#88cfe3'],
-  ['linear-gradient(140deg,#2d2554 0%,#5d4296 100%)', '#ffffff', '#f7b9e6', '#43347a'], ['linear-gradient(140deg,#f4f19a 0%,#b5efc9 100%)', '#2a2350', '#2a2350', '#d5f0b0']];
-const AV_COLORS = ['#fbf59a', '#b48cff', '#7f8dff', '#f7a8d8', '#ffb48c', '#2d2554'];
+  ['linear-gradient(140deg,#2d2554 0%,#5d4296 100%)', '#ffffff', '#f7b9e6', '#43347a'], ['linear-gradient(140deg,#bff2b0 0%,#9fe6cf 100%)', '#2a2350', '#2a2350', '#aeecc0']];
+const AV_COLORS = ['#a6efc6', '#b48cff', '#7f8dff', '#f7a8d8', '#ffb48c', '#2d2554'];
 const DAY1 = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -648,7 +648,7 @@ const views = {
     <div class="h1" style="margin-top:20px">Wake up together.</div>
     <div class="sub" style="margin-top:10px">Everyone on your team gets the same alarm, and you can see who's up.</div>
     <div class="grow" style="min-height:40px"></div>
-    <button class="role" style="background:linear-gradient(140deg,#fbf59a,#c9f3d2)" data-act="role" data-v="player"><div><b>Join a team</b><small>Use a code or an invite from your coach</small></div><span class="arr">${I('right', 24)}</span></button>
+    <button class="role" style="background:linear-gradient(140deg,#9eeec3,#cdf6e2)" data-act="role" data-v="player"><div><b>Join a team</b><small>Use a code or an invite from your coach</small></div><span class="arr">${I('right', 24)}</span></button>
     <button class="role" style="background:linear-gradient(140deg,#7b8bff,#c58bff);color:#fff" data-act="role" data-v="coach"><div><b>Create a team</b><small>Set alarms and see who's up</small></div><span class="arr">${I('right', 24)}</span></button>
   </div>`,
 
@@ -787,7 +787,7 @@ const views = {
     return `<div class="scr">
       <div>${backBtn()}</div>
       <div style="display:flex;flex-direction:column;align-items:center;text-align:center">
-        <span class="av" style="width:88px;height:88px;font-size:36px;background:${bg};color:${coach ? '#fbf59a' : ink(bg)}">${initial(S.nick)}</span>
+        <span class="av" style="width:88px;height:88px;font-size:36px;background:${bg};color:${coach ? '#a6efc6' : ink(bg)}">${initial(S.nick)}</span>
         <div class="h1" style="font-size:30px;margin-top:12px">${esc(S.nick)}</div>
         <span class="chip" style="background:var(--glass);border:1px solid var(--edge);margin-top:8px">${coach ? 'Coach' : 'Player'} · ${teams.length} ${teams.length === 1 ? 'team' : 'teams'}</span></div>
       <div class="sec">${coach ? 'Overview' : 'Your mornings'}</div>
@@ -811,7 +811,7 @@ function header(tag) {
   const now = new Date(), hr = now.getHours(), hello = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
   const coach = S.role === 'coach', bg = coach ? '#2d2554' : pcol(S.nick);
   return `<div class="row" style="align-items:flex-start"><div><div class="date">${now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}${tag ? ' · ' + tag : ''}</div><div class="hi"><span class="lt">${hello},</span><br>${esc(S.nick)}</div></div>
-    <button class="av" data-act="me" aria-label="Profile" style="background:${bg};color:${coach ? '#fbf59a' : ink(bg)}">${initial(S.nick)}</button></div>`;
+    <button class="av" data-act="me" aria-label="Profile" style="background:${bg};color:${coach ? '#a6efc6' : ink(bg)}">${initial(S.nick)}</button></div>`;
 }
 function teamRow(t) {
   return `<button class="teamrow" data-act="team" data-id="${esc(t.id)}"><span class="sw" style="background:${tcol(t.color)[0]}"></span><div class="grow"><b>${esc(t.name)}</b><small>${members(t).filter(m => m.state === 'in').length} on the team · ${t.coachKey === S.key ? 'You coach' : 'Coach ' + esc(shortCoach(t.coachName))}</small></div>${I('right', 20)}</button>`;
