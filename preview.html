@@ -881,8 +881,8 @@ const views = {
         <div class="h1" style="font-size:30px;margin-top:12px">${esc(S.nick)}</div>
         ${S.phone ? `<div class="sub" style="margin-top:4px">+1 ${fmtPhone(S.phone)}</div>` : ''}
         <span class="chip" style="background:var(--glass);border:1px solid var(--edge);margin-top:8px">${coach ? 'Coach' : 'Player'} · ${teams.length} ${teams.length === 1 ? 'team' : 'teams'}</span></div>
-      <div class="sec">${coach ? 'Overview' : 'Your mornings'}</div>
-      <div class="kpis">${k.map(x => `<div><b>${x[0]}</b><small>${x[1]}</small></div>`).join('')}</div>
+      ${coach ? '' : `<div class="sec">Your mornings</div>
+      <div class="kpis">${k.map(x => `<div><b>${x[0]}</b><small>${x[1]}</small></div>`).join('')}</div>`}
       ${sec('sound', 'Alarm sound')}
       <div class="card" style="padding:4px 16px">${Object.keys(SOUNDS).map(n => `<button class="opt-row" data-act="sound" data-v="${n}">${n}<span class="ck">${S.sound === n ? I('check', 20, 3) : ''}</span></button>`).join('')}
         <button class="opt-row" data-act="vibrate"><span class="meta" style="gap:10px">${I('vibe', 19, 2.2)}Vibrate</span><span class="tog ${S.vibrate ? 'on' : ''}"></span></button></div>
