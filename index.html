@@ -749,7 +749,7 @@ const views = {
     else if (nx) top = `<div class="sec">Next alarm</div>` + bigCard(nx, Date.now() >= nx.at ? 'Ringing' : 'in ' + until(nx.at));
     else top = `<div class="sec">Next alarm</div><div class="card nonext"><b>${teams.length ? 'No alarms coming up' : coach ? 'Start with a team' : 'No team yet'}</b><small>${teams.length ? 'Create one and everyone on the team gets it.' : coach ? 'Make a team, invite players, then set alarms.' : 'Join your team with a code, or wait for your coach to add you.'}</small></div>`;
     return `<div class="scr">
-      ${header(coach ? 'Coach' : '')}
+      ${header('')}
       ${inv.map(t => `<div class="inv-card" style="${tvars(t.color)}"><b>${esc(t.coachName)} added you to ${esc(t.name)}</b><small>${members(t).filter(m => m.state === 'in').length} on the team</small>
         <div class="row" style="margin-top:14px;justify-content:flex-start;gap:8px"><button class="btnsm" style="background:var(--ta);color:var(--tc)" data-act="jointeam" data-id="${esc(t.id)}">Join team</button><button class="btnsm" style="background:rgba(255,255,255,.2);color:inherit" data-act="declineteam" data-id="${esc(t.id)}">Not now</button></div></div>`).join('')}
       ${S.pendingJoin && !teams.length ? `<div class="card" style="margin-top:18px"><b style="font:600 16px var(--f)">Joining team ${esc(S.pendingJoin)}...</b><div class="sub" style="margin-top:4px">Waiting for your coach's team to show up.</div></div>` : ''}
