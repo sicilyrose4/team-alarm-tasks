@@ -711,7 +711,7 @@ const views = {
     <div class="h1">${S.role === 'coach' ? 'What does your team call you?' : "What's your first name?"}</div>
     <div class="sub" style="margin-top:10px">${S.role === 'coach' ? 'Players see this on invites and alarms.' : 'Your teammates see this.'}</div>
     <form id="nameForm" autocomplete="off" style="margin-top:26px">
-      <div class="field"><input id="nameIn" maxlength="24" placeholder="${S.role === 'coach' ? 'Coach Rivera' : 'First name'}" autocapitalize="words" enterkeyhint="go"></div>
+      <div class="field"><input id="nameIn" maxlength="24" placeholder="Your name" autocapitalize="words" enterkeyhint="go"></div>
       <button class="pill p-navy" id="nameGo" type="submit" style="margin-top:16px" disabled>Continue</button>
     </form>
   </div>`,
@@ -722,7 +722,7 @@ const views = {
     <div class="h1">What's your number?</div>
     <div class="sub" style="margin-top:10px">We'll text you a code to sign in. Teammates who have your number can find you from their contacts.</div>
     <form id="phoneForm" autocomplete="off" style="margin-top:26px">
-      <div class="field"><span class="cc">+1</span><input id="phoneIn" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="(555) 123-4567" enterkeyhint="go"></div>
+      <div class="field"><span class="cc">+1</span><input id="phoneIn" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="Phone number" enterkeyhint="go"></div>
       <button class="pill p-navy" id="phoneGo" type="submit" style="margin-top:16px" disabled>Send code</button>
     </form>
     <div class="sub" style="margin-top:14px;font-size:13px;text-align:center">Test version: no text is actually sent and your number stays on this phone.</div>
@@ -804,7 +804,7 @@ const views = {
         <button class="opt" data-act="repeat">${I('repeat', 24)}<b>Repeat</b><small>${repeatText(d.days)}</small></button>
         ${S.role === 'coach' ? `<button class="opt" data-act="ringme">${I('bell', 24)}<b>Ring my phone</b><small>${d.coachRings ? 'Yes' : 'No, just watch'}</small></button>` : ''}
       </div>
-      <div class="field" style="margin-top:16px"><input id="titleIn" maxlength="40" placeholder="Title, like Morning practice" value="${esc(d.name)}" autocapitalize="sentences" enterkeyhint="done"></div>
+      <div class="field" style="margin-top:16px"><input id="titleIn" maxlength="40" placeholder="Alarm name" value="${esc(d.name)}" autocapitalize="sentences" enterkeyhint="done"></div>
       <button class="pill p-navy" data-act="save" style="margin-top:16px">${d.id ? 'Save changes' : 'Create alarm'}</button>
     </div>`;
   },
@@ -928,7 +928,7 @@ const sheets = {
     const nt = ui.newTeam;
     return `<form class="sheet" id="teamForm" autocomplete="off"><i class="grab"></i>
       <div class="h2">${nt.edit ? 'Edit team' : nt.addTo ? 'Add people' : 'New team'}</div>
-      ${nt.addTo ? '' : `<div class="field" style="margin-top:16px"><input id="teamIn" maxlength="30" placeholder="Team name, like IXD 415" value="${esc(nt.name)}" autocapitalize="words"></div>
+      ${nt.addTo ? '' : `<div class="field" style="margin-top:16px"><input id="teamIn" maxlength="30" placeholder="Team name" value="${esc(nt.name)}" autocapitalize="words"></div>
       <div class="lbl">Team color</div><div class="swatches">${TEAM_COLORS.map((c, i) => `<button type="button" class="swatch ${nt.color === i ? 'on' : ''}" data-color="${i}" style="background:${c[0]}" aria-label="${COLOR_NAMES[i]}" title="${COLOR_NAMES[i]}"></button>`).join('')}</div>`}
       ${nt.edit ? rosterEdit(nt) : ''}
       <div id="ctBox">${contactsHtml(nt)}</div>
@@ -938,7 +938,7 @@ const sheets = {
   },
   code: () => `<form class="sheet" id="codeForm" autocomplete="off"><i class="grab"></i>
       <div class="h2">Join a team</div><div class="sub" style="margin-top:6px">Enter the code from your coach. If they add you from their contacts, the invite shows up on your home screen.</div>
-      <div class="field" style="margin-top:16px"><input id="codeIn" maxlength="6" placeholder="Code" autocapitalize="characters" style="letter-spacing:6px;text-transform:uppercase"></div>
+      <div class="field" style="margin-top:16px"><input id="codeIn" maxlength="6" placeholder="Team code" autocapitalize="characters" style="letter-spacing:6px;text-transform:uppercase"></div>
       ${ui.joinErr ? `<div class="sub danger" style="margin-top:8px">${ui.joinErr}</div>` : ''}
       <button class="pill p-navy" type="submit" style="margin-top:16px">Join</button></form>`,
   excuse: () => {
