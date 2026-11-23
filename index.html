@@ -734,6 +734,7 @@ const views = {
   create: () => {
     const d = ui.draft, teams = createTeams(), t = team(d.team) || teams[0], tc = tcol(t.color);
     return `<div class="scr" style="padding-bottom:calc(var(--safe-b) + 24px)">
+      <div>${backBtn('cancel')}</div>
       <div class="row"><div style="font:600 26px var(--f)">${d.id ? 'Edit alarm' : 'New alarm'}</div>
         <div class="teamsel"><button class="chip" style="background:${tc[0]};color:${tc[1]};padding:9px 14px;font-size:14px" data-act="teammenu"><i></i>${esc(t.name)}${teams.length > 1 ? I('down', 16, 2.6) : ''}</button>
         ${ui.menu ? `<div class="menu">${teams.map(x => `<button class="${x.id === t.id ? 'on' : ''}" data-act="pickteam" data-id="${esc(x.id)}"><i style="background:${tcol(x.color)[0]}"></i>${esc(x.name)}</button>`).join('')}</div>` : ''}</div></div>
@@ -745,7 +746,7 @@ const views = {
         ${S.role === 'coach' ? `<button class="opt" data-act="ringme">${I('bell', 24)}<b>Ring my phone</b><small>${d.coachRings ? 'Yes' : 'No, just watch'}</small></button>` : ''}
       </div>
       <div class="field" style="margin-top:16px"><input id="titleIn" maxlength="40" placeholder="Title, like Morning practice" value="${esc(d.name)}" autocapitalize="sentences" enterkeyhint="done"></div>
-      <div class="tbar"><button class="circle p-white" data-act="cancel" aria-label="Cancel">${I('x', 26)}</button><span>Everyone on ${esc(t.name)} gets it</span><button class="circle p-lime" data-act="save" aria-label="Save">${I('check', 28, 3)}</button></div>
+      <button class="pill p-navy" data-act="save" style="margin-top:16px">${d.id ? 'Save changes' : 'Create alarm'}</button>
     </div>`;
   },
 
