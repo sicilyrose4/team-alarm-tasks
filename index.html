@@ -32,7 +32,8 @@
   --f:"Urbanist",system-ui,-apple-system,sans-serif;--sys:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;
   --sh:100dvh;--safe-t:env(safe-area-inset-top);--safe-b:env(safe-area-inset-bottom)}
 /* desktop: the app sits inside a phone */
-#sbar,.island,.homebar,html.framed,html.framed body{height:100%;overflow:hidden;background:radial-gradient(70% 60% at 25% 20%,#eef1fb 0%,rgba(238,241,251,0) 70%),radial-gradient(60% 60% at 85% 80%,#d8ecf0 0%,rgba(216,236,240,0) 70%),#dbe6f1}
+#sbar,.island,.homebar{display:none}
+html.framed,html.framed body{height:100%;overflow:hidden;background:radial-gradient(70% 60% at 25% 20%,#eef1fb 0%,rgba(238,241,251,0) 70%),radial-gradient(60% 60% at 85% 80%,#d8ecf0 0%,rgba(216,236,240,0) 70%),#dbe6f1}
 html.framed{--sh:852px;--safe-t:54px;--safe-b:26px}
 html.framed #stage{height:100%;display:flex;align-items:center;justify-content:center;gap:72px}
 html.framed .phone{position:relative;flex:none;width:393px;height:852px;border-radius:58px;background:var(--grad);overflow:hidden;transform:translateZ(0) scale(var(--k,1));margin:calc(426px * (var(--k,1) - 1)) calc(196px * (var(--k,1) - 1));
@@ -44,6 +45,10 @@ html.framed #sbar .ic{display:flex;gap:6px;align-items:center}
 html.framed .island{display:block;position:absolute;top:11px;left:50%;transform:translateX(-50%);width:124px;height:36px;border-radius:20px;background:#0d1a2a;z-index:72;pointer-events:none}
 html.framed .homebar{display:block;position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:136px;height:5px;border-radius:3px;background:var(--navy);z-index:72;pointer-events:none;opacity:.9;transition:background .3s}
 html.framed .scr{max-width:none}
+.hero-art{display:flex;justify-content:center}
+.hero-art svg{width:min(78%,280px);height:auto;filter:drop-shadow(0 24px 40px rgba(40,90,160,.18))}
+.hero-art .bells{transform-origin:130px 60px;animation:ring 3.6s ease-in-out infinite}
+@keyframes ring{0%,78%,100%{transform:none}81%{transform:rotate(-7deg)}84%{transform:rotate(7deg)}87%{transform:rotate(-5deg)}90%{transform:rotate(5deg)}93%{transform:rotate(-2deg)}}
 /* notification banner */
 #banner{position:fixed;left:10px;right:10px;max-width:410px;margin:0 auto;top:calc(var(--safe-t) + 4px);z-index:80;display:flex;gap:11px;align-items:center;padding:12px 14px;border-radius:24px;background:rgba(250,250,253,.86);-webkit-backdrop-filter:blur(20px) saturate(1.6);backdrop-filter:blur(20px) saturate(1.6);
   box-shadow:0 12px 34px rgba(1,20,60,.22);transform:translateY(calc(-100% - var(--safe-t) - 20px));transition:transform .45s cubic-bezier(.2,.9,.25,1.1),visibility 0s .45s;visibility:hidden;cursor:pointer;text-align:left;color:var(--navy)}
@@ -638,12 +643,40 @@ function teamFeed(t) {
   return it.slice(0, 8).map(x => `<div class="lrow">${x.icon ? `<span class="av" style="width:36px;height:36px;background:var(--bg);color:var(--navy)">${I('bell', 18)}</span>` : av(x.who, 36)}<div class="grow"><b style="font-size:15px">${esc(x.b)}</b>${x.s ? `<small>${esc(x.s)}</small>` : ''}</div><span class="when">${ago(x.at)}</span></div>`).join('');
 }
 
+const HERO = `<svg viewBox="0 0 260 250" width="260" height="250" aria-hidden="true">
+  <defs>
+    <radialGradient id="hg" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ffffff" stop-opacity=".85"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></radialGradient>
+    <linearGradient id="hb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#12304a"/><stop offset="1" stop-color="#1f5f7a"/></linearGradient>
+    <linearGradient id="hf" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".9"/><stop offset="1" stop-color="#e3f1fb" stop-opacity=".7"/></linearGradient>
+    <linearGradient id="hr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5b8cff"/><stop offset="1" stop-color="#5fd3c5"/></linearGradient>
+  </defs>
+  <circle cx="130" cy="122" r="120" fill="url(#hg)"/>
+  <g class="bells">
+    <path d="M62 66a30 30 0 0 1 42-30" fill="none" stroke="url(#hb)" stroke-width="14" stroke-linecap="round"/>
+    <path d="M198 66a30 30 0 0 0-42-30" fill="none" stroke="url(#hb)" stroke-width="14" stroke-linecap="round"/>
+  </g>
+  <path d="M84 190l-14 18M176 190l14 18" stroke="url(#hb)" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="130" cy="124" r="78" fill="url(#hr)"/>
+  <circle cx="130" cy="124" r="66" fill="url(#hf)" stroke="#ffffff" stroke-width="2"/>
+  <g stroke="#12304a" stroke-linecap="round" opacity=".35" stroke-width="3">
+    <path d="M130 66v8M130 174v8M72 124h8M180 124h8"/>
+  </g>
+  <path class="hand-m" d="M130 124V82" stroke="#12304a" stroke-width="5" stroke-linecap="round"/>
+  <path d="M130 124l24 14" stroke="#12304a" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="130" cy="124" r="7" fill="#a6efc6" stroke="#12304a" stroke-width="3"/>
+  <g transform="translate(150 168)">
+    <circle cx="0" cy="22" r="22" fill="#5b8cff" stroke="#fff" stroke-width="4"/><circle cx="0" cy="16" r="7" fill="#fff"/><path d="M-11 33a11 9 0 0 1 22 0" fill="#fff"/>
+    <circle cx="32" cy="22" r="22" fill="#a6efc6" stroke="#fff" stroke-width="4"/><circle cx="32" cy="16" r="7" fill="#12304a"/><path d="M21 33a11 9 0 0 1 22 0" fill="#12304a"/>
+    <circle cx="64" cy="22" r="22" fill="#6fb7ff" stroke="#fff" stroke-width="4"/><circle cx="64" cy="16" r="7" fill="#fff"/><path d="M53 33a11 9 0 0 1 22 0" fill="#fff"/>
+  </g>
+</svg>`;
+
 /* ================= Views ================= */
 const views = {
   role: () => `<div class="scr onb">
-    <div class="h1" style="margin-top:20px">Wake up together.</div>
-    <div class="sub" style="margin-top:10px">Everyone on your team gets the same alarm, and you can see who's up.</div>
-    <div class="grow" style="min-height:40px"></div>
+    <div class="grow" style="min-height:20px"></div>
+    <div class="hero-art">${HERO}</div>
+    <div class="grow" style="min-height:20px"></div>
     <button class="role" style="background:linear-gradient(140deg,#12304a,#1f5f7a);color:#fff" data-act="role" data-v="player"><div><b>Join a team</b><small>Use a code or an invite from your coach</small></div><span class="arr">${I('right', 24)}</span></button>
     <button class="role" style="background:linear-gradient(140deg,#5b8cff,#5fd3c5);color:#fff" data-act="role" data-v="coach"><div><b>Create a team</b><small>Set alarms and see who's up</small></div><span class="arr">${I('right', 24)}</span></button>
   </div>`,
