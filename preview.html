@@ -126,7 +126,7 @@ svg{display:block;flex:none}
 .card{display:block;width:100%;background:var(--glass);border:1px solid var(--edge);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);box-shadow:0 8px 30px rgba(40,90,160,.08);border-radius:26px;padding:16px 18px;transition:transform .12s}
 .fab,.fab-in{background:var(--navy);color:#fff;border-radius:32px;padding:16px 22px 16px 18px;font:600 17px var(--f);display:flex;gap:8px;align-items:center;box-shadow:0 14px 30px -6px rgba(18,48,74,.4);transition:transform .12s}
 .fab{position:fixed;right:max(20px,calc(50% - 195px));bottom:calc(var(--safe-b) + 24px);z-index:20}
-.fab-in{width:max-content}.fab-in.dim{background:rgba(18,48,74,.14);color:var(--navy);box-shadow:none;border:1px solid rgba(18,48,74,.08)}.fab-in:active{transform:scale(.97)}
+.fab-in{width:max-content}.fab-in.soft{background:rgba(18,48,74,.14);color:var(--navy);box-shadow:none;border:1px solid rgba(18,48,74,.08)}.fab-in:active{transform:scale(.97)}
 .addrow{display:flex;align-items:center;gap:12px;width:100%;padding:10px 2px;font:500 16px var(--f);color:var(--muted)}
 .addic{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--edge);background:rgba(255,255,255,.35);display:flex;align-items:center;justify-content:center;flex:none;color:var(--faint)}
 .empty{font:500 15px var(--f);color:var(--faint);padding:2px 2px 4px}
@@ -794,7 +794,7 @@ const views = {
       ${sec('users', (coach ? 'Your teams' : 'Teams') + (teams.length ? ' · ' + teams.length : ''))}
       ${teams.map(teamPill).join('') || `<div class="empty">${coach ? "You haven't made a team yet" : "You're not on a team yet"}</div>`}
       <div class="acts">
-        ${coach ? `<button class="fab-in ${teams.length ? 'dim' : ''}" data-act="newteam">${I('users', 20)}Create a team</button>` : `<button class="fab-in ${teams.length ? 'dim' : ''}" data-act="code">${I('users', 20)}Join a team</button>`}
+        ${coach ? `<button class="fab-in ${teams.length ? 'soft' : ''}" data-act="newteam">${I('users', 20)}Create a team</button>` : `<button class="fab-in ${teams.length ? 'soft' : ''}" data-act="code">${I('users', 20)}Join a team</button>`}
       </div>
       ${teams.length ? `<div style="height:90px"></div><button class="fab" data-act="new">${I('plus', 20, 2.6)}Create alarm</button>` : ''}
     </div>`;
