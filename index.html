@@ -331,6 +331,18 @@ window.addEventListener('pagehide', e => { if (!e.persisted && live && client) t
 const livePeers = () => { const now = Date.now(), out = []; for (const p of peers.values()) if (now - num(p.ts) < ONLINE_MS && clean(p.nick, 24)) out.push(p); return out; };
 const peer = k => { const p = peers.get(k); return p && Date.now() - num(p.ts) < ONLINE_MS ? p : null; };
 
+/* ================= Analytics (anonymous counts only, no names) ================= */
+// Counts live at abacus.jasoncameron.dev under the namespace below. The class repo's analytics/ folder reads them.
+const STATS_NS = 'd1n0s4urs-team-alarm';
+const TRACK = /github\.io$/.test(location.hostname) && !Q.get('team');
+const ls = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} } };
+function hit(key) { if (TRACK) fetch('https://abacus.jasoncameron.dev/hit/' + STATS_NS + '/' + key, { mode: 'cors', keepalive: true }).catch(() => {}); }
+function hitOnce(key, scope = key) { if (ls.get('ta-stat-' + scope)) return; ls.set('ta-stat-' + scope, '1'); hit(key); }
+hit('visits');
+hitOnce('users');                                  // unique devices, ever
+hitOnce('day-' + dkey(new Date()));                // unique devices per day
+const ringTracked = new Set();
+
 /* ================= Teams ================= */
 function teamsAll() {
   const m = new Map(), lp = livePeers(), online = new Set(lp.map(p => p.key));
@@ -758,7 +770,7 @@ function screenFor() {
 let lastBeep = 0;
 function render(force) {
   // background work: auto-join by code, notice new invites
-  if (S.pendingJoin && S.nick && S.role === 'player') { const t = [...teamsAll().values()].find(x => x.code === S.pendingJoin); if (t) { joinTeam(t.id); S.pendingJoin = ''; toast('You joined ' + t.name); publish(); } }
+  if (S.pendingJoin && S.nick && S.role === 'player') { const t = [...teamsAll().values()].find(x => x.code === S.pendingJoin); if (t) { joinTeam(t.id); hit('joins'); S.pendingJoin = ''; toast('You joined ' + t.name); publish(); } }
   if (S.nick) for (const t of teamInvites()) if (!ui.seenInv.has(t.id)) { ui.seenInv.add(t.id); tone(false); if (navigator.vibrate) navigator.vibrate(60); }
   const screen = screenFor();
   const entering = screen !== ui.screen;
@@ -780,6 +792,7 @@ function render(force) {
   const ringing = RING_SCREENS.has(screen);
   document.body.style.background = ringing ? tcol(team(ui.occ.a.team).color)[0] : '#F3F4FA';
   if (ringing) crew(ui.occ).forEach(m => { ui.prev[m.key] = m.status; });
+  if (screen === 'ring' && !ringTracked.has(ui.occ.occ)) { ringTracked.add(ui.occ.occ); hit('rings'); }
   if (screen === 'ring' && Date.now() - lastBeep >= 1000) { lastBeep = Date.now(); tone(true); if (navigator.vibrate) navigator.vibrate([400, 200, 400]); }
 }
 function toast(msg) { ui.toast = msg; ui.toastT = Date.now() + 2600; }
@@ -789,7 +802,7 @@ function onEnter(screen) {
     const f = document.getElementById('nameForm'), inp = document.getElementById('nameIn'), go = document.getElementById('nameGo');
     inp.addEventListener('input', () => { go.disabled = !clean(inp.value, 24); });
     setTimeout(() => inp.focus(), 300);
-    f.addEventListener('submit', e => { e.preventDefault(); const v = clean(inp.value, 24); if (!v) return; unlockAudio(); S.nick = v; publish(); render(true); });
+    f.addEventListener('submit', e => { e.preventDefault(); const v = clean(inp.value, 24); if (!v) return; unlockAudio(); S.nick = v; hitOnce('signup-' + S.role); publish(); render(true); });
   }
 }
 function afterRender(screen) {
@@ -799,13 +812,13 @@ function afterRender(screen) {
   if (ui.sheet === 'code') {
     const f = document.getElementById('codeForm'), i = document.getElementById('codeIn'); setTimeout(() => i.focus(), 300);
     f.addEventListener('submit', e => { e.preventDefault(); const v = i.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); const t = [...teamsAll().values()].find(x => x.code === v);
-      if (!t) { ui.joinErr = "Couldn't find a team with that code"; render(true); return; } joinTeam(t.id); ui.sheet = null; ui.joinErr = ''; toast('You joined ' + t.name); publish(); render(true); });
+      if (!t) { ui.joinErr = "Couldn't find a team with that code"; render(true); return; } joinTeam(t.id); hit('joins'); ui.sheet = null; ui.joinErr = ''; toast('You joined ' + t.name); publish(); render(true); });
   }
   if (ui.sheet === 'excuse') {
     const f = document.getElementById('excuseForm'), n = document.getElementById('noteIn');
     n.addEventListener('input', () => { ui.excuseFor.note = n.value; });
     f.addEventListener('click', e => { const r = e.target.closest('[data-reason]'); if (!r) return; ui.excuseFor.reason = r.dataset.reason; f.querySelectorAll('.ch').forEach(x => x.classList.toggle('on', x === r)); document.getElementById('exGo').disabled = false; });
-    f.addEventListener('submit', e => { e.preventDefault(); const x = ui.excuseFor; if (!x.reason) return; S.excuses[x.occ] = { reason: x.reason, note: clean(x.note, 80), at: Date.now() }; ui.sheet = null; toast('Sent to your coach'); publish(); render(true); });
+    f.addEventListener('submit', e => { e.preventDefault(); const x = ui.excuseFor; if (!x.reason) return; hit('excuses'); S.excuses[x.occ] = { reason: x.reason, note: clean(x.note, 80), at: Date.now() }; ui.sheet = null; toast('Sent to your coach'); publish(); render(true); });
   }
 }
 function wireTeamForm() {
@@ -823,7 +836,7 @@ function wireTeamForm() {
     if (nt.addTo) { const t = S.ownTeams.find(x => x.id === nt.addTo); if (t) t.invited = t.invited.concat(add.filter(a => !t.invited.some(b => b.key === a.key))); ui.sheet = null; ui.view = 'team'; toast(add.length ? 'Invites sent' : 'No one added'); publish(); render(true); return; }
     const name = clean(nt.name, 30); if (!name) { const fi = f.querySelector('.field'); fi.classList.remove('shake'); void fi.offsetWidth; fi.classList.add('shake'); ti.focus(); return; }
     const t = { id: 't' + uid(), name, color: nt.color, code: newCode(), invited: add };
-    S.ownTeams.push(t); ui.sheet = null; ui.teamId = t.id; ui.view = 'invite'; publish(); render(true);
+    S.ownTeams.push(t); hit('teams'); ui.sheet = null; ui.teamId = t.id; ui.view = 'invite'; publish(); render(true);
   });
 }
 function inviteUrl(t) { const u = new URL(location.origin + location.pathname); u.searchParams.set('join', t.code); if (Q.get('team')) u.searchParams.set('team', ROOM); return u.toString(); }
@@ -883,7 +896,7 @@ document.addEventListener('click', e => {
     case 'newteam': ui.newTeam = { name: '', color: 0, picked: [], exclude: [], addTo: null }; ui.sheet = 'newteam'; break;
     case 'addpeople': { const t = team(ui.teamId); ui.newTeam = { name: '', color: 0, picked: [], exclude: members(t).map(m => m.key), addTo: t.id }; ui.sheet = 'newteam'; break; }
     case 'code': ui.joinErr = ''; ui.sheet = 'code'; break;
-    case 'jointeam': { const t = team(D.id); joinTeam(D.id); toast('You joined ' + (t ? t.name : 'the team')); publish(); break; }
+    case 'jointeam': { hit('joins'); const t = team(D.id); joinTeam(D.id); toast('You joined ' + (t ? t.name : 'the team')); publish(); break; }
     case 'declineteam': S.declined.push(D.id); publish(); break;
     case 'closesheet': ui.sheet = null; ui.confirm = null; break;
     case 'shareinvite': { const t = team(ui.teamId), url = inviteUrl(t);
@@ -908,11 +921,11 @@ document.addEventListener('click', e => {
       const at = new Date(); at.setHours(hh, d.mm, 0, 0); if (at.getTime() <= now + 1000) at.setDate(at.getDate() + 1);
       const old = d.id ? S.alarms.find(a => a.id === d.id) : null;
       const a = { id: d.id || 'a' + uid(), team: d.team, name: clean(d.name, 40) || 'Alarm', hh, mm: d.mm, days: d.days.slice(), date: dkey(at), coachRings: S.role === 'coach' ? !!d.coachRings : true, by: old ? old.by : S.nick, creator: old ? old.creator : S.key, v: now };
-      S.alarms = S.alarms.filter(x => x.id !== a.id).concat(a);
+      S.alarms = S.alarms.filter(x => x.id !== a.id).concat(a); if (!d.id) hit('alarms');
       ui.draft = null; ui.alarmId = a.id; ui.view = d.id ? 'alarm' : 'home'; toast(d.id ? 'Alarm updated' : 'Alarm set for everyone on ' + ((team(a.team) || {}).name || 'the team')); publish(); break; }
     case 'skip': { const a = alarmById(ui.alarmId), k = D.dk, cur = S.skips[a.id] || [], was = cur.includes(k); S.skips[a.id] = was ? cur.filter(x => x !== k) : cur.concat(k); toast(was ? "It's back on" : 'Canceled. The team sees it'); publish(); break; }
     case 'excuse': ui.excuseFor = { occ: D.o, reason: '', note: '' }; ui.sheet = 'excuse'; break;
-    case 'decide': S.decisions[D.k + '|' + D.o] = D.v; toast(D.v === 'ok' ? 'Excused' : 'Request denied'); publish(); break;
+    case 'decide': hit(D.v === 'ok' ? 'excuse-approved' : 'excuse-denied'); S.decisions[D.k + '|' + D.o] = D.v; toast(D.v === 'ok' ? 'Excused' : 'Request denied'); publish(); break;
     case 'askdelete': ui.confirm = { title: 'Delete this alarm?', body: 'It goes away for everyone on the team.', label: 'Delete alarm', act: 'delalarm' }; ui.sheet = 'confirm'; break;
     case 'delalarm': S.alarms = S.alarms.filter(a => a.id !== ui.alarmId); delete S.cache.alarms[ui.alarmId]; ui.sheet = null; ui.confirm = null; ui.view = 'home'; toast('Alarm deleted'); publish(); break;
     case 'askleave': { const t = team(ui.teamId), mine = t.coachKey === S.key;
@@ -920,8 +933,8 @@ document.addEventListener('click', e => {
       ui.sheet = 'confirm'; break; }
     case 'leaveteam': { const id = ui.teamId; S.ownTeams = S.ownTeams.filter(t => t.id !== id); S.alarms = S.alarms.filter(a => a.team !== id); S.joined = S.joined.filter(x => x !== id); S.declined.push(id); delete S.cache.teams[id]; ui.sheet = null; ui.confirm = null; ui.view = 'home'; publish(); break; }
     // ringing
-    case 'up': { const o = ui.occ; S.ring[o.occ] = Object.assign({}, S.ring[o.occ] || {}, { status: 'up', upAt: now }); publish(); break; }
-    case 'snooze': { const o = ui.occ, r = S.ring[o.occ] || { snoozes: 0 }; if (num(r.snoozes) >= MAX_SNOOZE) return; S.ring[o.occ] = { status: 'snoozed', snoozes: num(r.snoozes) + 1, snoozeUntil: now + SNOOZE_MS, upAt: 0 }; publish(); break; }
+    case 'up': { const o = ui.occ; if (myStatus(o.occ) !== 'up') hit('wakeups'); S.ring[o.occ] = Object.assign({}, S.ring[o.occ] || {}, { status: 'up', upAt: now }); publish(); break; }
+    case 'snooze': { const o = ui.occ, r = S.ring[o.occ] || { snoozes: 0 }; if (num(r.snoozes) >= MAX_SNOOZE) return; hit('snoozes'); S.ring[o.occ] = { status: 'snoozed', snoozes: num(r.snoozes) + 1, snoozeUntil: now + SNOOZE_MS, upAt: 0 }; publish(); break; }
     case 'closeocc': S.closed.push(ui.occ.occ); ui.view = 'home'; save(); break;
     default: return;
   }
