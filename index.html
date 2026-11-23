@@ -49,6 +49,13 @@ html.framed .scr{max-width:none}
 .hero-art svg{width:min(78%,280px);height:auto;filter:drop-shadow(0 24px 40px rgba(40,90,160,.18))}
 .hero-art .bells{transform-origin:130px 60px;animation:ring 3.6s ease-in-out infinite}
 @keyframes ring{0%,78%,100%{transform:none}81%{transform:rotate(-7deg)}84%{transform:rotate(7deg)}87%{transform:rotate(-5deg)}90%{transform:rotate(5deg)}93%{transform:rotate(-2deg)}}
+/* phone sign-in */
+.field .cc{font:500 20px var(--f);color:var(--muted);margin-right:10px;padding-right:12px;border-right:1px solid var(--line)}
+.otp{position:relative;display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.otp i{height:62px;border-radius:18px;background:rgba(255,255,255,.62);border:1.5px solid var(--edge);display:flex;align-items:center;justify-content:center;font:500 28px var(--f);font-style:normal;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
+.otp i.cur{border-color:var(--navy)}
+.otp input{position:absolute;inset:0;opacity:0;font-size:16px;-webkit-user-select:text;user-select:text}
+#banner .appic.msg{background:linear-gradient(#5ff777,#2bd34d)}
 /* notification banner */
 #banner{position:fixed;left:10px;right:10px;max-width:410px;margin:0 auto;top:calc(var(--safe-t) + 4px);z-index:80;display:flex;gap:11px;align-items:center;padding:12px 14px;border-radius:24px;background:rgba(250,250,253,.86);-webkit-backdrop-filter:blur(20px) saturate(1.6);backdrop-filter:blur(20px) saturate(1.6);
   box-shadow:0 12px 34px rgba(1,20,60,.22);transform:translateY(calc(-100% - var(--safe-t) - 20px));transition:transform .45s cubic-bezier(.2,.9,.25,1.1),visibility 0s .45s;visibility:hidden;cursor:pointer;text-align:left;color:var(--navy)}
@@ -350,7 +357,7 @@ const S = Object.assign({
   closed: [],                        // occs I dismissed after waking
   cache: { teams: {}, alarms: {} },  // last-seen teams/alarms from others (so they survive a dropped connection)
   pendingJoin: '',
-  sound: 'Pulse', vibrate: true, contacts: '', since: Date.now(),
+  sound: 'Pulse', vibrate: true, contacts: '', phone: '', verified: false, since: Date.now(),
   log: []                            // things that happened on my side, for team activity: { t: teamId, at, text }
 }, saved);
 function logIt(teamId, text) { S.log.unshift({ t: teamId, at: Date.now(), text }); S.log = S.log.slice(0, 60); }
@@ -394,7 +401,7 @@ function payload() {
 }
 function publish() {
   save();
-  if (live && S.nick) try { client.publish(BASE + '/p/' + S.key, JSON.stringify(payload()), { retain: true, qos: 1 }); } catch (e) {}
+  if (live && S.nick && S.verified) try { client.publish(BASE + '/p/' + S.key, JSON.stringify(payload()), { retain: true, qos: 1 }); } catch (e) {}
 }
 function connect() {
   if (!window.mqtt) return;
@@ -692,6 +699,28 @@ const views = {
   </div>`,
 
   // Home: what's next, then your teams (tap one for its alarms, people and activity), then the two things you can make.
+  phone: () => `<div class="scr onb">
+    <div>${backBtn('unname')}</div>
+    <div class="h1">What's your number?</div>
+    <div class="sub" style="margin-top:10px">We'll text you a code to sign in. Teammates who have your number can find you from their contacts.</div>
+    <form id="phoneForm" autocomplete="off" style="margin-top:26px">
+      <div class="field"><span class="cc">+1</span><input id="phoneIn" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="(555) 123-4567" enterkeyhint="go"></div>
+      <button class="pill p-navy" id="phoneGo" type="submit" style="margin-top:16px" disabled>Send code</button>
+    </form>
+    <div class="sub" style="margin-top:14px;font-size:13px;text-align:center">Test version: no text is actually sent and your number stays on this phone.</div>
+  </div>`,
+
+  verify: () => `<div class="scr onb">
+    <div>${backBtn('unphone')}</div>
+    <div class="h1">Enter the code</div>
+    <div class="sub" style="margin-top:10px">Sent to +1 ${fmtPhone(S.phone)}</div>
+    <form id="codeForm2" autocomplete="off" style="margin-top:26px">
+      <div class="otp">${'<i></i>'.repeat(6)}<input id="otpIn" inputmode="numeric" autocomplete="one-time-code" maxlength="6" aria-label="6-digit code"></div>
+      <button class="pill p-navy" type="submit" style="margin-top:18px">Verify</button>
+    </form>
+    <button class="link" data-act="resend">Send a new code</button>
+  </div>`,
+
   home: () => {
     const coach = S.role === 'coach', teams = coach ? myTeams().filter(t => t.coachKey === S.key) : myTeams(), alarms = alarmsAll(), inv = coach ? [] : teamInvites();
     const reqs = [];
@@ -802,6 +831,7 @@ const views = {
       <div style="display:flex;flex-direction:column;align-items:center;text-align:center">
         <span class="av" style="width:88px;height:88px;font-size:36px;background:${bg};color:${coach ? '#a6efc6' : ink(bg)}">${initial(S.nick)}</span>
         <div class="h1" style="font-size:30px;margin-top:12px">${esc(S.nick)}</div>
+        ${S.phone ? `<div class="sub" style="margin-top:4px">+1 ${fmtPhone(S.phone)}</div>` : ''}
         <span class="chip" style="background:var(--glass);border:1px solid var(--edge);margin-top:8px">${coach ? 'Coach' : 'Player'} · ${teams.length} ${teams.length === 1 ? 'team' : 'teams'}</span></div>
       <div class="sec">${coach ? 'Overview' : 'Your mornings'}</div>
       <div class="kpis">${k.map(x => `<div><b>${x[0]}</b><small>${x[1]}</small></div>`).join('')}</div>
@@ -925,7 +955,8 @@ function notify(n) { bq.push(n); if (!bShow) nextBanner(); }
 function nextBanner() {
   const n = bq.shift(); if (!n) { bShow = false; return; }
   bShow = true; tone(false); buzz(60);
-  $banner.innerHTML = `<span class="appic">${I('bell', 20, 2.4)}</span><span class="grow"><span class="bt"><span>TEAM ALARM</span><span>now</span></span><b>${esc(n.title)}</b>${n.body ? `<small>${esc(n.body)}</small>` : ''}</span>`;
+  const msg = n.app === 'Messages';
+  $banner.innerHTML = `<span class="appic${msg ? ' msg' : ''}">${msg ? '<svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M12 3C6.5 3 2 6.7 2 11.2c0 2.5 1.4 4.8 3.6 6.3L5 21l3.9-2.1c1 .3 2 .4 3.1.4 5.5 0 10-3.7 10-8.1S17.5 3 12 3z"/></svg>' : I('bell', 20, 2.4)}</span><span class="grow"><span class="bt"><span>${msg ? 'MESSAGES' : 'TEAM ALARM'}</span><span>now</span></span><b>${esc(n.title)}</b>${n.body ? `<small>${esc(n.body)}</small>` : ''}</span>`;
   $banner.dataset.act = n.act || 'home'; $banner.dataset.id = n.id || '';
   requestAnimationFrame(() => $banner.classList.add('show'));
   clearTimeout(nextBanner.t); nextBanner.t = setTimeout(hideBanner, 4600);
@@ -962,6 +993,7 @@ function watch() {
 function screenFor() {
   if (!S.role) return 'role';
   if (!S.nick) return 'name';
+  if (!S.verified) return S.phone ? 'verify' : 'phone';
   const o = activeOcc();
   if (o) {
     ui.occ = o;
@@ -980,16 +1012,16 @@ function render(force) {
   const screen = screenFor();
   const entering = screen !== ui.screen;
   // Screens with inputs or the time wheel only redraw when something on them is tapped.
-  const stable = !force && !entering && (screen === 'name' || screen === 'create' || (ui.sheet && INPUT_SHEETS.has(ui.sheet)));
+  const stable = !force && !entering && (screen === 'name' || screen === 'phone' || screen === 'verify' || screen === 'create' || (ui.sheet && INPUT_SHEETS.has(ui.sheet)));
   if (!stable) {
     let html = views[screen]();
-    if (ui.sheet && sheets[ui.sheet] && !RING_SCREENS.has(screen) && screen !== 'role' && screen !== 'name') html += `<div class="dim" data-act="closesheet"></div>` + sheets[ui.sheet]();
+    if (ui.sheet && sheets[ui.sheet] && !RING_SCREENS.has(screen) && screen !== 'role' && screen !== 'name' && screen !== 'phone' && screen !== 'verify') html += `<div class="dim" data-act="closesheet"></div>` + sheets[ui.sheet]();
     if (ui.toast && Date.now() < ui.toastT) html += `<div class="toast">${esc(ui.toast)}</div>`;
     if (entering || force || html !== ui.lastHtml) {
       const y = getY();
       $app.innerHTML = html; ui.lastHtml = html;
       if (entering) { setY(0); const r = $app.querySelector('.scr'); if (r) { r.classList.add('enter'); setTimeout(() => r.classList.remove('enter'), 900); } onEnter(screen); }
-      else setY(y);
+      else { setY(y); if (screen === 'name' || screen === 'phone' || screen === 'verify') onEnter(screen); }   // forms need their listeners again after a redraw
       afterRender(screen);
     }
   }
@@ -1010,10 +1042,23 @@ function onEnter(screen) {
     const f = document.getElementById('nameForm'), inp = document.getElementById('nameIn'), go = document.getElementById('nameGo');
     inp.addEventListener('input', () => { go.disabled = !clean(inp.value, 24); });
     setTimeout(() => inp.focus(), 300);
-    f.addEventListener('submit', e => { e.preventDefault(); const v = clean(inp.value, 24); if (!v) return; unlockAudio(); S.nick = v; hitOnce('signup-' + S.role);
-      if (S.role === 'coach') { ui.newTeam = { name: '', color: 0, picked: [], exclude: [], addTo: null }; ui.sheet = 'newteam'; }
-      else if (!S.pendingJoin && !teamInvites().length) { ui.joinErr = ''; ui.sheet = 'code'; }
-      publish(); render(true); });
+    f.addEventListener('submit', e => { e.preventDefault(); const v = clean(inp.value, 24); if (!v) return; unlockAudio(); S.nick = v; save(); render(true); });
+  }
+  if (screen === 'phone') {
+    const f = document.getElementById('phoneForm'), inp = document.getElementById('phoneIn'), go = document.getElementById('phoneGo');
+    const digits = () => inp.value.replace(/\D/g, '').slice(0, 10);
+    inp.addEventListener('input', () => { const d = digits(); inp.value = fmtPhone(d); go.disabled = d.length < 10; });
+    setTimeout(() => inp.focus(), 300);
+    f.addEventListener('submit', e => { e.preventDefault(); const d = digits(); if (d.length < 10) return; S.phone = d; sendCode(); save(); render(true); });
+  }
+  if (screen === 'verify') {
+    const f = document.getElementById('codeForm2'), inp = document.getElementById('otpIn'), boxes = [...document.querySelectorAll('.otp i')];
+    const paint = () => { const v = inp.value; boxes.forEach((b, i) => { b.textContent = v[i] || ''; b.classList.toggle('cur', i === Math.min(v.length, 5) && document.activeElement === inp); }); };
+    inp.addEventListener('input', () => { inp.value = inp.value.replace(/\D/g, '').slice(0, 6); paint(); if (inp.value.length === 6) setTimeout(() => f.requestSubmit(), 250); });
+    inp.addEventListener('focus', paint); inp.addEventListener('blur', paint);
+    document.querySelector('.otp').addEventListener('click', () => inp.focus());
+    setTimeout(() => { inp.focus(); paint(); }, 300);
+    f.addEventListener('submit', e => { e.preventDefault(); if (inp.value.length < 6) return; finishSignup(); });
   }
 }
 function afterRender(screen) {
@@ -1079,6 +1124,19 @@ function patchRepeat() {
   const sm = document.querySelector('[data-act=repeat] small'); if (sm) sm.textContent = repeatText(ui.draft.days);
 }
 
+/* ================= Sign-in by phone (test version: no real text is sent) ================= */
+const fmtPhone = d => d.length > 6 ? `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}` : d.length > 3 ? `(${d.slice(0, 3)}) ${d.slice(3)}` : d;
+function sendCode() {
+  ui.otp = String(100000 + Math.floor(Math.random() * 900000)); ui.otpAt = Date.now();
+  setTimeout(() => notify({ app: 'Messages', title: 'Team Alarm', body: `Your Team Alarm code is ${ui.otp}. Don't share it with anyone.`, act: 'fillcode' }), 1600);
+}
+function finishSignup() {
+  S.verified = true; hitOnce('signup-' + S.role);
+  if (S.role === 'coach') { ui.newTeam = { name: '', color: 0, picked: [], exclude: [], addTo: null }; ui.sheet = 'newteam'; }
+  else if (!S.pendingJoin && !teamInvites().length) { ui.joinErr = ''; ui.sheet = 'code'; }
+  publish(); render(true);
+}
+
 /* ================= Time wheel ================= */
 const ITEM = 76;
 function wireWheel() {
@@ -1122,6 +1180,10 @@ document.addEventListener('click', e => {
   switch (act) {
     case 'role': S.role = D.v; save(); break;
     case 'unrole': S.role = null; save(); break;
+    case 'unname': S.nick = ''; save(); break;
+    case 'unphone': S.phone = ''; save(); break;
+    case 'resend': sendCode(); toast('New code sent'); break;
+    case 'fillcode': { const inp = document.getElementById('otpIn'); if (inp && ui.otp) { inp.value = ui.otp; inp.dispatchEvent(new Event('input')); } return; }
     case 'home': ui.view = 'home'; ui.sheet = null; break;
     case 'me': ui.view = 'me'; break;
     case 'sound': S.sound = D.v; save(); tone(true, D.v); break;
