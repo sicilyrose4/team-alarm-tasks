@@ -342,7 +342,7 @@ const S = Object.assign({
 }, saved);
 function logIt(teamId, text) { S.log.unshift({ t: teamId, at: Date.now(), text }); S.log = S.log.slice(0, 60); }
 const buzz = p => { if (S.vibrate && navigator.vibrate) navigator.vibrate(p); };
-if (JOIN && !S.joined.length) S.pendingJoin = JOIN;
+if (JOIN && !S.joined.length) { S.pendingJoin = JOIN; if (!S.role) S.role = 'player'; }
 function save() { try { sessionStorage.setItem(STORE, JSON.stringify(S)); } catch (e) {} }
 
 const ui = { view: 'home', alarmId: null, teamId: null, sheet: null, draft: null, day: 0, toast: '', toastT: 0, menu: false,
@@ -637,9 +637,8 @@ const views = {
     <div class="h1" style="margin-top:8px">Wake up together.</div>
     <div class="sub" style="margin-top:10px">Everyone on your team gets the same alarm, and you can see who's up.</div>
     <div class="grow" style="min-height:40px"></div>
-    <div class="lbl" style="margin-bottom:0">I'm joining as a</div>
-    <button class="role" style="background:var(--lime)" data-act="role" data-v="player"><div><b>Player</b><small>Get your team's alarms</small></div><span class="arr">${I('right', 24)}</span></button>
-    <button class="role" style="background:var(--blue);color:#fff" data-act="role" data-v="coach"><div><b>Coach</b><small>Make a team, set alarms, see who's up</small></div><span class="arr">${I('right', 24)}</span></button>
+    <button class="role" style="background:var(--lime)" data-act="role" data-v="player"><div><b>Join a team</b><small>Use a code or an invite from your coach</small></div><span class="arr">${I('right', 24)}</span></button>
+    <button class="role" style="background:var(--blue);color:#fff" data-act="role" data-v="coach"><div><b>Create a team</b><small>Set alarms and see who's up</small></div><span class="arr">${I('right', 24)}</span></button>
   </div>`,
 
   name: () => `<div class="scr onb">
@@ -866,7 +865,7 @@ const sheets = {
     </form>`;
   },
   code: () => `<form class="sheet" id="codeForm" autocomplete="off"><i class="grab"></i>
-      <div class="h2">Join a team</div><div class="sub" style="margin-top:6px">Ask your coach for the team code.</div>
+      <div class="h2">Join a team</div><div class="sub" style="margin-top:6px">Enter the code from your coach. If they add you from their contacts, the invite shows up on your home screen.</div>
       <div class="field" style="margin-top:16px"><input id="codeIn" maxlength="6" placeholder="Code" autocapitalize="characters" style="letter-spacing:6px;text-transform:uppercase"></div>
       ${ui.joinErr ? `<div class="sub danger" style="margin-top:8px">${ui.joinErr}</div>` : ''}
       <button class="pill p-navy" type="submit" style="margin-top:16px">Join</button></form>`,
@@ -993,7 +992,10 @@ function onEnter(screen) {
     const f = document.getElementById('nameForm'), inp = document.getElementById('nameIn'), go = document.getElementById('nameGo');
     inp.addEventListener('input', () => { go.disabled = !clean(inp.value, 24); });
     setTimeout(() => inp.focus(), 300);
-    f.addEventListener('submit', e => { e.preventDefault(); const v = clean(inp.value, 24); if (!v) return; unlockAudio(); S.nick = v; hitOnce('signup-' + S.role); publish(); render(true); });
+    f.addEventListener('submit', e => { e.preventDefault(); const v = clean(inp.value, 24); if (!v) return; unlockAudio(); S.nick = v; hitOnce('signup-' + S.role);
+      if (S.role === 'coach') { ui.newTeam = { name: '', color: 0, picked: [], exclude: [], addTo: null }; ui.sheet = 'newteam'; }
+      else if (!S.pendingJoin && !teamInvites().length) { ui.joinErr = ''; ui.sheet = 'code'; }
+      publish(); render(true); });
   }
 }
 function afterRender(screen) {
