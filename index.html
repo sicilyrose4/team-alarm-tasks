@@ -1063,6 +1063,12 @@ function drawQR() {
   el.innerHTML = q.createSvgTag({ cellSize: 6, margin: 0, scalable: true }).replace(/fill="black"/g, 'fill="#12304a"');
 }
 
+function patchRepeat() {
+  const sh = document.querySelector('.sheet'), t = document.createElement('div'); t.innerHTML = sheets.repeat();
+  if (sh) sh.innerHTML = t.firstElementChild.innerHTML;
+  const sm = document.querySelector('[data-act=repeat] small'); if (sm) sm.textContent = repeatText(ui.draft.days);
+}
+
 /* ================= Time wheel ================= */
 const ITEM = 76;
 function wireWheel() {
@@ -1133,11 +1139,12 @@ document.addEventListener('click', e => {
       ui.menu = false; ui.view = 'create'; break; }
     case 'teammenu': ui.menu = !ui.menu; break;
     case 'pickteam': ui.draft.team = D.id; ui.menu = false; break;
-    case 'ap': ui.draft.ap = D.v; break;
+    case 'ap': ui.draft.ap = D.v; document.querySelectorAll('.ampm button').forEach(x => x.classList.toggle('on', x.dataset.v === D.v)); return;
     case 'repeat': ui.sheet = 'repeat'; break;
-    case 'setdays': ui.draft.days = D.v ? D.v.split(',').map(Number) : []; break;
-    case 'toggleday': { const i = +D.i, ds = ui.draft.days; ui.draft.days = (ds.includes(i) ? ds.filter(x => x !== i) : ds.concat(i)).sort(); break; }
-    case 'ringme': ui.draft.coachRings = !ui.draft.coachRings; break;
+    // Repeat sheet and options: update in place so the sheet doesn't slide up again on every tap.
+    case 'setdays': ui.draft.days = D.v ? D.v.split(',').map(Number) : []; patchRepeat(); return;
+    case 'toggleday': { const i = +D.i, ds = ui.draft.days; ui.draft.days = (ds.includes(i) ? ds.filter(x => x !== i) : ds.concat(i)).sort(); patchRepeat(); return; }
+    case 'ringme': { ui.draft.coachRings = !ui.draft.coachRings; const sm = b.querySelector('small'); if (sm) sm.textContent = ui.draft.coachRings ? 'Yes' : 'No, just watch'; return; }
     case 'cancel': ui.view = ui.draft && ui.draft.id ? 'alarm' : 'home'; ui.draft = null; break;
     case 'save': {
       const d = ui.draft, hh = (d.h12 % 12) + (d.ap === 'PM' ? 12 : 0);
