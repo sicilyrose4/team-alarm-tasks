@@ -27,15 +27,54 @@
 </script>
 <style>
 :root{--blue:#1933F3;--lime:#CAFE2D;--purple:#6B42FF;--navy:#01143C;--white:#fff;--bg:#F3F4FA;--card:#fff;--muted:#6b7090;--line:#e3e5f0;--faint:#a3a7c2;--red:#ff5a4f;
-  --f:"Urbanist",system-ui,-apple-system,sans-serif}
+  --f:"Urbanist",system-ui,-apple-system,sans-serif;--sys:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;
+  --sh:100dvh;--safe-t:env(safe-area-inset-top);--safe-b:env(safe-area-inset-bottom)}
+/* desktop: the app sits inside a phone */
+#sbar,.island,.homebar,#side{display:none}
+html.framed,html.framed body{height:100%;overflow:hidden;background:radial-gradient(circle at 30% 15%,#eef0fa 0%,#d3d7ea 55%,#bfc4de 100%)}
+html.framed{--sh:852px;--safe-t:54px;--safe-b:26px}
+html.framed #stage{height:100%;display:flex;align-items:center;justify-content:center;gap:72px}
+html.framed .phone{position:relative;flex:none;width:393px;height:852px;border-radius:58px;background:var(--bg);overflow:hidden;transform:translateZ(0) scale(var(--k,1));margin:calc(426px * (var(--k,1) - 1)) calc(196px * (var(--k,1) - 1));
+  box-shadow:0 0 0 11px #0c0d14,0 0 0 13px #3a3c4a,0 0 0 14px #0c0d14,0 50px 90px -10px rgba(1,20,60,.45);transition:background .3s}
+html.framed #app{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;min-height:0}
+html.framed #app::-webkit-scrollbar{display:none}
+html.framed #sbar{display:flex;position:absolute;top:0;left:0;right:0;height:52px;z-index:35;align-items:center;justify-content:space-between;padding:6px 34px 0 52px;font:600 17px var(--sys);letter-spacing:-.2px;color:var(--navy);background:var(--bg);transition:background .3s,color .3s;pointer-events:none}
+html.framed #sbar .ic{display:flex;gap:6px;align-items:center}
+html.framed .island{display:block;position:absolute;top:11px;left:50%;transform:translateX(-50%);width:124px;height:36px;border-radius:20px;background:#000;z-index:72;pointer-events:none}
+html.framed .homebar{display:block;position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:136px;height:5px;border-radius:3px;background:var(--navy);z-index:72;pointer-events:none;opacity:.9;transition:background .3s}
+html.framed .scr{max-width:none}
+@media (min-width:1080px){html.framed #side{display:block;width:230px;color:var(--navy)}}
+#side b{display:block;font:800 30px/1.1 var(--f);letter-spacing:-.3px}
+#side p{font:600 15px/1.45 var(--f);color:var(--muted);margin-top:10px}
+#side .q{background:#fff;border-radius:24px;padding:16px;width:172px;margin-top:22px}
+#side .q svg{width:140px;height:140px}
+/* notification banner */
+#banner{position:fixed;left:10px;right:10px;max-width:410px;margin:0 auto;top:calc(var(--safe-t) + 4px);z-index:80;display:flex;gap:11px;align-items:center;padding:12px 14px;border-radius:24px;background:rgba(250,250,253,.86);-webkit-backdrop-filter:blur(20px) saturate(1.6);backdrop-filter:blur(20px) saturate(1.6);
+  box-shadow:0 12px 34px rgba(1,20,60,.22);transform:translateY(calc(-100% - var(--safe-t) - 20px));transition:transform .45s cubic-bezier(.2,.9,.25,1.1),visibility 0s .45s;visibility:hidden;cursor:pointer;text-align:left;color:var(--navy)}
+html.framed #banner{top:58px}
+#banner.show{transform:none;visibility:visible;transition:transform .45s cubic-bezier(.2,.9,.25,1.1)}
+#banner .appic{width:38px;height:38px;border-radius:10px;background:var(--navy);color:var(--lime);display:flex;align-items:center;justify-content:center;flex:none}
+#banner .bt{display:flex;justify-content:space-between;font:600 13px var(--sys);color:#7d8199}
+#banner b{display:block;font:700 15px/1.25 var(--sys);margin-top:1px}
+#banner small{display:block;font:400 14px/1.3 var(--sys);color:#3a3f5c}
+/* profile */
+.tog{width:51px;height:31px;border-radius:16px;background:#d5d8e8;position:relative;flex:none;transition:background .2s;margin-left:auto}
+.tog::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 5px rgba(0,0,0,.18);transition:transform .2s}
+.tog.on{background:var(--blue)}.tog.on::after{transform:translateX(20px)}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kpis div{background:#fff;border-radius:20px;padding:14px 8px;text-align:center}
+.kpis b{display:block;font:800 26px var(--f);font-variant-numeric:tabular-nums}.kpis small{font:700 12px var(--f);color:var(--muted)}
+.feed .lrow small{display:block}
+.when{font:600 12px var(--f);color:var(--faint);white-space:nowrap;align-self:flex-start;margin-top:3px}
+.rank{width:22px;font:800 14px var(--f);color:var(--faint);text-align:center;flex:none}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{background:var(--bg);color:var(--navy);font-family:var(--f);overscroll-behavior:none}
 body{-webkit-user-select:none;user-select:none;overflow-x:hidden}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;text-align:inherit}
 input{font:inherit;color:inherit}
 svg{display:block;flex:none}
-#app{min-height:100dvh}
-.scr{min-height:100dvh;max-width:430px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 22px) 20px calc(env(safe-area-inset-bottom) + 120px);position:relative}
+#app{min-height:var(--sh)}
+.scr{min-height:var(--sh);max-width:430px;margin:0 auto;padding:calc(var(--safe-t) + 22px) 20px calc(var(--safe-b) + 120px);position:relative}
 .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .grow{flex:1;min-width:0}
 /* type */
@@ -57,7 +96,7 @@ svg{display:block;flex:none}
 .danger{color:var(--red)!important}
 .btnsm{border-radius:20px;padding:10px 16px;font:800 14px var(--f);transition:transform .12s;text-align:center}
 .card{display:block;width:100%;background:var(--card);border-radius:24px;padding:16px 18px;transition:transform .12s}
-.fab{position:fixed;right:max(20px,calc(50% - 195px));bottom:calc(env(safe-area-inset-bottom) + 24px);background:var(--navy);color:#fff;border-radius:32px;padding:17px 22px 17px 18px;font:800 17px var(--f);display:flex;gap:8px;align-items:center;z-index:20;box-shadow:0 10px 30px rgba(1,20,60,.25);transition:transform .12s}
+.fab{position:fixed;right:max(20px,calc(50% - 195px));bottom:calc(var(--safe-b) + 24px);background:var(--navy);color:#fff;border-radius:32px;padding:17px 22px 17px 18px;font:800 17px var(--f);display:flex;gap:8px;align-items:center;z-index:20;box-shadow:0 10px 30px rgba(1,20,60,.25);transition:transform .12s}
 .addrow{display:flex;align-items:center;gap:12px;width:100%;padding:10px 2px;font:700 16px var(--f);color:var(--muted)}
 .addic{width:40px;height:40px;border-radius:50%;border:2px dashed #c7cadc;display:flex;align-items:center;justify-content:center;flex:none;color:var(--faint)}
 .empty{font:600 15px var(--f);color:var(--faint);padding:2px 2px 4px}
@@ -110,7 +149,7 @@ svg{display:block;flex:none}
 .inv-card b{font:800 18px/1.25 var(--f);display:block}
 .inv-card small{font:600 14px var(--f);opacity:.8}
 /* onboarding */
-.onb{display:flex;flex-direction:column;padding-bottom:calc(env(safe-area-inset-bottom) + 30px)}
+.onb{display:flex;flex-direction:column;padding-bottom:calc(var(--safe-b) + 30px)}
 .role{display:flex;align-items:center;justify-content:space-between;width:100%;border-radius:30px;padding:24px 22px;margin-top:14px;transition:transform .12s}
 .role b{display:block;font:800 24px var(--f)}.role small{display:block;font:600 15px var(--f);opacity:.75;margin-top:4px}
 .role .arr{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.3);flex:none}
@@ -120,7 +159,7 @@ svg{display:block;flex:none}
 .field input::placeholder{color:#b5b8cf}
 /* sheet */
 .dim{position:fixed;inset:0;background:rgba(1,20,60,.4);z-index:40;animation:fade .2s}
-.sheet{position:fixed;left:0;right:0;bottom:0;max-width:430px;margin:0 auto;background:var(--bg);border-radius:30px 30px 0 0;padding:12px 20px calc(env(safe-area-inset-bottom) + 24px);z-index:41;animation:up .32s cubic-bezier(.2,.8,.2,1);max-height:92dvh;overflow-y:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;max-width:430px;margin:0 auto;background:var(--bg);border-radius:30px 30px 0 0;padding:12px 20px calc(var(--safe-b) + 24px);z-index:41;animation:up .32s cubic-bezier(.2,.8,.2,1);max-height:calc(var(--sh) * .92);overflow-y:auto}
 .grab{display:block;width:44px;height:5px;border-radius:3px;background:#cfd2e3;margin:0 auto 16px}
 .sheet .h2{font:800 22px var(--f)}
 .swatches{display:flex;gap:12px;margin-top:10px;flex-wrap:wrap}
@@ -165,8 +204,8 @@ svg{display:block;flex:none}
 .menu button.on{background:var(--bg)}
 .menu i{width:12px;height:12px;border-radius:50%;display:block}
 /* ringing */
-.ringwrap{background:var(--tb);min-height:100dvh}
-.ringscr{color:var(--tf);min-height:100dvh;display:flex;flex-direction:column;padding-bottom:calc(env(safe-area-inset-bottom) + 34px)}
+.ringwrap{background:var(--tb);min-height:var(--sh)}
+.ringscr{color:var(--tf);min-height:var(--sh);display:flex;flex-direction:column;padding-bottom:calc(var(--safe-b) + 34px)}
 .r-top{text-align:center;font:700 15px var(--f);opacity:.82;margin-top:6px}
 .r-time{text-align:center;font:800 112px/1 var(--f);letter-spacing:-4px;margin-top:46px;font-variant-numeric:tabular-nums}
 .r-time span{font-size:30px;letter-spacing:0;margin-left:4px}
@@ -195,7 +234,7 @@ svg{display:block;flex:none}
 .qrbox{background:#fff;border-radius:30px;padding:24px;display:flex;flex-direction:column;align-items:center;margin-top:18px}
 #qr svg{width:200px;height:200px}
 .code{font:900 44px var(--f);letter-spacing:10px;margin-top:14px;padding-left:10px}
-.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 100px);transform:translateX(-50%);background:var(--navy);color:#fff;font:700 15px var(--f);padding:12px 18px;border-radius:20px;z-index:60;animation:toast .3s;white-space:nowrap}
+.toast{position:fixed;left:50%;bottom:calc(var(--safe-b) + 100px);transform:translateX(-50%);background:var(--navy);color:#fff;font:700 15px var(--f);padding:12px 18px;border-radius:20px;z-index:60;animation:toast .3s;white-space:nowrap}
 /* motion */
 .enter>*{animation:rise .5s cubic-bezier(.2,.8,.2,1) both}
 .enter>*:nth-child(2){animation-delay:.04s}.enter>*:nth-child(3){animation-delay:.08s}.enter>*:nth-child(4){animation-delay:.12s}.enter>*:nth-child(5){animation-delay:.16s}.enter>*:nth-child(6){animation-delay:.2s}.enter>*:nth-child(7){animation-delay:.24s}.enter>*:nth-child(8){animation-delay:.28s}.enter>*:nth-child(n+9){animation-delay:.32s}
@@ -212,7 +251,20 @@ svg{display:block;flex:none}
 </style>
 </head>
 <body>
-<div id="app"></div>
+<div id="stage">
+  <aside id="side"><b>Team Alarm</b><p>Wake up together. Scan to open it on your phone and join a team.</p><div class="q" id="sideqr"></div></aside>
+  <div class="phone">
+    <div id="sbar"><span id="sclock"></span><span class="ic">
+      <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 2.3c2.3 0 4.4.9 6 2.4l1.2-1.3A10.4 10.4 0 0 0 8 .5C5.2.5 2.7 1.6.8 3.4L2 4.7a8.6 8.6 0 0 1 6-2.4z"/><path d="M8 5.9c1.3 0 2.5.5 3.4 1.3l1.2-1.3A6.6 6.6 0 0 0 8 4.1c-1.8 0-3.4.7-4.6 1.8l1.2 1.3A4.9 4.9 0 0 1 8 5.9z"/><path d="M10.2 8.6 8 11 5.8 8.6a3.2 3.2 0 0 1 4.4 0z"/></svg>
+      <svg width="27" height="13" viewBox="0 0 27 13" fill="none"><rect x=".5" y=".5" width="22" height="12" rx="3.5" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="16" height="9" rx="2" fill="currentColor"/><path d="M24.5 4.5v4c.8-.3 1.3-1.1 1.3-2s-.5-1.7-1.3-2z" fill="currentColor" opacity=".45"/></svg>
+    </span></div>
+    <i class="island"></i>
+    <div id="app"></div>
+    <button id="banner" type="button"></button>
+    <i class="homebar"></i>
+  </div>
+</div>
 <script src="https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <script>
@@ -271,13 +323,17 @@ const S = Object.assign({
   ring: {},                          // occ -> { status, snoozes, snoozeUntil, upAt }
   closed: [],                        // occs I dismissed after waking
   cache: { teams: {}, alarms: {} },  // last-seen teams/alarms from others (so they survive a dropped connection)
-  pendingJoin: ''
+  pendingJoin: '',
+  sound: 'Pulse', vibrate: true, since: Date.now(),
+  log: []                            // things that happened on my side, for team activity: { t: teamId, at, text }
 }, saved);
+function logIt(teamId, text) { S.log.unshift({ t: teamId, at: Date.now(), text }); S.log = S.log.slice(0, 60); }
+const buzz = p => { if (S.vibrate && navigator.vibrate) navigator.vibrate(p); };
 if (JOIN && !S.joined.length) S.pendingJoin = JOIN;
 function save() { try { sessionStorage.setItem(STORE, JSON.stringify(S)); } catch (e) {} }
 
 const ui = { view: 'home', alarmId: null, teamId: null, sheet: null, draft: null, day: 0, toast: '', toastT: 0, menu: false,
-  screen: '', lastHtml: '', prev: {}, seenInv: new Set(), confirm: null, excuseFor: null, newTeam: null, joinErr: '', occ: null };
+  screen: '', lastHtml: '', prev: {}, seenInv: new Set(), confirm: null, excuseFor: null, newTeam: null, joinErr: '', occ: null, jb: {} };
 
 /* ================= Sound, buzz, screen ================= */
 let audio = null, wakeLock = null;
@@ -287,13 +343,15 @@ function unlockAudio() {
   if (audio && audio.state === 'suspended') audio.resume();
   if (!wakeLock && navigator.wakeLock && S.nick) navigator.wakeLock.request('screen').then(l => { wakeLock = l; l.addEventListener('release', () => { wakeLock = null; }); }).catch(() => {});
 }
-function tone(loud) {
+// Alarm sounds people can pick in their profile: [wave, notes]
+const SOUNDS = { Pulse: ['square', [[0, 880], [0.14, 1175], [0.28, 880], [0.42, 1175]]], Chime: ['sine', [[0, 1047], [0.18, 1319], [0.36, 1568], [0.54, 2093]]], Siren: ['sawtooth', [[0, 660], [0.12, 990], [0.24, 660], [0.36, 990], [0.48, 660], [0.6, 990]]] };
+function tone(loud, pick) {
   if (!audio || audio.state !== 'running') return;
-  const t = audio.currentTime;
-  const seq = loud ? [[0, 880], [0.14, 1175], [0.28, 880], [0.42, 1175]] : [[0, 880], [0.16, 1175]];
+  const t = audio.currentTime, snd = SOUNDS[pick || S.sound] || SOUNDS.Pulse;
+  const seq = loud ? snd[1] : [[0, 880], [0.16, 1175]];
   seq.forEach(([d, f]) => {
     const o = audio.createOscillator(), g = audio.createGain();
-    o.type = loud ? 'square' : 'sine'; o.frequency.value = f;
+    o.type = loud ? snd[0] : 'sine'; o.frequency.value = f;
     g.gain.setValueAtTime(0.0001, t + d);
     g.gain.exponentialRampToValueAtTime(loud ? 0.22 : 0.12, t + d + 0.01);
     g.gain.exponentialRampToValueAtTime(0.0001, t + d + 0.12);
@@ -349,8 +407,8 @@ function teamsAll() {
   const add = (t, coachKey, coachName) => {
     if (!t || typeof t.id !== 'string' || m.has(t.id)) return;
     m.set(t.id, { id: t.id, name: clean(t.name, 30) || 'Team', color: Math.max(0, Math.min(TEAM_COLORS.length - 1, num(t.color))), code: clean(t.code, 6),
-      invited: Array.isArray(t.invited) ? t.invited.filter(x => x && typeof x.key === 'string').map(x => ({ key: x.key, name: clean(x.name, 24) || 'Player' })) : [],
-      coachKey, coachName: clean(coachName, 24) || 'Coach' });
+      invited: Array.isArray(t.invited) ? t.invited.filter(x => x && typeof x.key === 'string').map(x => ({ key: x.key, name: clean(x.name, 24) || 'Player', at: num(x.at) })) : [],
+      at: num(t.at), coachKey, coachName: clean(coachName, 24) || 'Coach' });
   };
   S.ownTeams.forEach(t => add(t, S.key, S.nick));
   for (const p of lp) (Array.isArray(p.own) ? p.own : []).forEach(t => { add(t, p.key, p.nick); if (t && S.joined.includes(t.id)) S.cache.teams[t.id] = Object.assign({}, t, { coachKey: p.key, coachName: p.nick }); });
@@ -369,13 +427,15 @@ function members(t) {
   for (const p of livePeers()) if (Array.isArray(p.joined) && p.joined.includes(t.id)) joinedKeys.add(p.key);
   for (const m of t.invited) {
     const fake = m.key[0] === 'f';
-    push({ key: m.key, name: m.key === S.key ? S.nick : m.name, role: 'player', fake, me: m.key === S.key, state: fake || joinedKeys.has(m.key) ? 'in' : 'invited' });
+    push({ key: m.key, name: m.key === S.key ? S.nick : m.name, role: 'player', fake, me: m.key === S.key, state: (fake ? Date.now() >= fakeJoinAt(t, m) : joinedKeys.has(m.key)) ? 'in' : 'invited' });
   }
   for (const k of joinedKeys) if (!seen.has(k)) push({ key: k, name: k === S.key ? S.nick : clean((peer(k) || {}).nick, 24) || 'Player', role: 'player', me: k === S.key, state: 'in' });
   return list;
 }
+// Sample teammates accept their invite a few seconds to a couple of minutes after the coach sends it.
+function fakeJoinAt(t, m) { if (!m.at) return 0; const r = rand(hash(t.id + m.key))(); return m.at + (r < 0.12 ? 70 + r * 400 : 4 + r * 26) * 1000; }
 const teamInvites = () => [...teamsAll().values()].filter(t => t.coachKey !== S.key && !S.joined.includes(t.id) && !S.declined.includes(t.id) && t.invited.some(m => m.key === S.key));
-function joinTeam(id) { if (!S.joined.includes(id)) S.joined.push(id); S.declined = S.declined.filter(x => x !== id); }
+function joinTeam(id) { if (!S.joined.includes(id)) { S.joined.push(id); logIt(id, 'You joined the team'); } S.declined = S.declined.filter(x => x !== id); }
 const newCode = () => { const A = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; let c = ''; for (let i = 0; i < 4; i++) c += A[Math.floor(Math.random() * A.length)]; return c; };
 
 /* ================= Alarms ================= */
@@ -410,6 +470,7 @@ const nextOcc = a => occs(a).find(o => o.at + RING_WINDOW > Date.now()) || null;
 const repeatText = days => !days.length ? 'Once' : days.length === 7 ? 'Every day' : days.join() === '1,2,3,4,5' ? 'Weekdays' : days.join() === '0,6' ? 'Weekends' : days.map(d => ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d]).join(', ');
 const dayLabel = d => { const t = new Date(); t.setHours(0, 0, 0, 0); const n = Math.round((new Date(d).setHours(0, 0, 0, 0) - t) / 864e5);
   return n === 0 ? 'Today' : n === 1 ? 'Tomorrow' : new Date(d).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }); };
+const dayWord = d => { const l = dayLabel(d); return l === 'Today' || l === 'Tomorrow' ? l.toLowerCase() : 'on ' + new Date(d).toLocaleDateString('en-US', { weekday: 'long' }); };
 function until(at) {
   const s = Math.max(0, Math.ceil((at - Date.now()) / 1000));
   if (s >= 86400) return Math.floor(s / 86400) + 'd ' + Math.floor(s / 3600) % 24 + 'h';
@@ -421,7 +482,7 @@ function until(at) {
 function excuseOf(pKey, occ, t, a) {
   let req = null;
   if (pKey === S.key) req = S.excuses[occ];
-  else if (pKey[0] === 'f') { if (+pKey.slice(1) === FAKE_EXCUSE.i && a && a.creator === t.coachKey && firstCoachAlarm(t) === a.id) { const n = nextOcc(a); if (n && n.occ === occ) req = FAKE_EXCUSE; } }
+  else if (pKey[0] === 'f') { if (+pKey.slice(1) === FAKE_EXCUSE.i && a && a.creator === t.coachKey && firstCoachAlarm(t) === a.id && Date.now() - num(a.made || a.v) > 14000) { const n = nextOcc(a); if (n && n.occ === occ) req = FAKE_EXCUSE; } }
   else req = ((peer(pKey) || {}).excuses || {})[occ];
   if (!req) return null;
   const dec = t.coachKey === S.key ? S.decisions[pKey + '|' + occ] : (((peer(t.coachKey) || {}).decisions) || {})[pKey + '|' + occ];
@@ -526,6 +587,36 @@ function nextUp(alarms, skipExcused) {
   return best;
 }
 
+const ago = at => { const s = Math.max(0, (Date.now() - at) / 1000); return s < 45 ? 'now' : s < 3600 ? Math.round(s / 60) + 'm ago' : s < 86400 ? Math.round(s / 3600) + 'h ago' : new Date(at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); };
+const clock = ms => new Date(ms).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+const rang = (a, o) => !o.skipped && o.at + RING_WINDOW <= Date.now() && o.at >= num(a.made || a.v) - 60e3;
+const lastOcc = a => occs(a).filter(o => rang(a, o)).pop() || null;
+const late = (upAt, at) => { const s = Math.max(0, Math.round((upAt - at) / 1000)); return s < 60 ? s + 's' : Math.floor(s / 60) + 'm ' + String(s % 60).padStart(2, '0') + 's'; };
+// Who got up, in order, the last time an alarm rang.
+function results(o) {
+  const c = crew(o), up = c.filter(m => m.status === 'up').sort((x, y) => x.upAt - y.upAt), rest = c.filter(m => m.status !== 'up' && m.status !== 'excused'), ex = c.filter(m => m.status === 'excused');
+  const avg = up.length ? up.reduce((n, m) => n + (m.upAt - o.at), 0) / up.length : 0;
+  return `<div class="sec">Last time · ${dayLabel(o.date)}</div>
+    <div class="kpis"><div><b>${up.length}/${up.length + rest.length}</b><small>Got up</small></div><div><b>${up.length ? late(avg + o.at, o.at) : '–'}</b><small>Avg to get up</small></div><div><b>${c.reduce((n, m) => n + (m.snoozes || 0), 0)}</b><small>Snoozes</small></div></div>
+    <div class="card" style="padding:6px 16px;margin-top:10px">${up.map((m, i) => `<div class="lrow"><span class="rank">${i + 1}</span>${av(m, 36)}<div class="grow"><b>${esc(m.name)}${m.me ? ' (you)' : ''}</b><small>${m.snoozes ? 'Snoozed ' + m.snoozes + 'x · ' : ''}up in ${late(m.upAt, o.at)}</small></div><span class="when" style="margin:0">${clock(m.upAt)}</span></div>`).join('')}
+      ${rest.map(m => `<div class="lrow"><span class="rank">–</span>${av(m, 36)}<div class="grow"><b>${esc(m.name)}${m.me ? ' (you)' : ''}</b><small>Didn't tap I'm up</small></div></div>`).join('')}
+      ${ex.map(m => `<div class="lrow" style="opacity:.55"><span class="rank">–</span>${av(m, 36)}<div class="grow"><b>${esc(m.name)}</b><small>Excused</small></div></div>`).join('')}</div>`;
+}
+// Recent things that happened on a team.
+function teamFeed(t) {
+  const it = [], now = Date.now(), coach = { name: t.coachName };
+  if (t.at) it.push({ at: t.at, who: coach, b: t.coachKey === S.key ? 'You created the team' : t.coachName + ' created the team' });
+  for (const m of t.invited) if (m.key[0] === 'f' && m.at) { const j = fakeJoinAt(t, m); if (j <= now) it.push({ at: j, who: m, b: m.name + ' joined' }); }
+  for (const a of alarmsAll()) if (a.team === t.id) {
+    const f = fmt(a.hh, a.mm);
+    it.push({ at: num(a.made || a.v), who: { name: a.by || 'Coach' }, b: (a.creator === S.key ? 'You' : a.by || 'Coach') + ' set ' + a.name, s: f.hm + ' ' + f.ap + ' · ' + repeatText(a.days) });
+    for (const o of occs(a)) if (rang(a, o)) { const c = crew(o).filter(m => m.status !== 'excused'), u = c.filter(m => m.status === 'up').length; it.push({ at: o.at + RING_WINDOW, icon: true, b: a.name + ' rang', s: u + ' of ' + c.length + ' got up' }); }
+  }
+  for (const l of S.log) if (l.t === t.id) it.push({ at: l.at, who: { name: S.nick }, b: l.text });
+  it.sort((x, y) => y.at - x.at);
+  return it.slice(0, 8).map(x => `<div class="lrow">${x.icon ? `<span class="av" style="width:36px;height:36px;background:var(--bg);color:var(--navy)">${I('bell', 18)}</span>` : av(x.who, 36)}<div class="grow"><b style="font-size:15px">${esc(x.b)}</b>${x.s ? `<small>${esc(x.s)}</small>` : ''}</div><span class="when">${ago(x.at)}</span></div>`).join('');
+}
+
 /* ================= Views ================= */
 const views = {
   role: () => `<div class="scr onb">
@@ -583,7 +674,7 @@ const views = {
       ${teams.map(t => coachCard(t, alarms)).join('')}
       <div class="sec">Requests${reqs.length ? ' · ' + reqs.length : ''}</div>
       ${reqs.length ? reqs.map(r => `<div class="card" style="margin-bottom:10px"><div class="row" style="justify-content:flex-start;gap:12px">${av(r.m, 42)}<div class="grow"><b style="font:800 16px var(--f)">${esc(r.m.name)} wants to be excused</b><div class="sub" style="font-size:13px">${esc(r.o.a.name)} · ${dayLabel(r.o.date)} · ${esc(r.m.req.reason)}${r.m.req.note ? ': "' + esc(r.m.req.note) + '"' : ''}</div></div></div>
-        <div class="row" style="margin-top:12px"><button class="btnsm p-navy" style="flex:1" data-act="decide" data-v="ok" data-k="${esc(r.m.key)}" data-o="${esc(r.o.occ)}">Approve</button><button class="btnsm" style="flex:1;background:var(--bg)" data-act="decide" data-v="no" data-k="${esc(r.m.key)}" data-o="${esc(r.o.occ)}">Deny</button></div></div>`).join('') : '<div class="empty">No requests right now</div>'}
+        <div class="row" style="margin-top:12px"><button class="btnsm p-navy" style="flex:1" data-act="decide" data-v="ok" data-n="${esc(r.m.name)}" data-k="${esc(r.m.key)}" data-o="${esc(r.o.occ)}">Approve</button><button class="btnsm" style="flex:1;background:var(--bg)" data-act="decide" data-v="no" data-n="${esc(r.m.name)}" data-k="${esc(r.m.key)}" data-o="${esc(r.o.occ)}">Deny</button></div></div>`).join('') : '<div class="empty">No requests right now</div>'}
       ${weekStrip(alarms)}
       <div class="sec">${dayTitle()}</div>
       ${sched.length ? `<div class="stack">${sched.map(schedCard).join('')}</div>` : emptyRow('Nothing scheduled', 'new', 'Create an alarm')}
@@ -613,6 +704,7 @@ const views = {
       <div class="sec">${ringingNow ? 'Right now' : "Who's in"} · ${c.filter(m => m.status !== 'excused').length}</div>
       <div class="card" style="padding:6px 16px">${c.map(m => `<div class="lrow">${av(m, 40)}<div class="grow"><b>${esc(m.name)}${m.me ? ' (you)' : ''}</b>${isCoach && m.req && m.status === 'excused' ? `<small>${esc(m.req.reason)}</small>` : ''}</div>${lab(m) ? `<span class="tag" style="margin:0">${lab(m)}</span>` : ''}</div>`).join('') || '<div class="empty" style="padding:12px 0">No one yet</div>'}</div>
       ${isCoach && !a.coachRings ? `<div class="sub" style="margin:10px 4px 0;font-size:13px">Your phone won't ring for this one. You'll see who's up here.</div>` : ''}
+      ${lastOcc(a) ? results(lastOcc(a)) : ''}
       ${invited.length ? `<div class="sec">Invited · ${invited.length}</div><div class="card" style="padding:6px 16px">${invited.map(m => `<div class="lrow" style="opacity:.55">${av(m, 40)}<div class="grow"><b>${esc(m.name)}</b></div></div>`).join('')}</div>` : ''}
       ${canEdit ? `<button class="link danger" data-act="askdelete">Delete alarm</button>` : ''}
     </div>`;
@@ -620,7 +712,7 @@ const views = {
 
   create: () => {
     const d = ui.draft, teams = createTeams(), t = team(d.team) || teams[0], tc = tcol(t.color);
-    return `<div class="scr" style="padding-bottom:calc(env(safe-area-inset-bottom) + 24px)">
+    return `<div class="scr" style="padding-bottom:calc(var(--safe-b) + 24px)">
       <div class="row"><div style="font:800 26px var(--f)">${d.id ? 'Edit alarm' : 'New alarm'}</div>
         <div class="teamsel"><button class="chip" style="background:${tc[0]};color:${tc[1]};padding:9px 14px;font-size:14px" data-act="teammenu"><i></i>${esc(t.name)}${teams.length > 1 ? I('down', 16, 2.6) : ''}</button>
         ${ui.menu ? `<div class="menu">${teams.map(x => `<button class="${x.id === t.id ? 'on' : ''}" data-act="pickteam" data-id="${esc(x.id)}"><i style="background:${tcol(x.color)[0]}"></i>${esc(x.name)}</button>`).join('')}</div>` : ''}</div></div>
@@ -645,8 +737,11 @@ const views = {
         <div style="font:800 40px/1.05 var(--f);margin-top:16px">${esc(t.name)}</div>
         <div class="rp" style="margin-top:6px">${ms.filter(m => m.state === 'in').length} on the team${isCoach && t.code ? ' · code ' + esc(t.code) : ''}</div></div>
       ${isCoach ? `<button class="pill p-navy" data-act="invite" data-id="${esc(t.id)}" style="margin-top:12px">${I('qr', 20)}Invite players</button>` : ''}
-      <div class="sec">Roster</div>
+      ${(() => { const al = alarmsAll().filter(a => a.team === t.id).sort((x, y) => (x.hh * 60 + x.mm) - (y.hh * 60 + y.mm)); return `<div class="sec">Alarms · ${al.length}</div>` + (al.length ? `<div class="card" style="padding:6px 16px">${al.map(a => { const o = nextOcc(a); return `<button class="lrow" style="width:100%" data-act="alarm" data-id="${esc(a.id)}"><div class="grow"><b>${esc(a.name)}</b><small>${repeatText(a.days)}${o ? ' · ' + dayLabel(o.date) : ''}</small></div><span style="font:800 22px var(--f);letter-spacing:-.5px">${timeHtml(a.hh, a.mm).replace('<span>', '<span style="font-size:12px;margin-left:2px">')}</span></button>`; }).join('')}</div>` : `<div class="empty">No alarms yet</div>`); })()}
+      <div class="sec">Roster · ${ms.filter(m => m.state === 'in').length}</div>
       <div class="card" style="padding:6px 16px">${ms.map(m => `<div class="lrow" style="${m.state === 'invited' ? 'opacity:.55' : ''}">${av(m, 40)}<div class="grow"><b>${esc(m.name)}${m.me ? ' (you)' : ''}</b></div>${m.role === 'coach' ? '<span class="tag" style="margin:0">Coach</span>' : m.state === 'invited' ? '<span class="tag" style="margin:0">Invited</span>' : ''}</div>`).join('')}</div>
+      <div class="sec">Activity</div>
+      <div class="card feed" style="padding:6px 16px">${teamFeed(t) || '<div class="empty" style="padding:12px 0">Nothing yet</div>'}</div>
       <button class="link danger" data-act="askleave">${isCoach ? 'Delete team' : 'Leave team'}</button>
     </div>`;
   },
@@ -663,6 +758,30 @@ const views = {
     </div>`;
   },
 
+  me: () => {
+    const coach = S.role === 'coach', bg = coach ? '#01143C' : pcol(S.nick), teams = myTeams();
+    const rs = Object.values(S.ring).filter(r => r && r.status === 'up' && r.at), avg = rs.length ? rs.reduce((n, r) => n + (r.upAt - r.at), 0) / rs.length : 0;
+    const k = coach ? [[teams.filter(t => t.coachKey === S.key).length, 'Teams'], [new Set(teams.flatMap(t => members(t).filter(m => m.role !== 'coach' && m.state === 'in').map(m => m.key))).size, 'Players'], [S.alarms.length, 'Alarms set']]
+      : [[rs.length, 'Wake-ups'], [rs.length ? late(avg, 0) : '–', 'Avg to get up'], [Object.values(S.ring).reduce((n, r) => n + num(r && r.snoozes), 0), 'Snoozes']];
+    return `<div class="scr">
+      <div>${backBtn()}</div>
+      <div style="display:flex;flex-direction:column;align-items:center;text-align:center">
+        <span class="av" style="width:88px;height:88px;font-size:36px;background:${bg};color:${coach ? '#CAFE2D' : ink(bg)}">${initial(S.nick)}</span>
+        <div class="h1" style="font-size:30px;margin-top:12px">${esc(S.nick)}</div>
+        <span class="chip" style="background:#fff;margin-top:8px">${coach ? 'Coach' : 'Player'} · ${teams.length} ${teams.length === 1 ? 'team' : 'teams'}</span></div>
+      <div class="sec">${coach ? 'Overview' : 'Your mornings'}</div>
+      <div class="kpis">${k.map(x => `<div><b>${x[0]}</b><small>${x[1]}</small></div>`).join('')}</div>
+      <div class="sec">Alarm sound</div>
+      <div class="card" style="padding:4px 16px">${Object.keys(SOUNDS).map(n => `<button class="opt-row" data-act="sound" data-v="${n}">${n}<span class="ck">${S.sound === n ? I('check', 20, 3) : ''}</span></button>`).join('')}
+        <button class="opt-row" data-act="vibrate">Vibrate<span class="tog ${S.vibrate ? 'on' : ''}"></span></button></div>
+      <div class="sub" style="margin:8px 4px 0;font-size:13px">Tap a sound to hear it. Keep this page open with the volume up so the alarm can ring.</div>
+      <div class="sec">Teams</div>
+      ${teams.map(teamRow).join('') || '<div class="empty">No teams yet</div>'}
+      ${coach ? emptyRow('', 'newteam', 'Create a team') : emptyRow('', 'code', 'Join with a team code')}
+      <button class="link danger" data-act="askreset" style="margin-top:22px">Sign out and start over</button>
+    </div>`;
+  },
+
   ring: () => ringView('ring'), snooze: () => ringView('snooze'), status: () => ringView('status'), allup: () => ringView('allup')
 };
 const createTeams = () => myTeams().filter(t => S.role === 'coach' ? t.coachKey === S.key : true);
@@ -671,7 +790,7 @@ function header(tag) {
   const now = new Date(), hr = now.getHours(), hello = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
   const coach = S.role === 'coach', bg = coach ? '#01143C' : pcol(S.nick);
   return `<div class="row" style="align-items:flex-start"><div><div class="date">${now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}${tag ? ' · ' + tag : ''}</div><div class="hi">${hello},<br>${esc(S.nick)}</div></div>
-    <span class="av" style="background:${bg};color:${coach ? '#CAFE2D' : ink(bg)}">${initial(S.nick)}</span></div>`;
+    <button class="av" data-act="me" aria-label="Profile" style="background:${bg};color:${coach ? '#CAFE2D' : ink(bg)}">${initial(S.nick)}</button></div>`;
 }
 function teamRow(t) {
   return `<button class="teamrow" data-act="team" data-id="${esc(t.id)}"><span class="sw" style="background:${tcol(t.color)[0]}"></span><div class="grow"><b>${esc(t.name)}</b><small>${members(t).filter(m => m.state === 'in').length} on the team · ${t.coachKey === S.key ? 'You coach' : 'Coach ' + esc(shortCoach(t.coachName))}</small></div>${I('right', 20)}</button>`;
@@ -753,7 +872,56 @@ const INPUT_SHEETS = new Set(['newteam', 'code', 'excuse']);
 const RING_SCREENS = new Set(['ring', 'snooze', 'status', 'allup']);
 
 /* ================= Render loop ================= */
-const $app = document.getElementById('app');
+const $app = document.getElementById('app'), $phone = document.querySelector('.phone'), $sbar = document.getElementById('sbar'), $home = document.querySelector('.homebar'), $clock = document.getElementById('sclock'), $banner = document.getElementById('banner');
+// On a computer the app shows inside a phone so it doesn't blend into the page.
+const mq = matchMedia('(min-width: 700px) and (min-height: 600px)'), framed = () => document.documentElement.classList.contains('framed');
+function fit() { $phone.style.setProperty('--k', Math.min(1, (innerHeight - 60) / 880, (innerWidth - 60) / 420).toFixed(3)); }
+function frame() { document.documentElement.classList.toggle('framed', mq.matches); fit(); }
+frame(); mq.addEventListener('change', () => { frame(); render(true); }); addEventListener('resize', fit);
+const getY = () => framed() ? $app.scrollTop : window.scrollY, setY = y => { if (framed()) $app.scrollTop = y; else window.scrollTo(0, y); };
+(function sideQR() { const el = document.getElementById('sideqr'); if (!el || !window.qrcode) return; const u = new URL(location.origin + location.pathname); if (Q.get('team')) u.searchParams.set('team', ROOM);
+  const q = qrcode(0, 'M'); q.addData(u.toString()); q.make(); el.innerHTML = q.createSvgTag({ cellSize: 5, margin: 0, scalable: true }).replace(/fill="black"/g, 'fill="#01143C"'); })();
+
+/* ================= Notifications (banner at the top, like a phone) ================= */
+const bq = []; let bShow = false;
+function notify(n) { bq.push(n); if (!bShow) nextBanner(); }
+function nextBanner() {
+  const n = bq.shift(); if (!n) { bShow = false; return; }
+  bShow = true; tone(false); buzz(60);
+  $banner.innerHTML = `<span class="appic">${I('bell', 20, 2.4)}</span><span class="grow"><span class="bt"><span>TEAM ALARM</span><span>now</span></span><b>${esc(n.title)}</b>${n.body ? `<small>${esc(n.body)}</small>` : ''}</span>`;
+  $banner.dataset.act = n.act || 'home'; $banner.dataset.id = n.id || '';
+  requestAnimationFrame(() => $banner.classList.add('show'));
+  clearTimeout(nextBanner.t); nextBanner.t = setTimeout(hideBanner, 4600);
+}
+function hideBanner() { $banner.classList.remove('show'); clearTimeout(nextBanner.t); setTimeout(nextBanner, 500); }
+const listNames = ns => ns.length === 1 ? ns[0] : ns.length === 2 ? ns[0] + ' and ' + ns[1] : ns[0] + ' and ' + (ns.length - 1) + ' others';
+// Notices what changed since the last tick: invites, new or changed alarms, cancellations, excuse answers, requests, people joining.
+function watch() {
+  if (!S.nick) return;
+  const first = !ui.w, w = ui.w || (ui.w = { inv: new Set(), al: {}, sk: new Set(), ex: {}, rq: new Set(), mem: {} }), out = [], now = Date.now();
+  for (const t of teamInvites()) if (!w.inv.has(t.id)) { w.inv.add(t.id); out.push({ title: t.coachName + ' added you to ' + t.name, body: 'Tap to join and get the team\'s alarms.' }); }
+  for (const a of alarmsAll()) {
+    const t = team(a.team); if (!t) continue;
+    const known = a.id in w.al, f = fmt(a.hh, a.mm);
+    if (a.creator !== S.key && (known ? num(a.v) > w.al[a.id] : now - num(a.v) < 90e3)) out.push({ title: (known ? 'Alarm changed · ' : 'New alarm · ') + t.name, body: `${a.by || 'Coach'} set ${a.name} for ${f.hm} ${f.ap}, ${repeatText(a.days).toLowerCase()}.`, act: 'alarm', id: a.id });
+    w.al[a.id] = num(a.v);
+    const coachOf = t.coachKey === S.key;
+    for (const o of occs(a, 7)) {
+      if (!coachOf && o.skipped && !w.sk.has(o.occ)) { w.sk.add(o.occ); if (known) out.push({ title: a.name + ' is canceled ' + dayWord(o.date), body: 'Coach ' + shortCoach(t.coachName) + ' turned it off for everyone.', act: 'alarm', id: a.id }); }
+      if (S.role === 'player' && S.excuses[o.occ]) { const e = excuseOf(S.key, o.occ, t, a); if (w.ex[o.occ] === 'pending' && e.status !== 'pending') out.push({ title: e.status === 'ok' ? 'You\'re excused' : 'Excuse not approved', body: a.name + ' ' + dayWord(o.date) + (e.status === 'ok' ? '. It won\'t ring for you.' : '. Coach needs you there.'), act: 'alarm', id: a.id }); w.ex[o.occ] = e.status; }
+      if (coachOf && o.at > now && !o.skipped) for (const m of crew(o)) if (m.req && m.req.status === 'pending' && !w.rq.has(m.key + '|' + o.occ)) { w.rq.add(m.key + '|' + o.occ); out.push({ title: m.name + ' wants to be excused', body: a.name + ' ' + dayWord(o.date) + ' · ' + m.req.reason + (m.req.note ? ': "' + m.req.note + '"' : ''), act: 'home' }); }
+    }
+  }
+  for (const t of myTeams()) if (t.coachKey === S.key) {
+    const ins = members(t).filter(m => m.role !== 'coach' && m.state === 'in'), was = w.mem[t.id];
+    // people joining close together share one banner
+    if (was) { const nw = ins.filter(m => !was.has(m.key)); if (nw.length) { const j = ui.jb[t.id] || (ui.jb[t.id] = { names: [], first: now }); j.names.push(...nw.map(m => m.name)); j.last = now; } }
+    w.mem[t.id] = new Set(ins.map(m => m.key));
+    const j = ui.jb[t.id];
+    if (j && (now - j.last > 3500 || now - j.first > 9000)) { delete ui.jb[t.id]; out.push({ title: listNames(j.names) + ' joined ' + t.name, body: 'They\'ll get the team\'s alarms now.', act: 'team', id: t.id }); }
+  }
+  if (!first) out.forEach(notify);
+}
 function screenFor() {
   if (!S.role) return 'role';
   if (!S.nick) return 'name';
@@ -771,7 +939,7 @@ let lastBeep = 0;
 function render(force) {
   // background work: auto-join by code, notice new invites
   if (S.pendingJoin && S.nick && S.role === 'player') { const t = [...teamsAll().values()].find(x => x.code === S.pendingJoin); if (t) { joinTeam(t.id); hit('joins'); S.pendingJoin = ''; toast('You joined ' + t.name); publish(); } }
-  if (S.nick) for (const t of teamInvites()) if (!ui.seenInv.has(t.id)) { ui.seenInv.add(t.id); tone(false); if (navigator.vibrate) navigator.vibrate(60); }
+  watch();
   const screen = screenFor();
   const entering = screen !== ui.screen;
   // Screens with inputs or the time wheel only redraw when something on them is tapped.
@@ -781,19 +949,22 @@ function render(force) {
     if (ui.sheet && sheets[ui.sheet] && !RING_SCREENS.has(screen) && screen !== 'role' && screen !== 'name') html += `<div class="dim" data-act="closesheet"></div>` + sheets[ui.sheet]();
     if (ui.toast && Date.now() < ui.toastT) html += `<div class="toast">${esc(ui.toast)}</div>`;
     if (entering || force || html !== ui.lastHtml) {
-      const y = window.scrollY;
+      const y = getY();
       $app.innerHTML = html; ui.lastHtml = html;
-      if (entering) { window.scrollTo(0, 0); const r = $app.querySelector('.scr'); if (r) { r.classList.add('enter'); setTimeout(() => r.classList.remove('enter'), 900); } onEnter(screen); }
-      else window.scrollTo(0, y);
+      if (entering) { setY(0); const r = $app.querySelector('.scr'); if (r) { r.classList.add('enter'); setTimeout(() => r.classList.remove('enter'), 900); } onEnter(screen); }
+      else setY(y);
       afterRender(screen);
     }
   }
   ui.screen = screen;
   const ringing = RING_SCREENS.has(screen);
-  document.body.style.background = ringing ? tcol(team(ui.occ.a.team).color)[0] : '#F3F4FA';
+  const tc = ringing ? tcol(team(ui.occ.a.team).color) : ['#F3F4FA', '#01143C'];
+  if (framed()) { document.body.style.background = ''; $phone.style.background = tc[0]; $sbar.style.background = tc[0]; $sbar.style.color = tc[1]; $home.style.background = tc[1]; }
+  else document.body.style.background = tc[0];
+  $clock.textContent = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }).replace(/\s?[AP]M$/, '');
   if (ringing) crew(ui.occ).forEach(m => { ui.prev[m.key] = m.status; });
   if (screen === 'ring' && !ringTracked.has(ui.occ.occ)) { ringTracked.add(ui.occ.occ); hit('rings'); }
-  if (screen === 'ring' && Date.now() - lastBeep >= 1000) { lastBeep = Date.now(); tone(true); if (navigator.vibrate) navigator.vibrate([400, 200, 400]); }
+  if (screen === 'ring' && Date.now() - lastBeep >= 1000) { lastBeep = Date.now(); tone(true); buzz([400, 200, 400]); }
 }
 function toast(msg) { ui.toast = msg; ui.toastT = Date.now() + 2600; }
 
@@ -818,7 +989,7 @@ function afterRender(screen) {
     const f = document.getElementById('excuseForm'), n = document.getElementById('noteIn');
     n.addEventListener('input', () => { ui.excuseFor.note = n.value; });
     f.addEventListener('click', e => { const r = e.target.closest('[data-reason]'); if (!r) return; ui.excuseFor.reason = r.dataset.reason; f.querySelectorAll('.ch').forEach(x => x.classList.toggle('on', x === r)); document.getElementById('exGo').disabled = false; });
-    f.addEventListener('submit', e => { e.preventDefault(); const x = ui.excuseFor; if (!x.reason) return; hit('excuses'); S.excuses[x.occ] = { reason: x.reason, note: clean(x.note, 80), at: Date.now() }; ui.sheet = null; toast('Sent to your coach'); publish(); render(true); });
+    f.addEventListener('submit', e => { e.preventDefault(); const x = ui.excuseFor; if (!x.reason) return; hit('excuses'); S.excuses[x.occ] = { reason: x.reason, note: clean(x.note, 80), at: Date.now() }; { const xa = alarmById(x.occ.split('@')[0]); if (xa) logIt(xa.team, 'You asked to be excused from ' + xa.name); } ui.sheet = null; toast('Sent to your coach'); publish(); render(true); });
   }
 }
 function wireTeamForm() {
@@ -832,10 +1003,10 @@ function wireTeamForm() {
   f.addEventListener('submit', e => {
     e.preventDefault();
     const names = {}; f.querySelectorAll('.pick').forEach(p => { names[p.dataset.pk] = p.dataset.pn; });
-    const add = nt.picked.map(k => ({ key: k, name: names[k] || 'Player' }));
+    const add = nt.picked.map(k => ({ key: k, name: names[k] || 'Player', at: Date.now() }));
     if (nt.addTo) { const t = S.ownTeams.find(x => x.id === nt.addTo); if (t) t.invited = t.invited.concat(add.filter(a => !t.invited.some(b => b.key === a.key))); ui.sheet = null; ui.view = 'team'; toast(add.length ? 'Invites sent' : 'No one added'); publish(); render(true); return; }
     const name = clean(nt.name, 30); if (!name) { const fi = f.querySelector('.field'); fi.classList.remove('shake'); void fi.offsetWidth; fi.classList.add('shake'); ti.focus(); return; }
-    const t = { id: 't' + uid(), name, color: nt.color, code: newCode(), invited: add };
+    const t = { id: 't' + uid(), name, color: nt.color, code: newCode(), invited: add, at: Date.now() };
     S.ownTeams.push(t); hit('teams'); ui.sheet = null; ui.teamId = t.id; ui.view = 'invite'; publish(); render(true);
   });
 }
@@ -884,11 +1055,17 @@ function wireWheel() {
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b) { if (ui.menu && !e.target.closest('.menu')) { ui.menu = false; render(true); } return; }
   unlockAudio();
+  if (b === $banner) hideBanner();
   const act = b.dataset.act, D = b.dataset, now = Date.now();
   switch (act) {
     case 'role': S.role = D.v; save(); break;
     case 'unrole': S.role = null; save(); break;
     case 'home': ui.view = 'home'; ui.sheet = null; break;
+    case 'me': ui.view = 'me'; break;
+    case 'sound': S.sound = D.v; save(); tone(true, D.v); break;
+    case 'vibrate': S.vibrate = !S.vibrate; save(); buzz(80); break;
+    case 'askreset': ui.confirm = { title: 'Sign out?', body: 'This phone leaves its teams and starts over from the beginning.', label: 'Sign out', act: 'reset' }; ui.sheet = 'confirm'; break;
+    case 'reset': try { sessionStorage.removeItem(STORE); if (live && client) client.publish(BASE + '/p/' + S.key, '', { retain: true, qos: 0 }); } catch (x) {} location.href = location.pathname + (Q.get('team') ? '?team=' + ROOM : ''); return;
     case 'day': ui.day = +D.i; break;
     case 'alarm': ui.alarmId = D.id; ui.view = 'alarm'; break;
     case 'team': ui.teamId = D.id; ui.view = 'team'; break;
@@ -920,12 +1097,12 @@ document.addEventListener('click', e => {
       const d = ui.draft, hh = (d.h12 % 12) + (d.ap === 'PM' ? 12 : 0);
       const at = new Date(); at.setHours(hh, d.mm, 0, 0); if (at.getTime() <= now + 1000) at.setDate(at.getDate() + 1);
       const old = d.id ? S.alarms.find(a => a.id === d.id) : null;
-      const a = { id: d.id || 'a' + uid(), team: d.team, name: clean(d.name, 40) || 'Alarm', hh, mm: d.mm, days: d.days.slice(), date: dkey(at), coachRings: S.role === 'coach' ? !!d.coachRings : true, by: old ? old.by : S.nick, creator: old ? old.creator : S.key, v: now };
+      const a = { id: d.id || 'a' + uid(), team: d.team, name: clean(d.name, 40) || 'Alarm', hh, mm: d.mm, days: d.days.slice(), date: dkey(at), coachRings: S.role === 'coach' ? !!d.coachRings : true, by: old ? old.by : S.nick, creator: old ? old.creator : S.key, made: old ? (old.made || old.v) : now, v: now };
       S.alarms = S.alarms.filter(x => x.id !== a.id).concat(a); if (!d.id) hit('alarms');
       ui.draft = null; ui.alarmId = a.id; ui.view = d.id ? 'alarm' : 'home'; toast(d.id ? 'Alarm updated' : 'Alarm set for everyone on ' + ((team(a.team) || {}).name || 'the team')); publish(); break; }
-    case 'skip': { const a = alarmById(ui.alarmId), k = D.dk, cur = S.skips[a.id] || [], was = cur.includes(k); S.skips[a.id] = was ? cur.filter(x => x !== k) : cur.concat(k); toast(was ? "It's back on" : 'Canceled. The team sees it'); publish(); break; }
+    case 'skip': { const a = alarmById(ui.alarmId), k = D.dk, cur = S.skips[a.id] || [], was = cur.includes(k); S.skips[a.id] = was ? cur.filter(x => x !== k) : cur.concat(k); logIt(a.team, (was ? 'You turned ' + a.name + ' back on ' : 'You canceled ' + a.name + ' ') + dayWord(new Date(k + 'T00:00'))); toast(was ? "It's back on" : 'Canceled. The team sees it'); publish(); break; }
     case 'excuse': ui.excuseFor = { occ: D.o, reason: '', note: '' }; ui.sheet = 'excuse'; break;
-    case 'decide': hit(D.v === 'ok' ? 'excuse-approved' : 'excuse-denied'); S.decisions[D.k + '|' + D.o] = D.v; toast(D.v === 'ok' ? 'Excused' : 'Request denied'); publish(); break;
+    case 'decide': { hit(D.v === 'ok' ? 'excuse-approved' : 'excuse-denied'); S.decisions[D.k + '|' + D.o] = D.v; const da = alarmById(D.o.split('@')[0]); if (da) logIt(da.team, (D.v === 'ok' ? 'You excused ' : 'You said no to ') + (D.n || 'a player') + ' for ' + da.name); toast(D.v === 'ok' ? 'Excused' : 'Request denied'); publish(); break; }
     case 'askdelete': ui.confirm = { title: 'Delete this alarm?', body: 'It goes away for everyone on the team.', label: 'Delete alarm', act: 'delalarm' }; ui.sheet = 'confirm'; break;
     case 'delalarm': S.alarms = S.alarms.filter(a => a.id !== ui.alarmId); delete S.cache.alarms[ui.alarmId]; ui.sheet = null; ui.confirm = null; ui.view = 'home'; toast('Alarm deleted'); publish(); break;
     case 'askleave': { const t = team(ui.teamId), mine = t.coachKey === S.key;
@@ -933,8 +1110,8 @@ document.addEventListener('click', e => {
       ui.sheet = 'confirm'; break; }
     case 'leaveteam': { const id = ui.teamId; S.ownTeams = S.ownTeams.filter(t => t.id !== id); S.alarms = S.alarms.filter(a => a.team !== id); S.joined = S.joined.filter(x => x !== id); S.declined.push(id); delete S.cache.teams[id]; ui.sheet = null; ui.confirm = null; ui.view = 'home'; publish(); break; }
     // ringing
-    case 'up': { const o = ui.occ; if (myStatus(o.occ) !== 'up') hit('wakeups'); S.ring[o.occ] = Object.assign({}, S.ring[o.occ] || {}, { status: 'up', upAt: now }); publish(); break; }
-    case 'snooze': { const o = ui.occ, r = S.ring[o.occ] || { snoozes: 0 }; if (num(r.snoozes) >= MAX_SNOOZE) return; hit('snoozes'); S.ring[o.occ] = { status: 'snoozed', snoozes: num(r.snoozes) + 1, snoozeUntil: now + SNOOZE_MS, upAt: 0 }; publish(); break; }
+    case 'up': { const o = ui.occ; if (myStatus(o.occ) !== 'up') hit('wakeups'); S.ring[o.occ] = Object.assign({}, S.ring[o.occ] || {}, { status: 'up', upAt: now, at: o.at }); logIt(o.a.team, 'You were up for ' + o.a.name); publish(); break; }
+    case 'snooze': { const o = ui.occ, r = S.ring[o.occ] || { snoozes: 0 }; if (num(r.snoozes) >= MAX_SNOOZE) return; hit('snoozes'); S.ring[o.occ] = { status: 'snoozed', snoozes: num(r.snoozes) + 1, snoozeUntil: now + SNOOZE_MS, upAt: 0, at: o.at }; publish(); break; }
     case 'closeocc': S.closed.push(ui.occ.occ); ui.view = 'home'; save(); break;
     default: return;
   }
