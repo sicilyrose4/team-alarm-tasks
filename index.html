@@ -45,8 +45,9 @@ html.framed #sbar .ic{display:flex;gap:6px;align-items:center}
 html.framed .island{display:block;position:absolute;top:11px;left:50%;transform:translateX(-50%);width:124px;height:36px;border-radius:20px;background:#0d1a2a;z-index:72;pointer-events:none}
 html.framed .homebar{display:block;position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:136px;height:5px;border-radius:3px;background:var(--navy);z-index:72;pointer-events:none;opacity:.9;transition:background .3s}
 html.framed .scr{max-width:none}
-.hero-art{display:flex;justify-content:center}
-.hero-art svg{width:min(78%,280px);height:auto;filter:drop-shadow(0 24px 40px rgba(40,90,160,.18))}
+.hero-art{display:flex;justify-content:center;align-items:center;position:relative}
+.hero-art svg{position:relative;z-index:1;width:min(56%,210px);height:auto;filter:drop-shadow(0 24px 40px rgba(40,90,160,.18))}
+.wordmark{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;z-index:0;font:600 clamp(86px,28vw,116px)/1.62 var(--f);letter-spacing:-4px;color:#fff;text-shadow:0 4px 40px rgba(40,100,200,.25);pointer-events:none}
 .hero-art .bells{transform-origin:130px 60px;animation:ring 3.6s ease-in-out infinite}
 @keyframes ring{0%,78%,100%{transform:none}81%{transform:rotate(-7deg)}84%{transform:rotate(7deg)}87%{transform:rotate(-5deg)}90%{transform:rotate(5deg)}93%{transform:rotate(-2deg)}}
 /* phone sign-in */
@@ -682,7 +683,7 @@ const HERO = `<svg viewBox="0 0 260 250" width="260" height="250" aria-hidden="t
 const views = {
   role: () => `<div class="scr onb">
     <div class="grow" style="min-height:20px"></div>
-    <div class="hero-art">${HERO}</div>
+    <div class="hero-art"><div class="wordmark" aria-label="Clique Clock">Clique<br>Clock</div>${HERO}</div>
     <div class="grow" style="min-height:20px"></div>
     <button class="role" style="background:linear-gradient(140deg,#12304a,#1f5f7a);color:#fff" data-act="role" data-v="player"><div><b>Join a team</b><small>Use a code or an invite from your coach</small></div><span class="arr">${I('right', 24)}</span></button>
     <button class="role" style="background:linear-gradient(140deg,#5b8cff,#5fd3c5);color:#fff" data-act="role" data-v="coach"><div><b>Create a team</b><small>Set alarms and see who's up</small></div><span class="arr">${I('right', 24)}</span></button>
