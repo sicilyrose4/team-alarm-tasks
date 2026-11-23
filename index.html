@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#a6c4f8">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<title>Team Alarm</title>
+<title>Clique Clock</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -895,12 +895,12 @@ function ringView(kind) {
 // Coaches only see people from their own contacts who have the app (after allowing access), not everyone.
 function contactsHtml(nt) {
   if (S.contacts !== 'ok') return `<div class="lbl">${nt.addTo ? 'Add people' : 'Add players'}</div>
-    <button type="button" class="ctbtn" data-ct="ask"><span class="ctic">${I('users', 22)}</span><span class="grow"><b>Add from contacts</b><small>${S.contacts === 'no' ? 'Contacts access is off. Tap to try again.' : 'See which of your contacts have Team Alarm'}</small></span>${I('right', 20)}</button>`;
+    <button type="button" class="ctbtn" data-ct="ask"><span class="ctic">${I('users', 22)}</span><span class="grow"><b>Add from contacts</b><small>${S.contacts === 'no' ? 'Contacts access is off. Tap to try again.' : 'See which of your contacts have Clique Clock'}</small></span>${I('right', 20)}</button>`;
   const people = livePeers().filter(p => p.role === 'player').map(p => ({ key: p.key, name: clean(p.nick, 24) })).concat(FAKES.map((n, i) => ({ key: 'f' + i, name: n }))).filter(p => !nt.exclude.includes(p.key));
-  return `<div class="lbl" style="display:flex;justify-content:space-between">Contacts on Team Alarm · ${people.length}${people.length ? '<a data-all="1" style="color:var(--blue);letter-spacing:0;text-transform:none;cursor:pointer">Select all</a>' : ''}</div>
+  return `<div class="lbl" style="display:flex;justify-content:space-between">Contacts on Clique Clock · ${people.length}${people.length ? '<a data-all="1" style="color:var(--blue);letter-spacing:0;text-transform:none;cursor:pointer">Select all</a>' : ''}</div>
     <div>${people.map(p => `<button type="button" class="pick ${nt.picked.includes(p.key) ? 'on' : ''}" data-pk="${esc(p.key)}" data-pn="${esc(p.name)}">${av(p, 40)}${esc(p.name)}<span class="ck">${I('check', 16, 3)}</span></button>`).join('') || '<div class="empty">Everyone in your contacts with the app is already on the team</div>'}</div>`;
 }
-const permAlert = () => `<div class="alertdim"><div class="alert"><div class="at"><b>“Team Alarm” Would Like to Access Your Contacts</b><span>Your contacts who have Team Alarm show up here so you can add them to your team. Nothing is uploaded.</span></div>
+const permAlert = () => `<div class="alertdim"><div class="alert"><div class="at"><b>“Clique Clock” Would Like to Access Your Contacts</b><span>Your contacts who have Clique Clock show up here so you can add them to your team. Nothing is uploaded.</span></div>
   <div class="ab"><button type="button" data-ct="no">Don’t Allow</button><button type="button" data-ct="ok" style="font-weight:600">Allow</button></div></div></div>`;
 const sheets = {
   newteam: () => {
@@ -957,7 +957,7 @@ function nextBanner() {
   const n = bq.shift(); if (!n) { bShow = false; return; }
   bShow = true; tone(false); buzz(60);
   const msg = n.app === 'Messages';
-  $banner.innerHTML = `<span class="appic${msg ? ' msg' : ''}">${msg ? '<svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M12 3C6.5 3 2 6.7 2 11.2c0 2.5 1.4 4.8 3.6 6.3L5 21l3.9-2.1c1 .3 2 .4 3.1.4 5.5 0 10-3.7 10-8.1S17.5 3 12 3z"/></svg>' : I('bell', 20, 2.4)}</span><span class="grow"><span class="bt"><span>${msg ? 'MESSAGES' : 'TEAM ALARM'}</span><span>now</span></span><b>${esc(n.title)}</b>${n.body ? `<small>${esc(n.body)}</small>` : ''}</span>`;
+  $banner.innerHTML = `<span class="appic${msg ? ' msg' : ''}">${msg ? '<svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M12 3C6.5 3 2 6.7 2 11.2c0 2.5 1.4 4.8 3.6 6.3L5 21l3.9-2.1c1 .3 2 .4 3.1.4 5.5 0 10-3.7 10-8.1S17.5 3 12 3z"/></svg>' : I('bell', 20, 2.4)}</span><span class="grow"><span class="bt"><span>${msg ? 'MESSAGES' : 'CLIQUE CLOCK'}</span><span>now</span></span><b>${esc(n.title)}</b>${n.body ? `<small>${esc(n.body)}</small>` : ''}</span>`;
   $banner.dataset.act = n.act || 'home'; $banner.dataset.id = n.id || '';
   requestAnimationFrame(() => $banner.classList.add('show'));
   clearTimeout(nextBanner.t); nextBanner.t = setTimeout(hideBanner, 4600);
@@ -1129,7 +1129,7 @@ function patchRepeat() {
 const fmtPhone = d => d.length > 6 ? `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}` : d.length > 3 ? `(${d.slice(0, 3)}) ${d.slice(3)}` : d;
 function sendCode() {
   ui.otp = String(100000 + Math.floor(Math.random() * 900000)); ui.otpAt = Date.now();
-  setTimeout(() => notify({ app: 'Messages', title: 'Team Alarm', body: `Your Team Alarm code is ${ui.otp}. Don't share it with anyone.`, act: 'fillcode' }), 1600);
+  setTimeout(() => notify({ app: 'Messages', title: 'Clique Clock', body: `Your Clique Clock code is ${ui.otp}. Don't share it with anyone.`, act: 'fillcode' }), 1600);
 }
 function finishSignup() {
   S.verified = true; hitOnce('signup-' + S.role);
@@ -1202,7 +1202,7 @@ document.addEventListener('click', e => {
     case 'declineteam': S.declined.push(D.id); publish(); break;
     case 'closesheet': ui.sheet = null; ui.confirm = null; break;
     case 'shareinvite': { const t = team(ui.teamId), url = inviteUrl(t);
-      if (navigator.share) navigator.share({ title: 'Join ' + t.name, text: 'Join ' + t.name + ' on Team Alarm. Code: ' + t.code, url }).catch(() => {});
+      if (navigator.share) navigator.share({ title: 'Join ' + t.name, text: 'Join ' + t.name + ' on Clique Clock. Code: ' + t.code, url }).catch(() => {});
       else if (navigator.clipboard) navigator.clipboard.writeText(url).then(() => { toast('Link copied'); render(true); }).catch(() => {});
       return; }
     case 'new': case 'edit': {
