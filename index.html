@@ -130,7 +130,7 @@ svg{display:block;flex:none}
 .day.on.has::after{content:"";position:absolute;bottom:7px;width:6px;height:6px;border-radius:50%;background:var(--lime)}
 /* big alarm card */
 .big{display:block;width:100%;border-radius:32px;padding:20px;background:var(--tb);color:var(--tf);position:relative;box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 18px 40px -12px var(--tbs);transition:transform .12s;text-align:left}
-.big .t{font:500 84px/1 var(--f);letter-spacing:-2.5px;color:var(--ta);margin-top:14px;font-variant-numeric:tabular-nums}
+.big .t{font:500 84px/1 var(--f);letter-spacing:-2.5px;color:var(--tf);margin-top:14px;font-variant-numeric:tabular-nums}
 .big .t span{font-size:24px;letter-spacing:0;margin-left:5px}
 .big .nm{font:600 20px var(--f)}
 .big .rp{font:500 14px var(--f);opacity:.8}
@@ -198,8 +198,8 @@ svg{display:block;flex:none}
 .opt-row+.opt-row{border-top:1px solid var(--line)}
 .opt-row .ck{margin-left:auto}
 /* create */
-.wheel{position:relative;height:400px;margin:6px -20px 0;overflow:hidden}
-.half{position:absolute;top:-46px;width:430px;height:492px;border-radius:50%;background:rgba(255,255,255,.42);border:1px solid var(--edge);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);pointer-events:none}
+.wheel{position:relative;height:400px;margin:6px -20px 0;overflow-x:clip}
+.half{position:absolute;top:-46px;width:430px;height:492px;border-radius:50%;background:rgba(255,255,255,.26);filter:blur(30px);pointer-events:none}
 .half.l{left:-262px}.half.r{right:-262px}
 .cols{position:absolute;inset:0;display:flex;justify-content:center;gap:10px;padding-right:44px}
 .wcol{height:100%;width:118px;overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;cursor:grab;-webkit-mask-image:linear-gradient(transparent,#000 22%,#000 78%,transparent);mask-image:linear-gradient(transparent,#000 22%,#000 78%,transparent)}
@@ -825,10 +825,7 @@ function coachCard(t, alarms) {
   }
   const nx = nextUp(alarms.filter(a => a.team === t.id));
   if (!nx) return `<div class="sec">${esc(t.name)}</div>${emptyRow('No alarms for ' + esc(t.name) + ' yet', 'new', 'Create an alarm')}`;
-  const c = crew(nx), pend = c.filter(m => m.req && m.req.status === 'pending').length;
-  return `<div class="sec">${esc(t.name)} · next alarm</div><button class="big" style="${tvars(t.color)}" data-act="alarm" data-id="${esc(nx.a.id)}"><div class="row"><span class="nm">${esc(nx.a.name)}</span><span class="chip" style="background:var(--ta);color:var(--tc)">in ${until(nx.at)}</span></div>
-    <div class="t" style="font-size:64px;margin-top:10px">${timeHtml(nx.a.hh, nx.a.mm)}</div>
-    <div class="stat"><div><b>${c.filter(m => m.status !== 'excused').length}</b><small>In</small></div><div><b>${c.filter(m => m.status === 'excused').length}</b><small>Excused</small></div><div><b>${pend}</b><small>Requests</small></div><div><b>${members(t).filter(m => m.state === 'invited').length}</b><small>Invited</small></div></div></button>`;
+  return `<div class="sec">${esc(t.name)} · next alarm</div>` + bigCard(nx, 'in ' + until(nx.at));
 }
 function ringView(kind) {
   const o = ui.occ, t = team(o.a.team), c = crew(o), r = S.ring[o.occ] || {}, left = MAX_SNOOZE - num(r.snoozes);
