@@ -57,6 +57,19 @@ html.framed #banner{top:58px}
 #banner .bt{display:flex;justify-content:space-between;font:600 13px var(--sys);color:#7d8199}
 #banner b{display:block;font:700 15px/1.25 var(--sys);margin-top:1px}
 #banner small{display:block;font:400 14px/1.3 var(--sys);color:#3a3f5c}
+/* contacts */
+.ctbtn{display:flex;align-items:center;gap:12px;width:100%;background:#fff;border-radius:22px;padding:14px 16px;transition:transform .12s}
+.ctbtn:active{transform:scale(.97)}
+.ctbtn b{display:block;font:800 17px var(--f)}.ctbtn small{display:block;font:600 13px var(--f);color:var(--muted);margin-top:2px}
+.ctic{width:42px;height:42px;border-radius:14px;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;flex:none}
+.ctnote{display:flex;gap:10px;align-items:flex-start;margin:14px 4px 0;font:600 14px/1.4 var(--f);color:var(--muted)}
+.ctnote svg{margin-top:1px}
+.alertdim{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.28);display:flex;align-items:center;justify-content:center;animation:fade .15s}
+.alert{width:270px;border-radius:14px;background:rgba(242,242,247,.94);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);text-align:center;font-family:var(--sys);overflow:hidden;animation:pop .25s}
+.alert .at{padding:19px 16px 15px}.alert b{display:block;font:600 17px/1.3 var(--sys);color:#000}.alert span{display:block;font:400 13px/1.35 var(--sys);color:#000;margin-top:4px}
+.ab{display:flex;border-top:.5px solid rgba(60,60,67,.3)}
+.ab button{flex:1;padding:11px 4px;font:400 17px var(--sys);color:#007aff;text-align:center}
+.ab button+button{border-left:.5px solid rgba(60,60,67,.3)}
 /* profile */
 .tog{width:51px;height:31px;border-radius:16px;background:#d5d8e8;position:relative;flex:none;transition:background .2s;margin-left:auto}
 .tog::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 5px rgba(0,0,0,.18);transition:transform .2s}
@@ -324,7 +337,7 @@ const S = Object.assign({
   closed: [],                        // occs I dismissed after waking
   cache: { teams: {}, alarms: {} },  // last-seen teams/alarms from others (so they survive a dropped connection)
   pendingJoin: '',
-  sound: 'Pulse', vibrate: true, since: Date.now(),
+  sound: 'Pulse', vibrate: true, contacts: '', since: Date.now(),
   log: []                            // things that happened on my side, for team activity: { t: teamId, at, text }
 }, saved);
 function logIt(teamId, text) { S.log.unshift({ t: teamId, at: Date.now(), text }); S.log = S.log.slice(0, 60); }
@@ -649,7 +662,6 @@ const views = {
       ${inv.map(t => `<div class="inv-card" style="${tvars(t.color)}"><b>${esc(t.coachName)} added you to ${esc(t.name)}</b><small>${members(t).filter(m => m.state === 'in').length} on the team</small>
         <div class="row" style="margin-top:14px;justify-content:flex-start;gap:8px"><button class="btnsm" style="background:var(--ta);color:var(--tb)" data-act="jointeam" data-id="${esc(t.id)}">Join team</button><button class="btnsm" style="background:rgba(255,255,255,.2);color:inherit" data-act="declineteam" data-id="${esc(t.id)}">Not now</button></div></div>`).join('')}
       ${S.pendingJoin && !teams.length ? `<div class="card" style="margin-top:18px"><b style="font:800 16px var(--f)">Joining team ${esc(S.pendingJoin)}...</b><div class="sub" style="margin-top:4px">Waiting for your coach's team to show up.</div></div>` : ''}
-      ${weekStrip(alarms)}
       <div class="sec">Next alarm</div>
       ${nx ? bigCard(nx, Date.now() >= nx.at ? 'Ringing' : 'in ' + until(nx.at)) : teams.length ? emptyRow('No alarms coming up', 'new', 'Create an alarm') : `<div class="empty">Join a team to get its alarms</div>`}
       <div class="sec">${dayTitle()}</div>
@@ -675,7 +687,6 @@ const views = {
       <div class="sec">Requests${reqs.length ? ' · ' + reqs.length : ''}</div>
       ${reqs.length ? reqs.map(r => `<div class="card" style="margin-bottom:10px"><div class="row" style="justify-content:flex-start;gap:12px">${av(r.m, 42)}<div class="grow"><b style="font:800 16px var(--f)">${esc(r.m.name)} wants to be excused</b><div class="sub" style="font-size:13px">${esc(r.o.a.name)} · ${dayLabel(r.o.date)} · ${esc(r.m.req.reason)}${r.m.req.note ? ': "' + esc(r.m.req.note) + '"' : ''}</div></div></div>
         <div class="row" style="margin-top:12px"><button class="btnsm p-navy" style="flex:1" data-act="decide" data-v="ok" data-n="${esc(r.m.name)}" data-k="${esc(r.m.key)}" data-o="${esc(r.o.occ)}">Approve</button><button class="btnsm" style="flex:1;background:var(--bg)" data-act="decide" data-v="no" data-n="${esc(r.m.name)}" data-k="${esc(r.m.key)}" data-o="${esc(r.o.occ)}">Deny</button></div></div>`).join('') : '<div class="empty">No requests right now</div>'}
-      ${weekStrip(alarms)}
       <div class="sec">${dayTitle()}</div>
       ${sched.length ? `<div class="stack">${sched.map(schedCard).join('')}</div>` : emptyRow('Nothing scheduled', 'new', 'Create an alarm')}
       ${teams.map(t => { const ms = members(t).filter(m => m.role !== 'coach'); return `<div class="sec">${esc(t.name)} roster · ${ms.filter(m => m.state === 'in').length}<a data-act="invite" data-id="${esc(t.id)}">Invite</a></div>
@@ -754,7 +765,7 @@ const views = {
       <div class="sub" style="margin-top:8px">Players scan this with their phone camera, or enter the code in the app.</div>
       <div class="qrbox"><div id="qr"></div><div class="code">${esc(t.code)}</div><div class="sub">Team code</div></div>
       <button class="pill p-navy" data-act="shareinvite" style="margin-top:14px">${I('share', 20)}Share invite link</button>
-      <button class="pill p-white" data-act="addpeople" style="margin-top:10px">${I('users', 20)}Add people with the app</button>
+      <button class="pill p-white" data-act="addpeople" style="margin-top:10px">${I('users', 20)}Add from contacts</button>
     </div>`;
   },
 
@@ -832,16 +843,25 @@ function ringView(kind) {
 }
 
 /* ================= Sheets ================= */
+// Coaches only see people from their own contacts who have the app (after allowing access), not everyone.
+function contactsHtml(nt) {
+  if (S.contacts !== 'ok') return `<div class="lbl">${nt.addTo ? 'Add people' : 'Add players'}</div>
+    <button type="button" class="ctbtn" data-ct="ask"><span class="ctic">${I('users', 22)}</span><span class="grow"><b>Add from contacts</b><small>${S.contacts === 'no' ? 'Contacts access is off. Tap to try again.' : 'See which of your contacts have Team Alarm'}</small></span>${I('right', 20)}</button>`;
+  const people = livePeers().filter(p => p.role === 'player').map(p => ({ key: p.key, name: clean(p.nick, 24) })).concat(FAKES.map((n, i) => ({ key: 'f' + i, name: n }))).filter(p => !nt.exclude.includes(p.key));
+  return `<div class="lbl" style="display:flex;justify-content:space-between">Contacts on Team Alarm · ${people.length}${people.length ? '<a data-all="1" style="color:var(--blue);letter-spacing:0;text-transform:none;cursor:pointer">Select all</a>' : ''}</div>
+    <div>${people.map(p => `<button type="button" class="pick ${nt.picked.includes(p.key) ? 'on' : ''}" data-pk="${esc(p.key)}" data-pn="${esc(p.name)}">${av(p, 40)}${esc(p.name)}<span class="ck">${I('check', 16, 3)}</span></button>`).join('') || '<div class="empty">Everyone in your contacts with the app is already on the team</div>'}</div>`;
+}
+const permAlert = () => `<div class="alertdim"><div class="alert"><div class="at"><b>“Team Alarm” Would Like to Access Your Contacts</b><span>Your contacts who have Team Alarm show up here so you can add them to your team. Nothing is uploaded.</span></div>
+  <div class="ab"><button type="button" data-ct="no">Don’t Allow</button><button type="button" data-ct="ok" style="font-weight:600">Allow</button></div></div></div>`;
 const sheets = {
   newteam: () => {
     const nt = ui.newTeam;
-    const people = livePeers().filter(p => p.role === 'player').map(p => ({ key: p.key, name: clean(p.nick, 24) })).concat(FAKES.map((n, i) => ({ key: 'f' + i, name: n })));
     return `<form class="sheet" id="teamForm" autocomplete="off"><i class="grab"></i>
       <div class="h2">${nt.addTo ? 'Add people' : 'New team'}</div>
       ${nt.addTo ? '' : `<div class="field" style="margin-top:16px"><input id="teamIn" maxlength="30" placeholder="Team name, like IXD 415" value="${esc(nt.name)}" autocapitalize="words"></div>
       <div class="lbl">Team color</div><div class="swatches">${TEAM_COLORS.map((c, i) => `<button type="button" class="swatch ${nt.color === i ? 'on' : ''}" data-color="${i}" style="background:${c[0]}" aria-label="Color ${i + 1}"></button>`).join('')}</div>`}
-      <div class="lbl" style="display:flex;justify-content:space-between">People with the app<a data-all="1" style="color:var(--blue);letter-spacing:0;text-transform:none;cursor:pointer">Select all</a></div>
-      <div>${people.filter(p => !nt.exclude.includes(p.key)).map(p => `<button type="button" class="pick ${nt.picked.includes(p.key) ? 'on' : ''}" data-pk="${esc(p.key)}" data-pn="${esc(p.name)}">${av(p, 40)}${esc(p.name)}<span class="ck">${I('check', 16, 3)}</span></button>`).join('') || '<div class="empty">Everyone with the app is already on the team</div>'}</div>
+      <div id="ctBox">${contactsHtml(nt)}</div>
+      <div class="ctnote">${I('qr', 18)}<span>${nt.addTo ? 'Anyone else can join with the team code or QR.' : "Not in your contacts? You'll get a team code and QR to share once the team is made."}</span></div>
       <button class="pill p-navy" type="submit" style="margin-top:18px">${nt.addTo ? 'Add to team' : 'Create team'}</button>
     </form>`;
   },
@@ -996,6 +1016,14 @@ function wireTeamForm() {
   const f = document.getElementById('teamForm'), nt = ui.newTeam, ti = document.getElementById('teamIn');
   if (ti) { ti.addEventListener('input', () => { nt.name = ti.value; }); if (!nt.name) setTimeout(() => ti.focus(), 300); }
   f.addEventListener('click', e => {
+    if (e.target.closest('[data-ct=ask]')) {
+      if (document.querySelector('.alertdim')) return;
+      $phone.insertAdjacentHTML('beforeend', permAlert());
+      const al = $phone.querySelector('.alertdim');
+      al.addEventListener('click', ev => { const ct = ev.target.closest('[data-ct]'); if (!ct) return; S.contacts = ct.dataset.ct; save(); al.remove();
+        const box = document.getElementById('ctBox'); if (box) box.innerHTML = contactsHtml(nt); });
+      return;
+    }
     const sw = e.target.closest('[data-color]'); if (sw) { nt.color = +sw.dataset.color; f.querySelectorAll('.swatch').forEach(x => x.classList.toggle('on', x === sw)); return; }
     const pk = e.target.closest('.pick'); if (pk) { const k = pk.dataset.pk; nt.picked = nt.picked.includes(k) ? nt.picked.filter(x => x !== k) : nt.picked.concat(k); pk.classList.toggle('on'); return; }
     if (e.target.closest('[data-all]')) { const all = [...f.querySelectorAll('.pick')]; const on = all.length && all.every(x => x.classList.contains('on')); nt.picked = on ? [] : all.map(x => x.dataset.pk); all.forEach(x => x.classList.toggle('on', !on)); }
