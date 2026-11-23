@@ -708,8 +708,8 @@ const views = {
 
   name: () => `<div class="scr onb">
     <div>${backBtn('unrole')}</div>
-    <div class="h1">${S.role === 'coach' ? 'What does your team call you?' : "What's your first name?"}</div>
-    <div class="sub" style="margin-top:10px">${S.role === 'coach' ? 'Players see this on invites and alarms.' : 'Your teammates see this.'}</div>
+    <div class="h1">What's your name?</div>
+    <div class="sub" style="margin-top:10px">Your teammates see this.</div>
     <form id="nameForm" autocomplete="off" style="margin-top:26px">
       <div class="field"><input id="nameIn" maxlength="24" placeholder="Your name" autocapitalize="words" enterkeyhint="go"></div>
       <button class="pill p-navy" id="nameGo" type="submit" style="margin-top:16px" disabled>Continue</button>
@@ -840,19 +840,18 @@ const views = {
   },
 
   me: () => {
-    const coach = S.role === 'coach', bg = coach ? '#133b55' : pcol(S.nick), teams = myTeams();
+    const coach = S.role === 'coach', bg = pcol(S.nick), teams = myTeams();
     const rs = Object.values(S.ring).filter(r => r && r.status === 'up' && r.at), avg = rs.length ? rs.reduce((n, r) => n + (r.upAt - r.at), 0) / rs.length : 0;
-    const k = coach ? [[teams.filter(t => t.coachKey === S.key).length, 'Teams'], [new Set(teams.flatMap(t => members(t).filter(m => m.role !== 'coach' && m.state === 'in').map(m => m.key))).size, 'Players'], [S.alarms.length, 'Alarms set']]
-      : [[rs.length, 'Wake-ups'], [rs.length ? late(avg, 0) : '–', 'Avg to get up'], [Object.values(S.ring).reduce((n, r) => n + num(r && r.snoozes), 0), 'Snoozes']];
+    const k = [[rs.length, 'Wake-ups'], [rs.length ? late(avg, 0) : '–', 'Avg to get up'], [Object.values(S.ring).reduce((n, r) => n + num(r && r.snoozes), 0), 'Snoozes']];
     return `<div class="scr">
       <div>${backBtn()}</div>
       <div style="display:flex;flex-direction:column;align-items:center;text-align:center">
-        <span class="av" style="width:88px;height:88px;font-size:36px;background:${bg};color:${coach ? '#a6efc6' : ink(bg)}">${initial(S.nick)}</span>
+        <span class="av" style="width:88px;height:88px;font-size:36px;background:${bg};color:${ink(bg)}">${initial(S.nick)}</span>
         <div class="h1" style="font-size:30px;margin-top:12px">${esc(S.nick)}</div>
         ${S.phone ? `<div class="sub" style="margin-top:4px">+1 ${fmtPhone(S.phone)}</div>` : ''}
-        <span class="chip" style="background:var(--glass);border:1px solid var(--edge);margin-top:8px">${coach ? 'Coach' : 'Player'} · ${teams.length} ${teams.length === 1 ? 'team' : 'teams'}</span></div>
-      ${coach ? '' : `<div class="sec">Your mornings</div>
-      <div class="kpis">${k.map(x => `<div><b>${x[0]}</b><small>${x[1]}</small></div>`).join('')}</div>`}
+        <span class="chip" style="background:var(--glass);border:1px solid var(--edge);margin-top:8px">${teams.length} ${teams.length === 1 ? 'team' : 'teams'}</span></div>
+      <div class="sec">Your mornings</div>
+      <div class="kpis">${k.map(x => `<div><b>${x[0]}</b><small>${x[1]}</small></div>`).join('')}</div>
       <div class="sec">Alarm sound</div>
       <div class="card" style="padding:4px 16px">${Object.keys(SOUNDS).map(n => `<button class="opt-row" data-act="sound" data-v="${n}">${n}<span class="ck">${S.sound === n ? I('check', 20, 3) : ''}</span></button>`).join('')}
         <button class="opt-row" data-act="vibrate">Vibrate<span class="tog ${S.vibrate ? 'on' : ''}"></span></button></div>
@@ -870,9 +869,9 @@ const createTeams = () => myTeams().filter(t => S.role === 'coach' ? t.coachKey 
 
 function header(tag) {
   const now = new Date(), hr = now.getHours(), hello = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
-  const coach = S.role === 'coach', bg = coach ? '#133b55' : pcol(S.nick);
+  const coach = S.role === 'coach', bg = pcol(S.nick);
   return `<div class="row" style="align-items:flex-start"><div><div class="date">${now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}${tag ? ' · ' + tag : ''}</div><div class="hi"><span class="lt">${hello},</span><br>${esc(S.nick)}</div></div>
-    <button class="av" data-act="me" aria-label="Profile" style="background:${bg};color:${coach ? '#a6efc6' : ink(bg)}">${initial(S.nick)}</button></div>`;
+    <button class="av" data-act="me" aria-label="Profile" style="background:${bg};color:${ink(bg)}">${initial(S.nick)}</button></div>`;
 }
 function teamPill(t) {
   const al = alarmsAll().filter(a => a.team === t.id), n = members(t).filter(m => m.state === 'in').length, nx = nextUp(al);
