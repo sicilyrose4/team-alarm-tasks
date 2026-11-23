@@ -325,7 +325,7 @@ const TEAM_COLORS = [
   ['linear-gradient(140deg,#7d4f32 0%,#a87652 100%)', '#ffffff', '#ffffff', '#916142']    // brown
 ];
 const COLOR_NAMES = ['Red', 'Blue', 'Green', 'Yellow', 'Black', 'White', 'Purple', 'Orange', 'Pink', 'Brown'];
-const AV_COLORS = ['#a6efc6', '#6fb7ff', '#5b8cff', '#9fd8ff', '#8fe3c0', '#133b55'];
+const AV_COLORS = ['#a6efc6', '#6fb7ff', '#5b8cff', '#133b55', '#c9b6ff', '#7c5cf0', '#ffb3c7', '#ff7a8a', '#ffc98f', '#ff9a52', '#ffe27a', '#3fc1a5', '#1f7a6b', '#b8e986', '#9b6b4a', '#2b2d3a'];
 const DAY1 = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -581,7 +581,7 @@ const allUp = c => c.length > 0 && c.filter(m => m.status !== 'excused').every(m
 
 /* ================= Little renderers ================= */
 const pcol = name => AV_COLORS[hash(name) % AV_COLORS.length];
-const ink = bg => (bg === '#6fb7ff' || bg === '#5b8cff' || bg === '#133b55' ? '#fff' : '#12304a');
+const ink = bg => { const n = parseInt(bg.slice(1), 16), l = (0.299 * (n >> 16) + 0.587 * (n >> 8 & 255) + 0.114 * (n & 255)) / 255; return l < .62 ? '#fff' : '#12304a'; };
 const initial = n => esc((String(n || '?').trim()[0] || '?').toUpperCase());
 function av(m, size, avoid) { let bg = pcol(m.name); if (avoid && bg.toLowerCase() === avoid.toLowerCase()) bg = avoid.toLowerCase() === '#133b55' ? '#ffffff' : '#133b55'; return `<span class="av" style="${size ? `width:${size}px;height:${size}px;font-size:${Math.round(size * .4)}px;` : ''}background:${bg};color:${ink(bg)}">${initial(m.name)}</span>`; }
 const backBtn = (act = 'home') => `<button class="back" data-act="${act}" aria-label="Back">${I('back', 26)}</button>`;

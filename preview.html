@@ -1,0 +1,1300 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#a6c4f8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Clique Clock</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script>
+// GitHub Pages lets browsers keep this page for 10 minutes. If a newer version is live, load it once.
+(async () => {
+  try {
+    if (sessionStorage.getItem('tat-fresh') === location.search) return;
+    const r = await fetch(location.pathname, { cache: 'no-store', method: 'HEAD' });
+    const live = Date.parse(r.headers.get('last-modified') || ''), mine = Date.parse(document.lastModified);
+    if (live && mine && live - mine > 2000) {
+      const u = new URL(location.href); u.searchParams.set('v', String(live));
+      sessionStorage.setItem('tat-fresh', u.search);
+      location.replace(u.toString());
+    }
+  } catch (e) {}
+})();
+</script>
+<style>
+:root{--blue:#4f8cff;--lime:#a6efc6;--purple:#6fb7ff;--navy:#12304a;--white:#fff;--bg:#e6f0f8;--card:rgba(255,255,255,.58);--muted:rgba(18,48,74,.6);--line:rgba(18,48,74,.08);--faint:rgba(18,48,74,.4);--red:#ff5d7d;
+  --glass:rgba(255,255,255,.5);--edge:rgba(255,255,255,.75);--blur:blur(22px) saturate(1.5);
+  --grad:radial-gradient(90% 45% at 10% 0%,#96b8fb 0%,rgba(150,184,251,0) 70%),radial-gradient(80% 45% at 100% 28%,#bfe6ff 0%,rgba(191,230,255,0) 70%),radial-gradient(90% 45% at 20% 75%,#c5e0ff 0%,rgba(197,224,255,0) 70%),radial-gradient(80% 40% at 90% 100%,#c4f0e2 0%,rgba(196,240,226,0) 70%),#e3eff7;
+  --f:"Urbanist",system-ui,-apple-system,sans-serif;--sys:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;
+  --sh:100dvh;--safe-t:env(safe-area-inset-top);--safe-b:env(safe-area-inset-bottom)}
+/* desktop: the app sits inside a phone */
+#sbar,.island,.homebar{display:none}
+html.framed,html.framed body{height:100%;overflow:hidden;background:radial-gradient(70% 60% at 25% 20%,#eef1fb 0%,rgba(238,241,251,0) 70%),radial-gradient(60% 60% at 85% 80%,#d8ecf0 0%,rgba(216,236,240,0) 70%),#dbe6f1}
+html.framed{--sh:852px;--safe-t:54px;--safe-b:26px}
+html.framed #stage{height:100%;display:flex;align-items:center;justify-content:center;gap:72px}
+html.framed .phone{position:relative;flex:none;width:393px;height:852px;border-radius:58px;background:var(--grad);overflow:hidden;transform:translateZ(0) scale(var(--k,1));margin:calc(426px * (var(--k,1) - 1)) calc(196px * (var(--k,1) - 1));
+  box-shadow:0 0 0 10px rgba(255,255,255,.55),0 0 0 11px rgba(255,255,255,.9),0 0 0 12px rgba(18,48,74,.08),0 50px 90px -20px rgba(30,70,130,.35);transition:background .3s}
+html.framed #app{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;min-height:0}
+html.framed #app::-webkit-scrollbar{display:none}
+html.framed #sbar{display:flex;position:absolute;top:0;left:0;right:0;height:52px;z-index:35;align-items:center;justify-content:space-between;padding:6px 34px 0 52px;font:600 17px var(--sys);letter-spacing:-.2px;color:var(--navy);background:transparent;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);-webkit-mask-image:linear-gradient(#000 65%,transparent);mask-image:linear-gradient(#000 65%,transparent);transition:color .3s;pointer-events:none}
+html.framed #sbar .ic{display:flex;gap:6px;align-items:center}
+html.framed .island{display:block;position:absolute;top:11px;left:50%;transform:translateX(-50%);width:124px;height:36px;border-radius:20px;background:#0d1a2a;z-index:72;pointer-events:none}
+html.framed .homebar{display:block;position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:136px;height:5px;border-radius:3px;background:var(--navy);z-index:72;pointer-events:none;opacity:.9;transition:background .3s}
+html.framed .scr{max-width:none}
+.hero-art{display:flex;justify-content:center;align-items:center;position:relative}
+.hero-art svg{position:relative;z-index:1;width:min(56%,210px);height:auto;filter:drop-shadow(0 24px 40px rgba(40,90,160,.18))}
+.wordmark{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;z-index:0;font:600 clamp(86px,28vw,116px)/1.62 var(--f);letter-spacing:-4px;color:#fff;text-shadow:0 4px 40px rgba(40,100,200,.25);pointer-events:none}
+.hero-art .bells{transform-origin:130px 60px;animation:ring 3.6s ease-in-out infinite}
+@keyframes ring{0%,78%,100%{transform:none}81%{transform:rotate(-7deg)}84%{transform:rotate(7deg)}87%{transform:rotate(-5deg)}90%{transform:rotate(5deg)}93%{transform:rotate(-2deg)}}
+/* phone sign-in */
+.field .cc{font:500 20px var(--f);color:var(--muted);margin-right:10px;padding-right:12px;border-right:1px solid var(--line)}
+.otp{position:relative;display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.otp i{height:62px;border-radius:18px;background:rgba(255,255,255,.62);border:1.5px solid var(--edge);display:flex;align-items:center;justify-content:center;font:500 28px var(--f);font-style:normal;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
+.otp i.cur{border-color:var(--navy)}
+.otp input{position:absolute;inset:0;opacity:0;font-size:16px;-webkit-user-select:text;user-select:text}
+#banner .appic.msg{background:linear-gradient(#5ff777,#2bd34d)}
+/* notification banner */
+#banner{position:fixed;left:10px;right:10px;max-width:410px;margin:0 auto;top:calc(var(--safe-t) + 4px);z-index:80;display:flex;gap:11px;align-items:center;padding:12px 14px;border-radius:24px;background:rgba(250,250,253,.86);-webkit-backdrop-filter:blur(20px) saturate(1.6);backdrop-filter:blur(20px) saturate(1.6);
+  box-shadow:0 12px 34px rgba(1,20,60,.22);transform:translateY(calc(-100% - var(--safe-t) - 20px));transition:transform .45s cubic-bezier(.2,.9,.25,1.1),visibility 0s .45s;visibility:hidden;cursor:pointer;text-align:left;color:var(--navy)}
+html.framed #banner{top:58px}
+#banner.show{transform:none;visibility:visible;transition:transform .45s cubic-bezier(.2,.9,.25,1.1)}
+#banner .appic{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#5b8cff,#5fd3c5);color:#fff;display:flex;align-items:center;justify-content:center;flex:none}
+#banner .bt{display:flex;justify-content:space-between;font:600 13px var(--sys);color:#7d8199}
+#banner b{display:block;font:700 15px/1.25 var(--sys);margin-top:1px}
+#banner small{display:block;font:400 14px/1.3 var(--sys);color:#3a3f5c}
+/* contacts */
+.ctbtn{display:flex;align-items:center;gap:12px;width:100%;background:var(--glass);border:1px solid var(--edge);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);box-shadow:0 8px 30px rgba(40,90,160,.08);border-radius:24px;padding:14px 16px;transition:transform .12s}
+.ctbtn:active{transform:scale(.97)}
+.ctbtn b{display:block;font:600 17px var(--f)}.ctbtn small{display:block;font:500 13px var(--f);color:var(--muted);margin-top:2px}
+.ctic{width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,#5b8cff,#5fd3c5);color:#fff;display:flex;align-items:center;justify-content:center;flex:none}
+.ctnote{display:flex;gap:10px;align-items:flex-start;margin:14px 4px 0;font:500 14px/1.4 var(--f);color:var(--muted)}
+.ctnote svg{margin-top:1px}
+.alertdim{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.28);display:flex;align-items:center;justify-content:center;animation:fade .15s}
+.alert{width:270px;border-radius:14px;background:rgba(242,242,247,.94);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);text-align:center;font-family:var(--sys);overflow:hidden;animation:pop .25s}
+.alert .at{padding:19px 16px 15px}.alert b{display:block;font:600 17px/1.3 var(--sys);color:#000}.alert span{display:block;font:400 13px/1.35 var(--sys);color:#000;margin-top:4px}
+.ab{display:flex;border-top:.5px solid rgba(60,60,67,.3)}
+.ab button{flex:1;padding:11px 4px;font:400 17px var(--sys);color:#007aff;text-align:center}
+.ab button+button{border-left:.5px solid rgba(60,60,67,.3)}
+/* profile */
+.tog{width:51px;height:31px;border-radius:16px;background:rgba(18,48,74,.15);position:relative;flex:none;transition:background .2s;margin-left:auto}
+.tog::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 5px rgba(0,0,0,.18);transition:transform .2s}
+.tog.on{background:#4f8cff}.tog.on::after{transform:translateX(20px)}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kpis div{background:var(--glass);border:1px solid var(--edge);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);box-shadow:0 8px 30px rgba(40,90,160,.08);border-radius:22px;padding:14px 8px;text-align:center}
+.kpis b{display:block;font:600 26px var(--f);font-variant-numeric:tabular-nums}.kpis small{font:500 12px var(--f);color:var(--muted)}
+.feed .lrow small{display:block}
+.when{font:500 12px var(--f);color:var(--faint);white-space:nowrap;align-self:flex-start;margin-top:3px}
+.rank{width:22px;font:600 14px var(--f);color:var(--faint);text-align:center;flex:none}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{color:var(--navy);font-family:var(--f);overscroll-behavior:none}
+html{background:var(--grad);background-attachment:fixed;min-height:100%}
+body{background:transparent}
+body{-webkit-user-select:none;user-select:none;overflow-x:hidden}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;text-align:inherit}
+input{font:inherit;color:inherit}
+svg{display:block;flex:none}
+#app{min-height:var(--sh)}
+.scr{min-height:var(--sh);max-width:430px;margin:0 auto;padding:calc(var(--safe-t) + 22px) 20px calc(var(--safe-b) + 120px);position:relative}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.grow{flex:1;min-width:0}
+/* type */
+.date{font:500 15px var(--f);color:var(--muted)}
+.hi{font:600 34px/1.1 var(--f);margin-top:4px;letter-spacing:-.4px;color:#fff;text-shadow:0 2px 24px rgba(40,100,200,.35)}
+.h1{font:500 36px/1.1 var(--f);letter-spacing:-.5px;color:#fff;text-shadow:0 2px 24px rgba(40,100,200,.35)}
+.sheet .h1,.card .h1{color:var(--navy);text-shadow:none}
+.sub{font:500 15px/1.35 var(--f);color:var(--muted)}
+.sec{font:500 15px var(--f);letter-spacing:.1px;color:var(--muted);margin:28px 2px 12px;display:flex;justify-content:space-between;align-items:center}
+.hi .lt{font-weight:300;opacity:.95}
+.sec .si{display:inline-flex;align-items:center;gap:7px}.sec .si svg{opacity:.7}
+.meta{display:inline-flex;align-items:center;gap:5px}.meta svg{opacity:.75}
+.sec a{letter-spacing:0;text-transform:none;font-size:14px;color:var(--blue);cursor:pointer}
+/* bits */
+.av{width:44px;height:44px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font:600 18px var(--f);flex:none;position:relative}
+.chip{display:inline-flex;align-items:center;gap:6px;border-radius:20px;padding:6px 12px;font:500 13px var(--f);white-space:nowrap}
+.chip i{width:8px;height:8px;border-radius:50%;background:currentColor;display:block}
+.pill{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border-radius:34px;padding:18px;font:600 19px var(--f);transition:transform .12s;text-align:center}
+.pill:active,.fab:active,.circle:active,.btnsm:active,.role:active,button.card:active,button.big:active,.sc:active,.teamrow:active,.day:active{transform:scale(.97)}
+.pill:disabled{opacity:.4}
+.p-navy{background:var(--navy);color:#fff;box-shadow:0 10px 26px rgba(18,48,74,.25)}.p-lime{background:var(--lime);color:var(--navy)}.p-white{background:var(--glass);border:1px solid var(--edge);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);box-shadow:0 8px 30px rgba(40,90,160,.08);color:var(--navy)}
+.link{display:block;margin:14px auto 0;padding:8px 16px;font:600 16px var(--f);color:var(--muted);text-align:center}
+.danger{color:var(--red)!important}
+.btnsm{border-radius:20px;padding:10px 16px;font:600 14px var(--f);transition:transform .12s;text-align:center}
+.card{display:block;width:100%;background:var(--glass);border:1px solid var(--edge);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);box-shadow:0 8px 30px rgba(40,90,160,.08);border-radius:26px;padding:16px 18px;transition:transform .12s}
+.fab{position:fixed;right:max(20px,calc(50% - 195px));bottom:calc(var(--safe-b) + 24px);background:#fff;color:var(--navy);border-radius:32px;padding:16px 22px 16px 18px;font:600 17px var(--f);display:flex;gap:8px;align-items:center;z-index:20;box-shadow:0 0 0 6px rgba(30,62,100,.55),0 14px 30px rgba(18,48,74,.25);transition:transform .12s}
+.addrow{display:flex;align-items:center;gap:12px;width:100%;padding:10px 2px;font:500 16px var(--f);color:var(--muted)}
+.addic{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--edge);background:rgba(255,255,255,.35);display:flex;align-items:center;justify-content:center;flex:none;color:var(--faint)}
+.empty{font:500 15px var(--f);color:var(--faint);padding:2px 2px 4px}
+.back{width:48px;height:48px;margin:-6px 0 12px -2px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(255,255,255,.28);border:1px solid rgba(255,255,255,.7);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);color:#fff}
+.back:active{transform:scale(.94)}
+/* week strip */
+.week{display:flex;gap:7px;margin-top:22px}
+.day{flex:1;height:66px;border-radius:18px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font:600 17px var(--f);position:relative;transition:transform .12s}
+.day small{font:500 12px var(--f);color:var(--muted);margin-top:1px}
+.day.has{background:var(--lime)}.day.has small{color:var(--navy)}
+.day.on{background:var(--navy);color:#fff}.day.on small{color:#c9cde6}
+.day.on.has::after{content:"";position:absolute;bottom:7px;width:6px;height:6px;border-radius:50%;background:var(--lime)}
+/* big alarm card */
+.big{display:block;width:100%;border-radius:32px;padding:20px;background:var(--tb);color:var(--tf);position:relative;box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 18px 40px -12px var(--tbs);transition:transform .12s;text-align:left}
+.big .t{font:500 84px/1 var(--f);letter-spacing:-2.5px;color:var(--tf);margin-top:14px;font-variant-numeric:tabular-nums}
+.big .t span{font-size:24px;letter-spacing:0;margin-left:5px}
+.big .nm{font:600 20px var(--f)}
+.big .rp{font:500 14px var(--f);opacity:.8}
+.on-team{background:var(--chip,rgba(255,255,255,.22));border:1px solid var(--chipb,rgba(255,255,255,.45));color:inherit}
+.faces{display:flex;align-items:center;flex:none}
+.faces .av{width:30px;height:30px;font-size:12px;margin-left:-8px;box-shadow:0 0 0 2.5px var(--ring,#fff)}
+.faces .av:first-child{margin-left:0}
+.faces span{font:500 13px var(--f);margin-left:6px;opacity:.85}
+.stat{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:16px}
+.stat div{border-radius:20px;padding:10px 2px;text-align:center;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3)}
+.stat b{display:block;font:600 26px var(--f)}.stat small{font:500 11px var(--f);opacity:.85}
+/* stacked schedule */
+.stack .sc{display:flex;width:100%;justify-content:space-between;align-items:center;gap:10px;border-radius:26px;box-shadow:inset 0 1px 0 rgba(255,255,255,.4);padding:16px 18px 32px;margin-bottom:-18px;position:relative;background:var(--tb);color:var(--tf);transition:transform .12s;text-align:left}
+.stack .sc:nth-child(even){background-image:linear-gradient(rgba(1,20,60,.09),rgba(1,20,60,.09))}
+.stack .sc:last-child{padding-bottom:16px;margin-bottom:0}
+.sc b{font:600 17px var(--f);display:block}.sc small{display:block;font:500 13px var(--f);opacity:.78;margin-top:2px}
+.sc .tm{font:600 26px var(--f);letter-spacing:-1px;font-variant-numeric:tabular-nums;flex:none}
+.sc .tm span{font-size:13px;letter-spacing:0;margin-left:2px}
+.sc.off .tm{text-decoration:line-through;opacity:.6}
+.tag{display:inline-block;font:500 12px var(--f);letter-spacing:.1px;border-radius:10px;padding:3px 8px;background:rgba(1,20,60,.08);color:var(--navy);margin-top:6px;white-space:nowrap}
+.sc .tag{background:rgba(255,255,255,.24);color:inherit}
+/* lists */
+.lrow{display:flex;align-items:center;gap:12px;padding:10px 2px}
+.lrow b{font:600 16px var(--f);display:block}.lrow small{font:500 13px var(--f);color:var(--muted)}
+.lrow+.lrow{border-top:1px solid var(--line)}
+.ros{display:grid;grid-template-columns:repeat(5,1fr);gap:14px 6px}
+.ros div{display:flex;flex-direction:column;align-items:center;gap:5px;font:500 12px var(--f);min-width:0}
+.ros span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ros .inv{opacity:.4}
+.teamrow{display:flex;align-items:center;gap:12px;width:100%;background:var(--glass);border:1px solid var(--edge);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);box-shadow:0 8px 30px rgba(40,90,160,.08);border-radius:24px;padding:14px 16px;margin-bottom:10px;transition:transform .12s}
+.teamrow .sw{width:40px;height:40px;border-radius:50%;flex:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 0 0 1px rgba(18,48,74,.1)}
+.teamrow .go{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;flex:none;color:var(--navy)}
+.acts{display:flex;flex-direction:column;gap:10px;margin-top:26px}
+.nonext b{display:block;font:600 18px var(--f)}.nonext small{display:block;font:500 14px/1.4 var(--f);color:var(--muted);margin-top:4px}
+.teamrow b{font:600 17px var(--f);display:block}.teamrow small{font:500 13px var(--f);color:var(--muted)}
+/* invite card */
+.inv-card{border-radius:30px;box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 18px 40px -14px var(--tbs);padding:18px;background:var(--tb);color:var(--tf);margin-top:18px}
+.inv-card b{font:600 18px/1.25 var(--f);display:block}
+.inv-card small{font:500 14px var(--f);opacity:.8}
+/* onboarding */
+.onb{display:flex;flex-direction:column;padding-bottom:calc(var(--safe-b) + 30px)}
+.role{display:flex;align-items:center;justify-content:space-between;width:100%;border-radius:32px;box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 16px 36px -14px rgba(40,90,160,.45);padding:24px 22px;margin-top:14px;transition:transform .12s}
+.role b{display:block;font:600 24px var(--f)}.role small{display:block;font:500 15px var(--f);opacity:.75;margin-top:4px}
+.role .arr{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.3);flex:none}
+.field{background:rgba(255,255,255,.62);border-radius:24px;padding:0 18px;height:64px;display:flex;align-items:center;border:1.5px solid var(--edge);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
+.field:focus-within{border-color:var(--navy)}
+.field input{border:0;outline:0;background:none;width:100%;font:500 20px var(--f);-webkit-user-select:text;user-select:text}
+.field input::placeholder{color:rgba(18,48,74,.35)}
+/* sheet */
+.dim{position:fixed;inset:0;background:rgba(18,48,74,.28);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);z-index:40;animation:fade .2s}
+.sheet{position:fixed;left:0;right:0;bottom:0;max-width:430px;margin:0 auto;background:rgba(238,246,252,.82);-webkit-backdrop-filter:blur(30px) saturate(1.6);backdrop-filter:blur(30px) saturate(1.6);border-top:1px solid #fff;border-radius:34px 34px 0 0;padding:12px 20px calc(var(--safe-b) + 24px);z-index:41;animation:up .32s cubic-bezier(.2,.8,.2,1);max-height:calc(var(--sh) * .92);overflow-y:auto}
+.grab{display:block;width:44px;height:5px;border-radius:3px;background:rgba(18,48,74,.18);margin:0 auto 16px}
+.sheet .h2{font:600 22px var(--f)}
+.icons{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:10px}
+.icn{height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.5);border:1px solid var(--edge);color:var(--navy);transition:transform .12s}
+.icn:active{transform:scale(.94)}
+.icn.on{background:var(--tb);color:var(--tf);border-color:transparent;box-shadow:0 8px 18px -8px var(--tbs)}
+.teamrow .sw{display:flex;align-items:center;justify-content:center}
+.bigic{width:58px;height:58px;border-radius:50%;background:var(--chip,rgba(255,255,255,.22));border:1px solid var(--chipb,rgba(255,255,255,.45));display:flex;align-items:center;justify-content:center;flex:none}
+.swatches{display:grid;grid-template-columns:repeat(5,40px);justify-content:space-between;gap:12px;margin-top:10px}
+.swatch{width:40px;height:40px;border-radius:14px;box-shadow:inset 0 0 0 1px rgba(18,48,74,.12)}
+.swatch.on{box-shadow:inset 0 0 0 1px rgba(18,48,74,.12),0 0 0 3px #fff,0 0 0 5px var(--navy)}
+.pick{display:flex;align-items:center;gap:12px;width:100%;padding:8px 2px;font:500 16px var(--f)}
+.pick .ck{margin-left:auto;width:26px;height:26px;border-radius:50%;border:2px solid rgba(18,48,74,.2);display:flex;align-items:center;justify-content:center;color:transparent}
+.pick.on .ck{background:var(--navy);border-color:var(--navy);color:var(--lime)}
+.lbl{font:500 14px var(--f);letter-spacing:.1px;color:var(--muted);margin:22px 2px 8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.ch{border-radius:22px;padding:11px 16px;font:500 15px var(--f);background:rgba(255,255,255,.35);border:1px solid var(--edge)}
+.ch.on{background:var(--lime);color:var(--navy);border-color:var(--lime)}
+.days{display:flex;gap:6px;margin-top:6px}
+.days button{flex:1;height:46px;border-radius:16px;background:rgba(255,255,255,.45);border:1px solid var(--edge);font:600 15px var(--f);text-align:center}
+.days button.on{background:var(--lime)}
+.opt-row{display:flex;align-items:center;gap:12px;width:100%;padding:14px 4px;font:600 17px var(--f)}
+.opt-row+.opt-row{border-top:1px solid var(--line)}
+.opt-row .ck{margin-left:auto}
+/* create */
+.wheel{position:relative;z-index:0;height:400px;margin:6px -20px 0;overflow-x:clip}
+.half{position:absolute;top:-46px;width:430px;height:492px;border-radius:50%;background:rgba(255,255,255,.42);filter:blur(9px);pointer-events:none}
+.half.l{left:-262px}.half.r{right:-262px}
+.cols{position:absolute;inset:0;display:flex;justify-content:center;gap:10px;padding-right:44px}
+.wcol{height:100%;width:118px;overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;cursor:grab;-webkit-mask-image:linear-gradient(transparent,#000 22%,#000 78%,transparent);mask-image:linear-gradient(transparent,#000 22%,#000 78%,transparent)}
+.wcol::-webkit-scrollbar{display:none}
+.wcol .it{height:76px;display:flex;align-items:center;font:500 88px/1 var(--f);letter-spacing:-2px;scroll-snap-align:center;font-variant-numeric:tabular-nums;will-change:transform,opacity}
+.wcol.h .it{justify-content:flex-end;transform-origin:right center}
+.wcol.m .it{justify-content:flex-start;transform-origin:left center}
+.ampm{position:absolute;right:20px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px}
+.ampm button{border-radius:20px;padding:9px 13px;font:600 15px var(--f);background:rgba(255,255,255,.45);border:1px solid var(--edge)}
+.ampm button.on{background:var(--navy);color:var(--lime)}
+.opts{position:relative;z-index:1;display:flex;justify-content:space-around;margin-top:6px}
+.opt{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:110px;padding:6px;border-radius:18px;transition:transform .12s;text-align:center}
+.opt:active{transform:scale(.95)}
+.opt b{font:600 16px var(--f);margin-top:4px}.opt small{font:500 13px var(--f);color:var(--muted)}
+.tbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:22px}
+.tbar span{font:500 14px var(--f);color:var(--muted);text-align:center;flex:1}
+.circle{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;transition:transform .12s}
+.teamsel{position:relative}
+.menu{position:absolute;right:0;top:44px;background:rgba(255,255,255,.85);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:1px solid var(--edge);border-radius:20px;padding:6px;min-width:190px;z-index:30;box-shadow:0 18px 40px rgba(1,20,60,.18);animation:pop .18s}
+.menu button{display:flex;align-items:center;gap:10px;width:100%;padding:11px 12px;border-radius:14px;font:600 15px var(--f)}
+.menu button.on{background:rgba(18,48,74,.06)}
+.menu i{width:12px;height:12px;border-radius:50%;display:block}
+/* ringing */
+.ringwrap{background:var(--tb);min-height:var(--sh)}
+.ringscr{color:var(--tf);min-height:var(--sh);display:flex;flex-direction:column;padding-bottom:calc(var(--safe-b) + 34px)}
+.r-top{text-align:center;font:500 15px var(--f);opacity:.82;margin-top:6px}
+.r-time{text-align:center;font:500 112px/1 var(--f);letter-spacing:-3px;margin-top:46px;font-variant-numeric:tabular-nums}
+.r-time span{font-size:30px;letter-spacing:0;margin-left:4px}
+.pulse{animation:pulse 1s ease-in-out infinite}
+.r-sub{text-align:center;font:600 22px var(--f);margin-top:14px}
+.r-sub small{display:block;font:500 15px var(--f);opacity:.8;margin-top:4px}
+.grid{display:grid;grid-template-columns:repeat(5,54px);gap:12px;justify-content:center;margin-top:40px}
+.grid .av{width:54px;height:54px;font-size:19px}
+.st-up{background:var(--lime);color:var(--navy)}
+.st-snoozed{background:var(--purple);color:#fff}
+.st-asleep{background:transparent;color:var(--tf);box-shadow:inset 0 0 0 2.5px currentColor;opacity:.75}
+.st-excused{background:rgba(255,255,255,.14);color:var(--tf);opacity:.45}
+.lime-team .st-up{background:var(--navy);color:var(--lime)}
+.ringwrap{position:relative;overflow:hidden}
+.ringwrap::before{content:"";position:absolute;width:520px;height:520px;left:50%;top:22%;transform:translateX(-50%);border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.55),rgba(255,255,255,0) 65%);pointer-events:none}
+.ringscr{position:relative}
+.av.me::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:2.5px solid var(--ta)}
+.legend{display:flex;gap:14px;justify-content:center;margin-top:18px;font:500 13px var(--f);opacity:.9;flex-wrap:wrap}
+.legend span{display:flex;align-items:center;gap:5px}
+.legend i{width:10px;height:10px;border-radius:50%;display:block}
+.namegrid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px 6px;margin-top:30px}
+.namegrid div{display:flex;flex-direction:column;align-items:center;gap:6px;font:500 13px var(--f);min-width:0}
+.namegrid .av{width:56px;height:56px;font-size:20px}
+.namegrid span:last-child{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.9}
+.r-act{margin-top:auto;padding-top:30px}
+.r-act .pill{background:var(--ta);color:var(--tc);font-size:24px;padding:21px}
+.r-act .link{color:var(--tf);opacity:.9}
+/* invite */
+.qrbox{background:var(--glass);border:1px solid var(--edge);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);box-shadow:0 8px 30px rgba(40,90,160,.08);border-radius:32px;padding:24px;display:flex;flex-direction:column;align-items:center;margin-top:18px}
+#qr svg{width:200px;height:200px}
+.code{font:600 44px var(--f);letter-spacing:10px;margin-top:14px;padding-left:10px}
+.toast{position:fixed;left:50%;bottom:calc(var(--safe-b) + 100px);transform:translateX(-50%);background:rgba(18,48,74,.88);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);color:#fff;font:500 15px var(--f);padding:12px 18px;border-radius:20px;z-index:60;animation:toast .3s;white-space:nowrap}
+/* motion */
+.enter>*{animation:rise .5s cubic-bezier(.2,.8,.2,1) both}
+.enter>*:nth-child(2){animation-delay:.04s}.enter>*:nth-child(3){animation-delay:.08s}.enter>*:nth-child(4){animation-delay:.12s}.enter>*:nth-child(5){animation-delay:.16s}.enter>*:nth-child(6){animation-delay:.2s}.enter>*:nth-child(7){animation-delay:.24s}.enter>*:nth-child(8){animation-delay:.28s}.enter>*:nth-child(n+9){animation-delay:.32s}
+.enter>.fab{animation:none}
+.pop{animation:pop .45s cubic-bezier(.3,1.6,.5,1)}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes toast{from{opacity:0;transform:translate(-50%,12px)}to{opacity:1;transform:translate(-50%,0)}}
+@keyframes up{from{transform:translateY(100%)}to{transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes pop{0%{transform:scale(.6);opacity:.4}60%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+@keyframes shake{0%,100%{transform:none}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.shake{animation:shake .3s}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="phone">
+    <div id="sbar"><span id="sclock"></span><span class="ic">
+      <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 2.3c2.3 0 4.4.9 6 2.4l1.2-1.3A10.4 10.4 0 0 0 8 .5C5.2.5 2.7 1.6.8 3.4L2 4.7a8.6 8.6 0 0 1 6-2.4z"/><path d="M8 5.9c1.3 0 2.5.5 3.4 1.3l1.2-1.3A6.6 6.6 0 0 0 8 4.1c-1.8 0-3.4.7-4.6 1.8l1.2 1.3A4.9 4.9 0 0 1 8 5.9z"/><path d="M10.2 8.6 8 11 5.8 8.6a3.2 3.2 0 0 1 4.4 0z"/></svg>
+      <svg width="27" height="13" viewBox="0 0 27 13" fill="none"><rect x=".5" y=".5" width="22" height="12" rx="3.5" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="16" height="9" rx="2" fill="currentColor"/><path d="M24.5 4.5v4c.8-.3 1.3-1.1 1.3-2s-.5-1.7-1.3-2z" fill="currentColor" opacity=".45"/></svg>
+    </span></div>
+    <i class="island"></i>
+    <div id="app"></div>
+    <button id="banner" type="button"></button>
+    <i class="homebar"></i>
+  </div>
+</div>
+<script src="https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>
+(() => {
+/* ================= Setup ================= */
+const SNOOZE_MS = 30000, MAX_SNOOZE = 2, RING_WINDOW = 10 * 60e3, ONLINE_MS = 35000;
+const FAKES = ['Maya', 'Jordan', 'Theo', 'Priya', 'Leo', 'Ava', 'Marcus', 'Nina', 'Sam', 'Kai'];
+const FAKE_EXCUSE = { i: 2, reason: 'Sick', note: 'Fever since last night' };   // Theo asks out of the next coach alarm
+const STORE = 'team-alarm-v2';
+const Q = new URLSearchParams(location.search);
+const ROOM = (Q.get('team') || 'ixd415-v2').replace(/[^a-z0-9-]/gi, '').slice(0, 40) || 'ixd415-v2';
+const BASE = 'team-alarm-v2/' + ROOM;
+const BROKERS = ['wss://broker.hivemq.com:8884/mqtt', 'wss://broker.emqx.io:8084/mqtt'];
+const JOIN = (Q.get('join') || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+// Team colors: [background, text, accent]
+// Team colors: [background, text, accent, solid]
+const TEAM_COLORS = [
+  ['linear-gradient(140deg,#f2484f 0%,#ff7f72 100%)', '#ffffff', '#ffffff', '#f5625f'],   // red
+  ['linear-gradient(140deg,#3f7cf0 0%,#5fb0ff 100%)', '#ffffff', '#ffffff', '#4b93f6'],   // blue
+  ['linear-gradient(140deg,#25b26a 0%,#6fd896 100%)', '#ffffff', '#ffffff', '#3cc27c'],   // green
+  ['linear-gradient(140deg,#ffd23f 0%,#ffe88a 100%)', '#3a2c00', '#3a2c00', '#ffdc5c'],   // yellow
+  ['linear-gradient(140deg,#16181f 0%,#3a3d4a 100%)', '#ffffff', '#ffffff', '#262833'],   // black
+  ['linear-gradient(140deg,#ffffff 0%,#edf2f8 100%)', '#12304a', '#12304a', '#dfe8f2'],   // white
+  ['linear-gradient(140deg,#7c4ff0 0%,#ad8bff 100%)', '#ffffff', '#ffffff', '#9169f6'],   // purple
+  ['linear-gradient(140deg,#ff7b2e 0%,#ffab5e 100%)', '#ffffff', '#ffffff', '#ff8f40'],   // orange
+  ['linear-gradient(140deg,#ff5fa2 0%,#ff9ccb 100%)', '#ffffff', '#ffffff', '#ff78b4'],   // pink
+  ['linear-gradient(140deg,#7d4f32 0%,#a87652 100%)', '#ffffff', '#ffffff', '#916142']    // brown
+];
+const TEAM_ICONS = [['soccer', 'Soccer'], ['basketball', 'Basketball'], ['football', 'Football'], ['baseball', 'Baseball'], ['volleyball', 'Volleyball'], ['tennis', 'Tennis'], ['swim', 'Swim'], ['run', 'Running'], ['lift', 'Lifting'], ['trophy', 'Competition'], ['music', 'Music'], ['book', 'Study'], ['work', 'Work'], ['hike', 'Outdoors'], ['star', 'Other']];
+const ICON_KEYS = TEAM_ICONS.map(x => x[0]);
+const tIcon = (t, size = 14, w = 2.4) => I(ICON_KEYS.includes(t && t.icon) ? t.icon : 'star', size, w);
+const COLOR_NAMES = ['Red', 'Blue', 'Green', 'Yellow', 'Black', 'White', 'Purple', 'Orange', 'Pink', 'Brown'];
+const AV_COLORS = ['#a6efc6', '#6fb7ff', '#5b8cff', '#133b55', '#c9b6ff', '#7c5cf0', '#ffb3c7', '#ff7a8a', '#ffc98f', '#ff9a52', '#ffe27a', '#3fc1a5', '#1f7a6b', '#b8e986', '#9b6b4a', '#2b2d3a'];
+const DAY1 = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const clean = (v, n) => String(v || '').replace(/\s+/g, ' ').trim().slice(0, n);
+const num = x => (typeof x === 'number' && isFinite(x) ? x : 0);
+const uid = () => Math.random().toString(36).slice(2, 10);
+const hash = s => { let h = 0; for (const c of String(s)) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; };
+const rand = seed => () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+const dkey = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+const fmt = (hh, mm) => ({ hm: (hh % 12 || 12) + ':' + String(mm).padStart(2, '0'), ap: hh >= 12 ? 'PM' : 'AM' });
+const tcol = c => TEAM_COLORS[c] || TEAM_COLORS[0];
+const tvars = c => { const t = tcol(c); return `--tb:${t[0]};--tf:${t[1]};--ta:${t[2]};--tbs:${t[3]};--tc:${t[1] === '#ffffff' ? '#12304a' : '#ffffff'};--chip:${t[1] === '#ffffff' ? 'rgba(255,255,255,.22)' : 'rgba(18,48,74,.07)'};--chipb:${t[1] === '#ffffff' ? 'rgba(255,255,255,.45)' : 'rgba(18,48,74,.12)'};--ring:${t[3]}`; };
+const shortCoach = n => n.replace(/^coach\s+/i, '');
+
+const I = (name, s = 22, w = 2.4) => {
+  const P = {
+    plus: '<path d="M12 5v14M5 12h14"/>', check: '<path d="M5 12.5l4.5 4.5L19 7"/>', x: '<path d="M6 6l12 12M18 6L6 18"/>',
+    back: '<path d="M15 5l-7 7 7 7"/>', right: '<path d="M9 6l6 6-6 6"/>', down: '<path d="M6 9l6 6 6-6"/>',
+    repeat: '<path d="M17 2l4 4-4 4"/><path d="M3 11V9a3 3 0 0 1 3-3h15"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a3 3 0 0 1-3 3H3"/>',
+    bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+    users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+    share: '<path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v13"/>',
+    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    alarm: '<circle cx="12" cy="13" r="7"/><path d="M12 10v3l2 1.5M5 4L3 6M19 4l2 2"/>',
+    calx: '<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4M10 14l4 4M14 14l-4 4"/>',
+    inbox: '<path d="M3 13l3-8h12l3 8v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M3 13h5l1 3h6l1-3h5"/>',
+    pulse: '<path d="M3 12h4l3-7 4 14 3-7h4"/>',
+    trophy: '<path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 21h8M10 17h4"/>',
+    sound: '<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/>',
+    vibe: '<rect x="8" y="3" width="8" height="18" rx="2"/><path d="M4 8v8M20 8v8"/>',
+    hand: '<path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V11M11 10V4.5a1.5 1.5 0 0 1 3 0V11M14 10.5V6a1.5 1.5 0 0 1 3 0v8a7 7 0 0 1-7 7h-.5a6 6 0 0 1-4.6-2.2L3 15.5a1.6 1.6 0 0 1 2.4-2.1L8 16"/>',
+    soccer: '<circle cx="12" cy="12" r="9"/><path d="M12 8l3.5 2.5-1.3 4h-4.4l-1.3-4z"/><path d="M12 3v5M20.5 9.5l-5 1M17.5 19.5l-3.3-5M6.5 19.5l3.3-5M3.5 9.5l5 1"/>',
+    basketball: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3v18M5.6 5.6c3.2 3.2 3.2 9.6 0 12.8M18.4 5.6c-3.2 3.2-3.2 9.6 0 12.8"/>',
+    football: '<path d="M4.5 19.5c-1.5-5 .5-10.5 4-13.5s9-3.5 11-2c1.5 5-.5 10.5-4 13.5s-9 3.5-11 2z"/><path d="M9 15l6-6M10 11.5l2.5 2.5M11.8 9.8l2.4 2.4"/>',
+    baseball: '<circle cx="12" cy="12" r="9"/><path d="M6.5 5c1.8 2 2.6 4.5 2.6 7s-.8 5-2.6 7M17.5 5c-1.8 2-2.6 4.5-2.6 7s.8 5 2.6 7"/>',
+    volleyball: '<circle cx="12" cy="12" r="9"/><path d="M12 3c-1 4 0 7 3 9M12 12c-3.5 1-6.5 3.5-8 6.2M12 12c4 .5 7 2 8.4 4M15 12c3-1 5-3.5 5.7-6"/>',
+    tennis: '<circle cx="12" cy="12" r="9"/><path d="M5.6 5.6a9 9 0 0 1 0 12.8M18.4 5.6a9 9 0 0 0 0 12.8"/>',
+    swim: '<path d="M2 17c2 0 2-1.5 4-1.5s2 1.5 4 1.5 2-1.5 4-1.5 2 1.5 4 1.5 2-1.5 4-1.5"/><circle cx="17" cy="6.5" r="2"/><path d="M5 13l5-4.5 3 3 3.5-1.5"/>',
+    run: '<circle cx="15.5" cy="4.5" r="2"/><path d="M8.5 21l3-5 3 2.2V22M5.5 12.5l3-3.5h4.5l3 4 3 1M11.5 9l-1.8 5.5"/>',
+    lift: '<path d="M6.5 7v10M17.5 7v10M3.5 9.5v5M20.5 9.5v5M6.5 12h11"/>',
+    music: '<path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/>',
+    book: '<path d="M4 19.5V5a2 2 0 0 1 2-2h14v15H6a2 2 0 0 0-2 2 2 2 0 0 0 2 2h14"/><path d="M8.5 7.5h7"/>',
+    work: '<rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8.5 7V5a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v2M3 13h18"/>',
+    hike: '<path d="M2.5 20l6.5-11 4 6.5 2.5-3.5 6 8z"/><circle cx="17" cy="6" r="2"/>',
+    star: '<path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3l-5.5 2.9 1-6.2L3 9.6l6.2-.9z"/>',
+    qr: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M21 14v.01M14 21h7v-4"/>'
+  };
+  return `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round">${P[name] || ''}</svg>`;
+};
+
+/* ================= State (this tab only; every visit starts fresh) ================= */
+let saved = {};
+try { saved = JSON.parse(sessionStorage.getItem(STORE)) || {}; } catch (e) {}
+const S = Object.assign({
+  key: 'p' + uid(), role: null, nick: '',
+  joined: [], declined: [],          // team ids I'm on / said no to
+  ownTeams: [],                      // coach: { id, name, color, code, invited: [{ key, name }] }
+  alarms: [],                        // alarms I made: { id, team, name, hh, mm, days, date, coachRings, by, creator, v }
+  skips: {},                         // coach: alarmId -> [dayKey]
+  excuses: {},                       // player: occ -> { reason, note, at }
+  decisions: {},                     // coach: playerKey|occ -> 'ok' | 'no'
+  ring: {},                          // occ -> { status, snoozes, snoozeUntil, upAt }
+  closed: [],                        // occs I dismissed after waking
+  cache: { teams: {}, alarms: {} },  // last-seen teams/alarms from others (so they survive a dropped connection)
+  pendingJoin: '',
+  sound: 'Pulse', vibrate: true, contacts: '', phone: '', verified: false, since: Date.now(),
+  log: []                            // things that happened on my side, for team activity: { t: teamId, at, text }
+}, saved);
+function logIt(teamId, text) { S.log.unshift({ t: teamId, at: Date.now(), text }); S.log = S.log.slice(0, 60); }
+const buzz = p => { if (S.vibrate && navigator.vibrate) navigator.vibrate(p); };
+if (JOIN && !S.joined.length) { S.pendingJoin = JOIN; if (!S.role) S.role = 'player'; }
+function save() { try { sessionStorage.setItem(STORE, JSON.stringify(S)); } catch (e) {} }
+
+const ui = { view: 'home', alarmId: null, teamId: null, sheet: null, draft: null, day: 0, toast: '', toastT: 0, menu: false,
+  screen: '', lastHtml: '', prev: {}, seenInv: new Set(), confirm: null, excuseFor: null, newTeam: null, joinErr: '', occ: null, jb: {} };
+
+/* ================= Sound, buzz, screen ================= */
+let audio = null, wakeLock = null;
+function unlockAudio() {
+  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
+  if (!audio) { try { audio = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+  if (audio && audio.state === 'suspended') audio.resume();
+  if (!wakeLock && navigator.wakeLock && S.nick) navigator.wakeLock.request('screen').then(l => { wakeLock = l; l.addEventListener('release', () => { wakeLock = null; }); }).catch(() => {});
+}
+// Alarm sounds people can pick in their profile: [wave, notes]
+const SOUNDS = { Pulse: ['square', [[0, 880], [0.14, 1175], [0.28, 880], [0.42, 1175]]], Chime: ['sine', [[0, 1047], [0.18, 1319], [0.36, 1568], [0.54, 2093]]], Siren: ['sawtooth', [[0, 660], [0.12, 990], [0.24, 660], [0.36, 990], [0.48, 660], [0.6, 990]]] };
+function tone(loud, pick) {
+  if (!audio || audio.state !== 'running') return;
+  const t = audio.currentTime, snd = SOUNDS[pick || S.sound] || SOUNDS.Pulse;
+  const seq = loud ? snd[1] : [[0, 880], [0.16, 1175]];
+  seq.forEach(([d, f]) => {
+    const o = audio.createOscillator(), g = audio.createGain();
+    o.type = loud ? snd[0] : 'sine'; o.frequency.value = f;
+    g.gain.setValueAtTime(0.0001, t + d);
+    g.gain.exponentialRampToValueAtTime(loud ? 0.22 : 0.12, t + d + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + d + 0.12);
+    o.connect(g); g.connect(audio.destination); o.start(t + d); o.stop(t + d + 0.13);
+  });
+}
+
+/* ================= Sync ================= */
+const peers = new Map();
+let client = null, live = false, brokerIx = 0;
+function payload() {
+  return { key: S.key, nick: S.nick, role: S.role, joined: S.joined, own: S.ownTeams, alarms: S.alarms, skips: S.skips,
+    excuses: S.excuses, decisions: S.decisions, ring: S.ring, ts: Date.now() };
+}
+function publish() {
+  save();
+  if (live && S.nick && S.verified) try { client.publish(BASE + '/p/' + S.key, JSON.stringify(payload()), { retain: true, qos: 1 }); } catch (e) {}
+}
+function connect() {
+  if (!window.mqtt) return;
+  client = mqtt.connect(BROKERS[brokerIx], { connectTimeout: 8000, reconnectPeriod: 2500, clean: true, clientId: 'ta2-' + uid() });
+  const fail = setTimeout(() => { if (!live) { client.end(true); brokerIx = (brokerIx + 1) % BROKERS.length; connect(); } }, 9000);
+  client.on('connect', () => { clearTimeout(fail); live = true; client.subscribe(BASE + '/p/+', { qos: 1 }, () => publish()); });
+  client.on('close', () => { live = false; });
+  client.on('message', (topic, buf) => {
+    const key = topic.slice(topic.lastIndexOf('/') + 1);
+    if (key === S.key) return;
+    if (!buf || !buf.length) { peers.delete(key); return; }
+    try { const p = JSON.parse(buf.toString()); if (p && typeof p === 'object') { p.key = key; peers.set(key, p); } } catch (e) {}
+  });
+}
+connect();
+setInterval(publish, 10000);
+window.addEventListener('pagehide', e => { if (!e.persisted && live && client) try { client.publish(BASE + '/p/' + S.key, '', { retain: true, qos: 0 }); } catch (x) {} });
+const livePeers = () => { const now = Date.now(), out = []; for (const p of peers.values()) if (now - num(p.ts) < ONLINE_MS && clean(p.nick, 24)) out.push(p); return out; };
+const peer = k => { const p = peers.get(k); return p && Date.now() - num(p.ts) < ONLINE_MS ? p : null; };
+
+/* ================= Analytics (anonymous counts only, no names) ================= */
+// Counts live at abacus.jasoncameron.dev under the namespace below. The class repo's analytics/ folder reads them.
+const STATS_NS = 'd1n0s4urs-team-alarm';
+const TRACK = /github\.io$/.test(location.hostname) && !Q.get('team');
+const ls = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} } };
+function hit(key) { if (TRACK) fetch('https://abacus.jasoncameron.dev/hit/' + STATS_NS + '/' + key, { mode: 'cors', keepalive: true }).catch(() => {}); }
+function hitOnce(key, scope = key) { if (ls.get('ta-stat-' + scope)) return; ls.set('ta-stat-' + scope, '1'); hit(key); }
+hit('visits');
+hitOnce('users');                                  // unique devices, ever
+hitOnce('day-' + dkey(new Date()));                // unique devices per day
+const ringTracked = new Set();
+
+/* ================= Teams ================= */
+function teamsAll() {
+  const m = new Map(), lp = livePeers(), online = new Set(lp.map(p => p.key));
+  const add = (t, coachKey, coachName) => {
+    if (!t || typeof t.id !== 'string' || m.has(t.id)) return;
+    m.set(t.id, { id: t.id, name: clean(t.name, 30) || 'Team', color: Math.max(0, Math.min(TEAM_COLORS.length - 1, num(t.color))), code: clean(t.code, 6),
+      invited: Array.isArray(t.invited) ? t.invited.filter(x => x && typeof x.key === 'string').map(x => ({ key: x.key, name: clean(x.name, 24) || 'Player', at: num(x.at) })) : [],
+      icon: ICON_KEYS.includes(t.icon) ? t.icon : 'star', at: num(t.at), coachKey, coachName: clean(coachName, 24) || 'Coach' });
+  };
+  S.ownTeams.forEach(t => add(t, S.key, S.nick));
+  for (const p of lp) (Array.isArray(p.own) ? p.own : []).forEach(t => { add(t, p.key, p.nick); if (t && S.joined.includes(t.id)) S.cache.teams[t.id] = Object.assign({}, t, { coachKey: p.key, coachName: p.nick }); });
+  // Teams I'm on whose coach dropped offline: keep the last copy.
+  for (const id of S.joined) { const c = S.cache.teams[id]; if (c && !m.has(id) && !online.has(c.coachKey)) add(c, c.coachKey, c.coachName); }
+  return m;
+}
+const team = id => teamsAll().get(id) || null;
+const myTeams = () => [...teamsAll().values()].filter(t => t.coachKey === S.key || S.joined.includes(t.id));
+function members(t) {
+  const list = [], seen = new Set();
+  const push = o => { if (!o.key || seen.has(o.key)) return; seen.add(o.key); list.push(o); };
+  push({ key: t.coachKey, name: t.coachName, role: 'coach', me: t.coachKey === S.key, state: 'in' });
+  const joinedKeys = new Set();
+  if (S.joined.includes(t.id)) joinedKeys.add(S.key);
+  for (const p of livePeers()) if (Array.isArray(p.joined) && p.joined.includes(t.id)) joinedKeys.add(p.key);
+  for (const m of t.invited) {
+    const fake = m.key[0] === 'f';
+    push({ key: m.key, name: m.key === S.key ? S.nick : m.name, role: 'player', fake, me: m.key === S.key, state: (fake ? Date.now() >= fakeJoinAt(t, m) : joinedKeys.has(m.key)) ? 'in' : 'invited' });
+  }
+  for (const k of joinedKeys) if (!seen.has(k)) push({ key: k, name: k === S.key ? S.nick : clean((peer(k) || {}).nick, 24) || 'Player', role: 'player', me: k === S.key, state: 'in' });
+  return list;
+}
+// Sample teammates accept their invite a few seconds to a couple of minutes after the coach sends it.
+function fakeJoinAt(t, m) { if (!m.at) return 0; const r = rand(hash(t.id + m.key))(); return m.at + (r < 0.12 ? 70 + r * 400 : 4 + r * 26) * 1000; }
+const teamInvites = () => [...teamsAll().values()].filter(t => t.coachKey !== S.key && !S.joined.includes(t.id) && !S.declined.includes(t.id) && t.invited.some(m => m.key === S.key));
+function joinTeam(id) { if (!S.joined.includes(id)) { S.joined.push(id); logIt(id, 'You joined the team'); } S.declined = S.declined.filter(x => x !== id); }
+const newCode = () => { const A = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; let c = ''; for (let i = 0; i < 4; i++) c += A[Math.floor(Math.random() * A.length)]; return c; };
+
+/* ================= Alarms ================= */
+function alarmsAll() {
+  const mine = new Set(myTeams().map(t => t.id)), m = new Map(), lp = livePeers(), online = new Set(lp.map(p => p.key));
+  const add = a => { if (!a || typeof a.id !== 'string' || !mine.has(a.team)) return; const o = m.get(a.id); if (!o || num(a.v) > num(o.v)) m.set(a.id, a); };
+  S.alarms.forEach(add);
+  for (const p of lp) (Array.isArray(p.alarms) ? p.alarms : []).forEach(a => { if (a && mine.has(a.team)) { S.cache.alarms[a.id] = a; add(a); } });
+  // Alarms whose maker went offline stay; if the maker is online and no longer lists one, it was deleted.
+  for (const a of Object.values(S.cache.alarms)) { if (!a) continue; if (online.has(a.creator)) { if (!m.has(a.id) && a.creator !== S.key) delete S.cache.alarms[a.id]; } else add(a); }
+  return [...m.values()].map(a => Object.assign({}, a, { hh: num(a.hh) % 24, mm: num(a.mm) % 60, days: Array.isArray(a.days) ? a.days.filter(d => d >= 0 && d < 7) : [], name: clean(a.name, 40) || 'Alarm' }));
+}
+const alarmById = id => alarmsAll().find(a => a.id === id) || null;
+function skipsOf(a) {
+  const t = team(a.team); if (!t) return [];
+  const src = t.coachKey === S.key ? S.skips : ((peer(t.coachKey) || {}).skips || {});
+  return Array.isArray(src[a.id]) ? src[a.id] : [];
+}
+function occs(a, nDays = 8) {
+  const out = [], base = new Date(); base.setHours(0, 0, 0, 0);
+  const sk = skipsOf(a);
+  for (let i = -1; i < nDays; i++) {
+    const d = new Date(base); d.setDate(d.getDate() + i);
+    const dk = dkey(d);
+    if (!(a.days.length ? a.days.includes(d.getDay()) : a.date === dk)) continue;
+    const at = new Date(d); at.setHours(a.hh, a.mm, 0, 0);
+    out.push({ a, dk, at: at.getTime(), occ: a.id + '@' + dk, skipped: sk.includes(dk), date: d });
+  }
+  return out;
+}
+const nextOcc = a => occs(a).find(o => o.at + RING_WINDOW > Date.now()) || null;
+const repeatText = days => !days.length ? 'Once' : days.length === 7 ? 'Every day' : days.join() === '1,2,3,4,5' ? 'Weekdays' : days.join() === '0,6' ? 'Weekends' : days.map(d => ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d]).join(', ');
+const dayLabel = d => { const t = new Date(); t.setHours(0, 0, 0, 0); const n = Math.round((new Date(d).setHours(0, 0, 0, 0) - t) / 864e5);
+  return n === 0 ? 'Today' : n === 1 ? 'Tomorrow' : new Date(d).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }); };
+const dayWord = d => { const l = dayLabel(d); return l === 'Today' || l === 'Tomorrow' ? l.toLowerCase() : 'on ' + new Date(d).toLocaleDateString('en-US', { weekday: 'long' }); };
+function until(at) {
+  const s = Math.max(0, Math.ceil((at - Date.now()) / 1000));
+  if (s >= 86400) return Math.floor(s / 86400) + 'd ' + Math.floor(s / 3600) % 24 + 'h';
+  if (s >= 3600) return Math.floor(s / 3600) + 'h ' + Math.floor(s / 60) % 60 + 'm';
+  if (s >= 60) return Math.floor(s / 60) + 'm ' + String(s % 60).padStart(2, '0') + 's';
+  return s + 's';
+}
+// Excuse requests: the player asks, the team's coach decides. Others only ever see "Excused".
+function excuseOf(pKey, occ, t, a) {
+  let req = null;
+  if (pKey === S.key) req = S.excuses[occ];
+  else if (pKey[0] === 'f') { if (+pKey.slice(1) === FAKE_EXCUSE.i && a && a.creator === t.coachKey && firstCoachAlarm(t) === a.id && Date.now() - num(a.made || a.v) > 14000) { const n = nextOcc(a); if (n && n.occ === occ) req = FAKE_EXCUSE; } }
+  else req = ((peer(pKey) || {}).excuses || {})[occ];
+  if (!req) return null;
+  const dec = t.coachKey === S.key ? S.decisions[pKey + '|' + occ] : (((peer(t.coachKey) || {}).decisions) || {})[pKey + '|' + occ];
+  return { reason: clean(req.reason, 20), note: clean(req.note, 80), status: dec === 'ok' || dec === 'no' ? dec : 'pending' };
+}
+function firstCoachAlarm(t) { let best = null; for (const x of alarmsAll()) if (x.team === t.id && x.creator === t.coachKey && (!best || num(x.v) < num(best.v))) best = x; return best && best.id; }
+function fakeState(occ, i, at) {
+  const r = rand(hash(occ) * 31 + i * 7919);
+  const upAt = 6 + r() * 40, snoozer = r() < 0.3, snoozeAt = 2 + r() * 3;
+  const t = (Date.now() - at) / 1000;
+  if (t >= upAt) return { status: 'up', upAt: at + upAt * 1000, snoozes: snoozer ? 1 : 0 };
+  if (snoozer && t >= snoozeAt) return { status: 'snoozed', snoozes: 1, upAt: 0 };
+  return { status: 'asleep', snoozes: 0, upAt: 0 };
+}
+// Who's in an occurrence, with live status once it's ringing.
+function crew(o) {
+  const t = team(o.a.team); if (!t) return [];
+  const ringingNow = Date.now() >= o.at;
+  return members(t).filter(m => m.state === 'in' && (m.role !== 'coach' || o.a.coachRings)).map(m => {
+    const ex = excuseOf(m.key, o.occ, t, o.a);
+    if (ex && ex.status === 'ok') return Object.assign({}, m, { status: 'excused', req: ex });
+    let status = 'asleep', snoozes = 0, upAt = 0;
+    if (ringingNow) {
+      if (m.fake) ({ status, snoozes, upAt } = fakeState(o.occ, +m.key.slice(1), o.at));
+      else {
+        const r = m.me ? S.ring[o.occ] : (((peer(m.key) || {}).ring) || {})[o.occ];
+        if (r) { status = r.status === 'up' || r.status === 'snoozed' ? r.status : 'asleep'; if (status === 'snoozed' && Date.now() >= num(r.snoozeUntil)) status = 'asleep'; snoozes = num(r.snoozes); upAt = num(r.upAt); }
+      }
+    }
+    return Object.assign({}, m, { status, snoozes, upAt, req: ex });
+  });
+}
+function myStatus(occ) { const r = S.ring[occ]; if (!r) return 'asleep'; if (r.status === 'snoozed' && Date.now() >= r.snoozeUntil) return 'asleep'; return r.status; }
+// The occurrence ringing for me right now (if any).
+function activeOcc() {
+  const now = Date.now(); let best = null;
+  for (const a of alarmsAll()) for (const o of occs(a, 1)) {
+    if (o.skipped || now < o.at || now >= o.at + RING_WINDOW || S.closed.includes(o.occ)) continue;
+    const meIn = crew(o).find(m => m.me);
+    if (!meIn || meIn.status === 'excused') continue;
+    if (!best || o.at < best.at) best = o;
+  }
+  return best;
+}
+// For a coach: a team alarm ringing right now (even if the coach isn't ringing).
+function liveTeamOcc(teamId) {
+  const now = Date.now();
+  for (const a of alarmsAll()) if (a.team === teamId) for (const o of occs(a, 1)) if (!o.skipped && now >= o.at && now < o.at + RING_WINDOW) return o;
+  return null;
+}
+const allUp = c => c.length > 0 && c.filter(m => m.status !== 'excused').every(m => m.status === 'up');
+
+/* ================= Little renderers ================= */
+const pcol = name => AV_COLORS[hash(name) % AV_COLORS.length];
+const ink = bg => { const n = parseInt(bg.slice(1), 16), l = (0.299 * (n >> 16) + 0.587 * (n >> 8 & 255) + 0.114 * (n & 255)) / 255; return l < .62 ? '#fff' : '#12304a'; };
+const initial = n => esc((String(n || '?').trim()[0] || '?').toUpperCase());
+function av(m, size, avoid) { let bg = pcol(m.name); if (avoid && bg.toLowerCase() === avoid.toLowerCase()) bg = avoid.toLowerCase() === '#133b55' ? '#ffffff' : '#133b55'; return `<span class="av" style="${size ? `width:${size}px;height:${size}px;font-size:${Math.round(size * .4)}px;` : ''}background:${bg};color:${ink(bg)}">${initial(m.name)}</span>`; }
+const backBtn = (act = 'home') => `<button class="back" data-act="${act}" aria-label="Back">${I('back', 26)}</button>`;
+function faces(list, avoid, max = 3) { const sh = list.slice(0, max), more = list.length - sh.length; return `<div class="faces">${sh.map(m => av(m, 0, avoid)).join('')}${more > 0 ? `<span>+${more}</span>` : ''}</div>`; }
+const timeHtml = (hh, mm) => { const t = fmt(hh, mm); return `${t.hm}<span>${t.ap}</span>`; };
+function emptyRow(text, act, label) { return `${text ? `<div class="empty">${text}</div>` : ''}<button class="addrow" data-act="${act}"><span class="addic">${I('plus', 20)}</span>${label}</button>`; }
+function weekStrip(alarms) {
+  const base = new Date(); base.setHours(0, 0, 0, 0);
+  let h = '<div class="week">';
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(base); d.setDate(d.getDate() + i); const dk = dkey(d);
+    const has = alarms.some(a => occs(a, 7).some(o => o.dk === dk && !o.skipped));
+    h += `<button class="day ${has ? 'has' : ''} ${ui.day === i ? 'on' : ''}" data-act="day" data-i="${i}">${d.getDate()}<small>${d.toLocaleDateString('en-US', { weekday: 'short' })}</small></button>`;
+  }
+  return h + '</div>';
+}
+function scheduleFor(alarms, dayIx) {
+  const base = new Date(); base.setHours(0, 0, 0, 0); base.setDate(base.getDate() + dayIx);
+  const dk = dkey(base), list = [];
+  for (const a of alarms) for (const o of occs(a, 8)) if (o.dk === dk) list.push(o);
+  return list.sort((x, y) => x.at - y.at);
+}
+const dayTitle = () => { if (ui.day === 0) return 'Today'; const d = new Date(); d.setDate(d.getDate() + ui.day); return dayLabel(d); };
+function schedCard(o) {
+  const t = team(o.a.team); if (!t) return '';
+  let tag = '';
+  if (o.skipped) tag = 'Canceled by coach';
+  else if (S.role === 'player') { const ex = excuseOf(S.key, o.occ, t, o.a); if (ex) tag = ex.status === 'ok' ? 'Excused' : ex.status === 'no' ? 'Excuse denied' : 'Excuse pending'; }
+  else { const n = crew(o).filter(m => m.req && m.req.status === 'pending').length; if (n) tag = n + ' request' + (n > 1 ? 's' : ''); }
+  if (!tag && Date.now() > o.at + RING_WINDOW) tag = 'Done';
+  return `<button class="sc ${o.skipped ? 'off' : ''}" style="${tvars(t.color)}" data-act="alarm" data-id="${esc(o.a.id)}"><div style="min-width:0"><b>${esc(o.a.name)}</b><small>${esc(t.name)} · ${repeatText(o.a.days)}</small>${tag ? `<span class="tag">${tag}</span>` : ''}</div><span class="tm">${timeHtml(o.a.hh, o.a.mm)}</span></button>`;
+}
+function bigCard(o, label) {
+  const t = team(o.a.team); const c = crew(o).filter(m => m.status !== 'excused');
+  return `<button class="big" style="${tvars(t.color)}" data-act="alarm" data-id="${esc(o.a.id)}">
+    <div class="row"><span class="chip on-team">${tIcon(t, 14)}${esc(t.name)}</span><span class="chip" style="background:var(--ta);color:var(--tc)">${I('clock', 14, 2.4)}${label}</span></div>
+    <div class="t">${timeHtml(o.a.hh, o.a.mm)}</div>
+    <div class="row" style="margin-top:8px;align-items:flex-end"><div style="min-width:0"><div class="nm">${esc(o.a.name)}</div><div class="rp meta">${I('repeat', 13, 2.4)}${dayLabel(o.date)} · ${repeatText(o.a.days)}</div></div>${faces(c, tcol(t.color)[3])}</div></button>`;
+}
+function nextUp(alarms, skipExcused) {
+  let best = null;
+  for (const a of alarms) {
+    const o = nextOcc(a); if (!o || o.skipped) continue;
+    if (skipExcused) { const t = team(a.team), ex = t && excuseOf(S.key, o.occ, t, a); if (ex && ex.status === 'ok') continue; }
+    if (!best || o.at < best.at) best = o;
+  }
+  return best;
+}
+
+const ago = at => { const s = Math.max(0, (Date.now() - at) / 1000); return s < 45 ? 'now' : s < 3600 ? Math.round(s / 60) + 'm ago' : s < 86400 ? Math.round(s / 3600) + 'h ago' : new Date(at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); };
+const clock = ms => new Date(ms).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+const rang = (a, o) => !o.skipped && o.at + RING_WINDOW <= Date.now() && o.at >= num(a.made || a.v) - 60e3;
+const lastOcc = a => occs(a).filter(o => rang(a, o)).pop() || null;
+const late = (upAt, at) => { const s = Math.max(0, Math.round((upAt - at) / 1000)); return s < 60 ? s + 's' : Math.floor(s / 60) + 'm ' + String(s % 60).padStart(2, '0') + 's'; };
+// Who got up, in order, the last time an alarm rang.
+function results(o) {
+  const c = crew(o), up = c.filter(m => m.status === 'up').sort((x, y) => x.upAt - y.upAt), rest = c.filter(m => m.status !== 'up' && m.status !== 'excused'), ex = c.filter(m => m.status === 'excused');
+  const avg = up.length ? up.reduce((n, m) => n + (m.upAt - o.at), 0) / up.length : 0;
+  return sec('trophy', 'Last time · ' + dayLabel(o.date)) + `
+    <div class="kpis"><div><b>${up.length}/${up.length + rest.length}</b><small>Got up</small></div><div><b>${up.length ? late(avg + o.at, o.at) : '–'}</b><small>Avg to get up</small></div><div><b>${c.reduce((n, m) => n + (m.snoozes || 0), 0)}</b><small>Snoozes</small></div></div>
+    <div class="card" style="padding:6px 16px;margin-top:10px">${up.map((m, i) => `<div class="lrow"><span class="rank">${i + 1}</span>${av(m, 36)}<div class="grow"><b>${esc(m.name)}${m.me ? ' (you)' : ''}</b><small>${m.snoozes ? 'Snoozed ' + m.snoozes + 'x · ' : ''}up in ${late(m.upAt, o.at)}</small></div><span class="when" style="margin:0">${clock(m.upAt)}</span></div>`).join('')}
+      ${rest.map(m => `<div class="lrow"><span class="rank">–</span>${av(m, 36)}<div class="grow"><b>${esc(m.name)}${m.me ? ' (you)' : ''}</b><small>Didn't tap I'm up</small></div></div>`).join('')}
+      ${ex.map(m => `<div class="lrow" style="opacity:.55"><span class="rank">–</span>${av(m, 36)}<div class="grow"><b>${esc(m.name)}</b><small>Excused</small></div></div>`).join('')}</div>`;
+}
+// Recent things that happened on a team.
+function teamFeed(t) {
+  const it = [], now = Date.now(), coach = { name: t.coachName };
+  if (t.at) it.push({ at: t.at, who: coach, b: t.coachKey === S.key ? 'You created the team' : t.coachName + ' created the team' });
+  for (const m of t.invited) if (m.key[0] === 'f' && m.at) { const j = fakeJoinAt(t, m); if (j <= now) it.push({ at: j, who: m, b: m.name + ' joined' }); }
+  for (const a of alarmsAll()) if (a.team === t.id) {
+    const f = fmt(a.hh, a.mm);
+    it.push({ at: num(a.made || a.v), who: { name: a.by || 'Coach' }, b: (a.creator === S.key ? 'You' : a.by || 'Coach') + ' set ' + a.name, s: f.hm + ' ' + f.ap + ' · ' + repeatText(a.days) });
+    for (const o of occs(a)) if (rang(a, o)) { const c = crew(o).filter(m => m.status !== 'excused'), u = c.filter(m => m.status === 'up').length; it.push({ at: o.at + RING_WINDOW, icon: true, b: a.name + ' rang', s: u + ' of ' + c.length + ' got up' }); }
+  }
+  for (const l of S.log) if (l.t === t.id) it.push({ at: l.at, who: { name: S.nick }, b: l.text });
+  it.sort((x, y) => y.at - x.at);
+  return it.slice(0, 8).map(x => `<div class="lrow">${x.icon ? `<span class="av" style="width:36px;height:36px;background:var(--bg);color:var(--navy)">${I('bell', 18)}</span>` : av(x.who, 36)}<div class="grow"><b style="font-size:15px">${esc(x.b)}</b>${x.s ? `<small>${esc(x.s)}</small>` : ''}</div><span class="when">${ago(x.at)}</span></div>`).join('');
+}
+
+const HERO = `<svg viewBox="0 0 260 250" width="260" height="250" aria-hidden="true">
+  <defs>
+    <radialGradient id="hg" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ffffff" stop-opacity=".85"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></radialGradient>
+    <linearGradient id="hb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#12304a"/><stop offset="1" stop-color="#1f5f7a"/></linearGradient>
+    <linearGradient id="hf" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".9"/><stop offset="1" stop-color="#e3f1fb" stop-opacity=".7"/></linearGradient>
+    <linearGradient id="hr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5b8cff"/><stop offset="1" stop-color="#5fd3c5"/></linearGradient>
+  </defs>
+  <circle cx="130" cy="122" r="120" fill="url(#hg)"/>
+  <g class="bells">
+    <path d="M62 66a30 30 0 0 1 42-30" fill="none" stroke="url(#hb)" stroke-width="14" stroke-linecap="round"/>
+    <path d="M198 66a30 30 0 0 0-42-30" fill="none" stroke="url(#hb)" stroke-width="14" stroke-linecap="round"/>
+  </g>
+  <path d="M84 190l-14 18M176 190l14 18" stroke="url(#hb)" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="130" cy="124" r="78" fill="url(#hr)"/>
+  <circle cx="130" cy="124" r="66" fill="url(#hf)" stroke="#ffffff" stroke-width="2"/>
+  <g stroke="#12304a" stroke-linecap="round" opacity=".35" stroke-width="3">
+    <path d="M130 66v8M130 174v8M72 124h8M180 124h8"/>
+  </g>
+  <path class="hand-m" d="M130 124V82" stroke="#12304a" stroke-width="5" stroke-linecap="round"/>
+  <path d="M130 124l24 14" stroke="#12304a" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="130" cy="124" r="7" fill="#a6efc6" stroke="#12304a" stroke-width="3"/>
+  <g transform="translate(150 168)">
+    <circle cx="0" cy="22" r="22" fill="#5b8cff" stroke="#fff" stroke-width="4"/><circle cx="0" cy="16" r="7" fill="#fff"/><path d="M-11 33a11 9 0 0 1 22 0" fill="#fff"/>
+    <circle cx="32" cy="22" r="22" fill="#a6efc6" stroke="#fff" stroke-width="4"/><circle cx="32" cy="16" r="7" fill="#12304a"/><path d="M21 33a11 9 0 0 1 22 0" fill="#12304a"/>
+    <circle cx="64" cy="22" r="22" fill="#6fb7ff" stroke="#fff" stroke-width="4"/><circle cx="64" cy="16" r="7" fill="#fff"/><path d="M53 33a11 9 0 0 1 22 0" fill="#fff"/>
+  </g>
+</svg>`;
+
+const sec = (icon, text) => `<div class="sec"><span class="si">${I(icon, 16, 2.2)}${text}</span></div>`;
+/* ================= Views ================= */
+const views = {
+  role: () => `<div class="scr onb">
+    <div class="grow" style="min-height:20px"></div>
+    <div class="hero-art"><div class="wordmark" aria-label="Clique Clock">Clique<br>Clock</div>${HERO}</div>
+    <div class="grow" style="min-height:20px"></div>
+    <button class="role" style="background:linear-gradient(140deg,#12304a,#1f5f7a);color:#fff" data-act="role" data-v="player"><div><b>Join a team</b><small>Use a code or an invite from your coach</small></div><span class="arr">${I('right', 24)}</span></button>
+    <button class="role" style="background:linear-gradient(140deg,#5b8cff,#5fd3c5);color:#fff" data-act="role" data-v="coach"><div><b>Create a team</b><small>Set alarms and see who's up</small></div><span class="arr">${I('right', 24)}</span></button>
+  </div>`,
+
+  name: () => `<div class="scr onb">
+    <div>${backBtn('unrole')}</div>
+    <div class="h1">${S.role === 'coach' ? 'What does your team call you?' : "What's your first name?"}</div>
+    <div class="sub" style="margin-top:10px">${S.role === 'coach' ? 'Players see this on invites and alarms.' : 'Your teammates see this.'}</div>
+    <form id="nameForm" autocomplete="off" style="margin-top:26px">
+      <div class="field"><input id="nameIn" maxlength="24" placeholder="${S.role === 'coach' ? 'Coach Rivera' : 'First name'}" autocapitalize="words" enterkeyhint="go"></div>
+      <button class="pill p-navy" id="nameGo" type="submit" style="margin-top:16px" disabled>Continue</button>
+    </form>
+  </div>`,
+
+  // Home: what's next, then your teams (tap one for its alarms, people and activity), then the two things you can make.
+  phone: () => `<div class="scr onb">
+    <div>${backBtn('unname')}</div>
+    <div class="h1">What's your number?</div>
+    <div class="sub" style="margin-top:10px">We'll text you a code to sign in. Teammates who have your number can find you from their contacts.</div>
+    <form id="phoneForm" autocomplete="off" style="margin-top:26px">
+      <div class="field"><span class="cc">+1</span><input id="phoneIn" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="(555) 123-4567" enterkeyhint="go"></div>
+      <button class="pill p-navy" id="phoneGo" type="submit" style="margin-top:16px" disabled>Send code</button>
+    </form>
+    <div class="sub" style="margin-top:14px;font-size:13px;text-align:center">Test version: no text is actually sent and your number stays on this phone.</div>
+  </div>`,
+
+  verify: () => `<div class="scr onb">
+    <div>${backBtn('unphone')}</div>
+    <div class="h1">Enter the code</div>
+    <div class="sub" style="margin-top:10px">Sent to +1 ${fmtPhone(S.phone)}</div>
+    <form id="codeForm2" autocomplete="off" style="margin-top:26px">
+      <div class="otp">${'<i></i>'.repeat(6)}<input id="otpIn" inputmode="numeric" autocomplete="one-time-code" maxlength="6" aria-label="6-digit code"></div>
+      <button class="pill p-navy" type="submit" style="margin-top:18px">Verify</button>
+    </form>
+    <button class="link" data-act="resend">Send a new code</button>
+  </div>`,
+
+  home: () => {
+    const coach = S.role === 'coach', teams = coach ? myTeams().filter(t => t.coachKey === S.key) : myTeams(), alarms = alarmsAll(), inv = coach ? [] : teamInvites();
+    const reqs = [];
+    if (coach) for (const a of alarms) { const t = team(a.team); if (!t || t.coachKey !== S.key) continue; for (const o of occs(a, 7)) if (o.at > Date.now() && !o.skipped) for (const m of crew(o)) if (m.req && m.req.status === 'pending') reqs.push({ o, m, t }); }
+    const live = coach ? teams.map(t => liveTeamOcc(t.id)).find(Boolean) : null, nx = nextUp(alarms, !coach);
+    let top;
+    if (live) top = sec('alarm', 'Ringing now') + liveCard(live);
+    else if (nx) top = sec('alarm', 'Next alarm') + bigCard(nx, Date.now() >= nx.at ? 'Ringing' : 'in ' + until(nx.at));
+    else top = sec('alarm', 'Next alarm') + `<div class="card nonext"><b>${teams.length ? 'No alarms coming up' : coach ? 'Start with a team' : 'No team yet'}</b><small>${teams.length ? 'Create one and everyone on the team gets it.' : coach ? 'Make a team, invite players, then set alarms.' : 'Join your team with a code, or wait for your coach to add you.'}</small></div>`;
+    return `<div class="scr">
+      ${header(coach ? 'Coach' : '')}
+      ${inv.map(t => `<div class="inv-card" style="${tvars(t.color)}"><b>${esc(t.coachName)} added you to ${esc(t.name)}</b><small>${members(t).filter(m => m.state === 'in').length} on the team</small>
+        <div class="row" style="margin-top:14px;justify-content:flex-start;gap:8px"><button class="btnsm" style="background:var(--ta);color:var(--tc)" data-act="jointeam" data-id="${esc(t.id)}">Join team</button><button class="btnsm" style="background:rgba(255,255,255,.2);color:inherit" data-act="declineteam" data-id="${esc(t.id)}">Not now</button></div></div>`).join('')}
+      ${S.pendingJoin && !teams.length ? `<div class="card" style="margin-top:18px"><b style="font:600 16px var(--f)">Joining team ${esc(S.pendingJoin)}...</b><div class="sub" style="margin-top:4px">Waiting for your coach's team to show up.</div></div>` : ''}
+      ${top}
+      ${reqs.length ? sec('inbox', 'Requests · ' + reqs.length) + reqs.map(r => `<div class="card" style="margin-bottom:10px"><div class="row" style="justify-content:flex-start;gap:12px">${av(r.m, 42)}<div class="grow"><b style="font:600 16px var(--f)">${esc(r.m.name)} wants to be excused</b><div class="sub" style="font-size:13px">${esc(r.o.a.name)} · ${dayLabel(r.o.date)} · ${esc(r.m.req.reason)}${r.m.req.note ? ': "' + esc(r.m.req.note) + '"' : ''}</div></div></div>
+        <div class="row" style="margin-top:12px"><button class="btnsm p-navy" style="flex:1" data-act="decide" data-v="ok" data-n="${esc(r.m.name)}" data-k="${esc(r.m.key)}" data-o="${esc(r.o.occ)}">Approve</button><button class="btnsm" style="flex:1;background:rgba(255,255,255,.6)" data-act="decide" data-v="no" data-n="${esc(r.m.name)}" data-k="${esc(r.m.key)}" data-o="${esc(r.o.occ)}">Deny</button></div></div>`).join('') : ''}
+      ${sec('users', (coach ? 'Your teams' : 'Teams') + (teams.length ? ' · ' + teams.length : ''))}
+      ${teams.map(teamPill).join('') || `<div class="empty">${coach ? "You haven't made a team yet" : "You're not on a team yet"}</div>`}
+      <div class="acts">
+        ${teams.length ? `<button class="pill p-navy" data-act="new">${I('plus', 20)}Create alarm</button>` : ''}
+        ${coach ? `<button class="pill ${teams.length ? 'p-white' : 'p-navy'}" data-act="newteam">${I('users', 20)}Create a team</button>` : `<button class="pill ${teams.length ? 'p-white' : 'p-navy'}" data-act="code">${I('users', 20)}Join a team</button>`}
+      </div>
+    </div>`;
+  },
+
+  alarm: () => {
+    const a = alarmById(ui.alarmId); if (!a) { ui.view = 'home'; return views.home(); }
+    const t = team(a.team), o = nextOcc(a), isCoach = t.coachKey === S.key, canEdit = isCoach || a.creator === S.key;
+    const c = o ? crew(o) : [];
+    const ringingNow = o && Date.now() >= o.at;
+    const meIn = c.find(m => m.me), myEx = o && S.role === 'player' ? excuseOf(S.key, o.occ, t, a) : null;
+    const lab = m => m.status === 'excused' ? 'Excused' : ringingNow ? ({ up: 'Up', snoozed: 'Snoozing', asleep: 'Asleep' })[m.status] : m.role === 'coach' ? 'Coach' : (isCoach && m.req && m.req.status === 'pending') ? 'Asked out' : '';
+    const invited = members(t).filter(m => m.state === 'invited');
+    return `<div class="scr">
+      <div class="row">${backBtn()}${canEdit ? `<button class="btnsm p-white" data-act="edit" style="margin-top:-8px">Edit</button>` : ''}</div>
+      <div class="big" style="${tvars(t.color)}"><div class="row"><span class="chip on-team">${tIcon(t, 14)}${esc(t.name)}</span>${o ? `<span class="chip" style="background:var(--ta);color:var(--tc)">${o.skipped ? 'Canceled' : ringingNow ? 'Ringing' : 'in ' + until(o.at)}</span>` : ''}</div>
+        <div class="t">${timeHtml(a.hh, a.mm)}</div><div class="nm" style="margin-top:6px">${esc(a.name)}</div><div class="rp">${repeatText(a.days)}${o ? ' · Next: ' + dayLabel(o.date) : ''} · set by ${esc(a.by || 'Coach')}</div></div>
+      ${isCoach && o ? `<button class="pill ${o.skipped ? 'p-white' : 'p-navy'}" data-act="skip" data-dk="${o.dk}" style="margin-top:14px">${I('calx', 19, 2.2)}${o.skipped ? 'Canceled ' + dayLabel(o.date) + ' · Undo' : 'Cancel ' + dayLabel(o.date) + ' for everyone'}</button>` : ''}
+      ${!isCoach && o && o.skipped ? `<div class="card" style="margin-top:14px"><b style="font:600 16px var(--f)">Coach canceled ${dayLabel(o.date)}</b><div class="sub" style="margin-top:2px">It won't ring for anyone.</div></div>` : ''}
+      ${S.role === 'player' && o && !o.skipped && (meIn || myEx) ? (myEx ? `<div class="card" style="margin-top:14px"><b style="font:600 16px var(--f)">${myEx.status === 'ok' ? "You're excused" : myEx.status === 'no' ? 'Coach needs you there' : 'Excuse sent'}</b><div class="sub" style="margin-top:2px">${dayLabel(o.date)} · ${esc(myEx.reason)}${myEx.status === 'pending' ? ' · waiting for coach' : ''}</div></div>`
+        : `<button class="pill p-white" data-act="excuse" data-o="${esc(o.occ)}" style="margin-top:14px">${I('hand', 19, 2.2)}Can't make it? Ask to be excused</button>`) : ''}
+      ${sec('users', (ringingNow ? 'Right now' : "Who's in") + ' · ' + c.filter(m => m.status !== 'excused').length)}
+      <div class="card" style="padding:6px 16px">${c.map(m => `<div class="lrow">${av(m, 40)}<div class="grow"><b>${esc(m.name)}${m.me ? ' (you)' : ''}</b>${isCoach && m.req && m.status === 'excused' ? `<small>${esc(m.req.reason)}</small>` : ''}</div>${lab(m) ? `<span class="tag" style="margin:0">${lab(m)}</span>` : ''}</div>`).join('') || '<div class="empty" style="padding:12px 0">No one yet</div>'}</div>
+      ${isCoach && !a.coachRings ? `<div class="sub" style="margin:10px 4px 0;font-size:13px">Your phone won't ring for this one. You'll see who's up here.</div>` : ''}
+      ${lastOcc(a) ? results(lastOcc(a)) : ''}
+      ${invited.length ? `<div class="sec">Invited · ${invited.length}</div><div class="card" style="padding:6px 16px">${invited.map(m => `<div class="lrow" style="opacity:.55">${av(m, 40)}<div class="grow"><b>${esc(m.name)}</b></div></div>`).join('')}</div>` : ''}
+      ${canEdit ? `<button class="link danger" data-act="askdelete">Delete alarm</button>` : ''}
+    </div>`;
+  },
+
+  create: () => {
+    const d = ui.draft, teams = createTeams(), t = team(d.team) || teams[0], tc = tcol(t.color);
+    return `<div class="scr" style="padding-bottom:calc(var(--safe-b) + 24px)">
+      <div>${backBtn('cancel')}</div>
+      <div class="row" style="position:relative;z-index:2"><div style="font:600 26px var(--f)">${d.id ? 'Edit alarm' : 'New alarm'}</div>
+        <div class="teamsel"><button class="chip" style="background:${tc[0]};color:${tc[1]};padding:9px 14px;font-size:14px" data-act="teammenu">${tIcon(t, 15)}${esc(t.name)}${teams.length > 1 ? I('down', 16, 2.6) : ''}</button>
+        ${ui.menu ? `<div class="menu">${teams.map(x => `<button class="${x.id === t.id ? 'on' : ''}" data-act="pickteam" data-id="${esc(x.id)}"><i style="background:${tcol(x.color)[0]}"></i>${esc(x.name)}</button>`).join('')}</div>` : ''}</div></div>
+      <div class="wheel"><div class="half l"></div><div class="half r"></div>
+        <div class="cols"><div class="wcol h" id="wh"></div><div class="wcol m" id="wm"></div></div>
+        <div class="ampm"><button data-act="ap" data-v="AM" class="${d.ap === 'AM' ? 'on' : ''}">AM</button><button data-act="ap" data-v="PM" class="${d.ap === 'PM' ? 'on' : ''}">PM</button></div></div>
+      <div class="opts">
+        <button class="opt" data-act="repeat">${I('repeat', 24)}<b>Repeat</b><small>${repeatText(d.days)}</small></button>
+        ${S.role === 'coach' ? `<button class="opt" data-act="ringme">${I('bell', 24)}<b>Ring my phone</b><small>${d.coachRings ? 'Yes' : 'No, just watch'}</small></button>` : ''}
+      </div>
+      <div class="field" style="margin-top:16px"><input id="titleIn" maxlength="40" placeholder="Title, like Morning practice" value="${esc(d.name)}" autocapitalize="sentences" enterkeyhint="done"></div>
+      <button class="pill p-navy" data-act="save" style="margin-top:16px">${d.id ? 'Save changes' : 'Create alarm'}</button>
+    </div>`;
+  },
+
+  team: () => {
+    const t = team(ui.teamId); if (!t) { ui.view = 'home'; return views.home(); }
+    const isCoach = t.coachKey === S.key, ms = members(t);
+    return `<div class="scr">
+      <div>${backBtn()}</div>
+      <div class="big" style="${tvars(t.color)}"><span class="chip on-team">${isCoach ? 'Your team' : 'Coach ' + esc(shortCoach(t.coachName))}</span>
+        <div class="row" style="margin-top:16px;align-items:center"><div style="font:600 40px/1.05 var(--f)">${esc(t.name)}</div><span class="bigic">${tIcon(t, 30, 2)}</span></div>
+        <div class="rp" style="margin-top:6px">${ms.filter(m => m.state === 'in').length} on the team${isCoach && t.code ? ' · code ' + esc(t.code) : ''}</div></div>
+      ${isCoach ? `<button class="pill p-navy" data-act="invite" data-id="${esc(t.id)}" style="margin-top:12px">${I('qr', 20)}Invite players</button>` : ''}
+      ${(() => { const al = alarmsAll().filter(a => a.team === t.id).sort((x, y) => (x.hh * 60 + x.mm) - (y.hh * 60 + y.mm)); return sec('alarm', 'Alarms · ' + al.length) + (al.length ? `<div class="card" style="padding:6px 16px">${al.map(a => { const o = nextOcc(a); return `<button class="lrow" style="width:100%" data-act="alarm" data-id="${esc(a.id)}"><div class="grow"><b>${esc(a.name)}</b><small>${repeatText(a.days)}${o ? ' · ' + dayLabel(o.date) : ''}</small></div><span style="font:500 22px var(--f);letter-spacing:-.5px">${timeHtml(a.hh, a.mm).replace('<span>', '<span style="font-size:12px;margin-left:2px">')}</span></button>`; }).join('')}</div>` : '') + emptyRow('', 'new" data-team="' + esc(t.id), al.length ? 'Add an alarm' : 'Create an alarm for this team'); })()}
+      ${sec('users', 'Roster · ' + ms.filter(m => m.state === 'in').length)}
+      <div class="card" style="padding:6px 16px">${ms.map(m => `<div class="lrow" style="${m.state === 'invited' ? 'opacity:.55' : ''}">${av(m, 40)}<div class="grow"><b>${esc(m.name)}${m.me ? ' (you)' : ''}</b></div>${m.role === 'coach' ? '<span class="tag" style="margin:0">Coach</span>' : m.state === 'invited' ? '<span class="tag" style="margin:0">Invited</span>' : ''}</div>`).join('')}</div>
+      ${sec('pulse', 'Activity')}
+      <div class="card feed" style="padding:6px 16px">${teamFeed(t) || '<div class="empty" style="padding:12px 0">Nothing yet</div>'}</div>
+      <button class="link danger" data-act="askleave">${isCoach ? 'Delete team' : 'Leave team'}</button>
+    </div>`;
+  },
+
+  invite: () => {
+    const t = team(ui.teamId); if (!t) { ui.view = 'home'; return views.home(); }
+    return `<div class="scr">
+      <div class="row">${backBtn()}<button class="btnsm p-white" data-act="home" style="margin-top:-8px">Done</button></div>
+      <div class="h1">Invite players to ${esc(t.name)}</div>
+      <div class="sub" style="margin-top:8px">Players scan this with their phone camera, or enter the code in the app.</div>
+      <div class="qrbox"><div id="qr"></div><div class="code">${esc(t.code)}</div><div class="sub">Team code</div></div>
+      <button class="pill p-navy" data-act="shareinvite" style="margin-top:14px">${I('share', 20)}Share invite link</button>
+      <button class="pill p-white" data-act="addpeople" style="margin-top:10px">${I('users', 20)}Add from contacts</button>
+    </div>`;
+  },
+
+  me: () => {
+    const coach = S.role === 'coach', bg = coach ? '#133b55' : pcol(S.nick), teams = myTeams();
+    const rs = Object.values(S.ring).filter(r => r && r.status === 'up' && r.at), avg = rs.length ? rs.reduce((n, r) => n + (r.upAt - r.at), 0) / rs.length : 0;
+    const k = coach ? [[teams.filter(t => t.coachKey === S.key).length, 'Teams'], [new Set(teams.flatMap(t => members(t).filter(m => m.role !== 'coach' && m.state === 'in').map(m => m.key))).size, 'Players'], [S.alarms.length, 'Alarms set']]
+      : [[rs.length, 'Wake-ups'], [rs.length ? late(avg, 0) : '–', 'Avg to get up'], [Object.values(S.ring).reduce((n, r) => n + num(r && r.snoozes), 0), 'Snoozes']];
+    return `<div class="scr">
+      <div>${backBtn()}</div>
+      <div style="display:flex;flex-direction:column;align-items:center;text-align:center">
+        <span class="av" style="width:88px;height:88px;font-size:36px;background:${bg};color:${coach ? '#a6efc6' : ink(bg)}">${initial(S.nick)}</span>
+        <div class="h1" style="font-size:30px;margin-top:12px">${esc(S.nick)}</div>
+        ${S.phone ? `<div class="sub" style="margin-top:4px">+1 ${fmtPhone(S.phone)}</div>` : ''}
+        <span class="chip" style="background:var(--glass);border:1px solid var(--edge);margin-top:8px">${coach ? 'Coach' : 'Player'} · ${teams.length} ${teams.length === 1 ? 'team' : 'teams'}</span></div>
+      <div class="sec">${coach ? 'Overview' : 'Your mornings'}</div>
+      <div class="kpis">${k.map(x => `<div><b>${x[0]}</b><small>${x[1]}</small></div>`).join('')}</div>
+      ${sec('sound', 'Alarm sound')}
+      <div class="card" style="padding:4px 16px">${Object.keys(SOUNDS).map(n => `<button class="opt-row" data-act="sound" data-v="${n}">${n}<span class="ck">${S.sound === n ? I('check', 20, 3) : ''}</span></button>`).join('')}
+        <button class="opt-row" data-act="vibrate"><span class="meta" style="gap:10px">${I('vibe', 19, 2.2)}Vibrate</span><span class="tog ${S.vibrate ? 'on' : ''}"></span></button></div>
+      <div class="sub" style="margin:8px 4px 0;font-size:13px">Tap a sound to hear it. Keep this page open with the volume up so the alarm can ring.</div>
+      <div class="sec">Teams</div>
+      ${teams.map(teamRow).join('') || '<div class="empty">No teams yet</div>'}
+      ${coach ? emptyRow('', 'newteam', 'Create a team') : emptyRow('', 'code', 'Join with a team code')}
+      <button class="link danger" data-act="askreset" style="margin-top:22px">Sign out and start over</button>
+    </div>`;
+  },
+
+  ring: () => ringView('ring'), snooze: () => ringView('snooze'), status: () => ringView('status'), allup: () => ringView('allup')
+};
+const createTeams = () => myTeams().filter(t => S.role === 'coach' ? t.coachKey === S.key : true);
+
+function header(tag) {
+  const now = new Date(), hr = now.getHours(), hello = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
+  const coach = S.role === 'coach', bg = coach ? '#133b55' : pcol(S.nick);
+  return `<div class="row" style="align-items:flex-start"><div><div class="date">${now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}${tag ? ' · ' + tag : ''}</div><div class="hi"><span class="lt">${hello},</span><br>${esc(S.nick)}</div></div>
+    <button class="av" data-act="me" aria-label="Profile" style="background:${bg};color:${coach ? '#a6efc6' : ink(bg)}">${initial(S.nick)}</button></div>`;
+}
+function teamPill(t) {
+  const al = alarmsAll().filter(a => a.team === t.id), n = members(t).filter(m => m.state === 'in').length, nx = nextUp(al);
+  const f = nx && fmt(nx.a.hh, nx.a.mm);
+  return `<button class="teamrow" data-act="team" data-id="${esc(t.id)}"><span class="sw" style="background:${tcol(t.color)[0]};color:${tcol(t.color)[1]}">${tIcon(t, 20, 2.2)}</span><div class="grow"><b>${esc(t.name)}</b><small class="meta">${I('clock', 13, 2.4)}${nx ? 'Next ' + f.hm + ' ' + f.ap + ' ' + dayLabel(nx.date).replace(/^(Today|Tomorrow)$/, m => m.toLowerCase()) : al.length ? al.length + ' alarms' : 'No alarms yet'} · ${n} ${n === 1 ? 'person' : 'people'}${t.coachKey === S.key ? '' : ' · Coach ' + esc(shortCoach(t.coachName))}</small></div><span class="go">${I('right', 18, 2.6)}</span></button>`;
+}
+const teamRow = teamPill;
+function liveCard(lo) {
+  const t = team(lo.a.team), c = crew(lo), n = s => c.filter(m => m.status === s).length, f = fmt(lo.a.hh, lo.a.mm);
+  return `<button class="big" style="${tvars(t.color)}" data-act="alarm" data-id="${esc(lo.a.id)}"><div class="row"><span class="chip on-team">${tIcon(t, 14)}${esc(t.name)}</span><span class="chip" style="background:var(--ta);color:var(--tc)">${f.hm} ${f.ap}</span></div>
+    <div class="nm" style="margin-top:14px">${esc(lo.a.name)}</div>
+    <div class="stat"><div><b>${n('up')}</b><small>Up</small></div><div><b>${n('snoozed')}</b><small>Snoozing</small></div><div><b>${n('asleep')}</b><small>Asleep</small></div><div><b>${n('excused')}</b><small>Excused</small></div></div></button>`;
+}
+function ringView(kind) {
+  const o = ui.occ, t = team(o.a.team), c = crew(o), r = S.ring[o.occ] || {}, left = MAX_SNOOZE - num(r.snoozes);
+  const lime = tcol(t.color)[1] !== '#ffffff' ? 'lime-team' : '';
+  const asleep = c.filter(m => m.status === 'asleep' || m.status === 'snoozed').length;
+  const popc = m => (ui.prev[m.key] && ui.prev[m.key] !== m.status ? 'pop' : '');
+  let mid = '', act = '';
+  if (kind === 'ring') act = `<button class="pill" data-act="up">I'm up</button>${left > 0 ? `<button class="link" data-act="snooze">Snooze · ${left} left</button>` : ''}`;
+  if (kind === 'snooze') { const s = Math.max(0, Math.ceil((num(r.snoozeUntil) - Date.now()) / 1000)); mid = `<div class="r-sub">Snoozing<small>Rings again in ${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}</small></div>`; act = `<button class="pill" data-act="up">I'm up now</button>`; }
+  if (kind === 'status') { mid = `<div class="r-sub">You're up<small>${asleep} ${asleep === 1 ? 'teammate' : 'teammates'} not up yet</small></div>`; act = `<button class="link" data-act="closeocc">Back to home</button>`; }
+  if (kind === 'allup') { const ex = c.filter(m => m.status === 'excused').length; mid = `<div class="r-sub">Everyone's up<small>${c.filter(m => m.status === 'up').length} up${ex ? ' · ' + ex + ' excused' : ''}</small></div>`; act = `<button class="pill" data-act="closeocc">Close</button>`; }
+  const big = kind === 'ring' || kind === 'snooze';
+  return `<div class="ringwrap" style="${tvars(t.color)}"><div class="scr ringscr ${lime}">
+    <div class="r-top meta" style="display:flex;justify-content:center">${tIcon(t, 15)}${esc(t.name)} · ${esc(o.a.name)}</div>
+    <div class="r-time ${kind === 'ring' ? 'pulse' : ''}" style="${big ? '' : 'font-size:84px;margin-top:30px'}">${timeHtml(o.a.hh, o.a.mm)}</div>
+    ${mid}
+    ${big ? `<div class="grid">${c.map(m => `<span class="av st-${m.status} ${m.me ? 'me' : ''} ${popc(m)}">${initial(m.name)}</span>`).join('')}</div>
+      <div class="legend"><span><i style="background:${lime ? 'var(--navy)' : 'var(--lime)'}"></i>Up</span><span><i style="background:var(--purple)"></i>Snoozing</span><span><i style="box-shadow:inset 0 0 0 2px currentColor"></i>Asleep</span><span><i style="background:currentColor;opacity:.35"></i>Excused</span></div>`
+      : `<div class="namegrid">${c.map(m => `<div><span class="av st-${m.status} ${m.me ? 'me' : ''} ${popc(m)}">${initial(m.name)}</span><span>${m.me ? 'You' : esc(m.name)}</span></div>`).join('')}</div>`}
+    <div class="r-act">${act}</div>
+  </div></div>`;
+}
+
+/* ================= Sheets ================= */
+// Coaches only see people from their own contacts who have the app (after allowing access), not everyone.
+function contactsHtml(nt) {
+  if (S.contacts !== 'ok') return `<div class="lbl">${nt.addTo ? 'Add people' : 'Add players'}</div>
+    <button type="button" class="ctbtn" data-ct="ask"><span class="ctic">${I('users', 22)}</span><span class="grow"><b>Add from contacts</b><small>${S.contacts === 'no' ? 'Contacts access is off. Tap to try again.' : 'See which of your contacts have Clique Clock'}</small></span>${I('right', 20)}</button>`;
+  const people = livePeers().filter(p => p.role === 'player').map(p => ({ key: p.key, name: clean(p.nick, 24) })).concat(FAKES.map((n, i) => ({ key: 'f' + i, name: n }))).filter(p => !nt.exclude.includes(p.key));
+  return `<div class="lbl" style="display:flex;justify-content:space-between">Contacts on Clique Clock · ${people.length}${people.length ? '<a data-all="1" style="color:var(--blue);letter-spacing:0;text-transform:none;cursor:pointer">Select all</a>' : ''}</div>
+    <div>${people.map(p => `<button type="button" class="pick ${nt.picked.includes(p.key) ? 'on' : ''}" data-pk="${esc(p.key)}" data-pn="${esc(p.name)}">${av(p, 40)}${esc(p.name)}<span class="ck">${I('check', 16, 3)}</span></button>`).join('') || '<div class="empty">Everyone in your contacts with the app is already on the team</div>'}</div>`;
+}
+const permAlert = () => `<div class="alertdim"><div class="alert"><div class="at"><b>“Clique Clock” Would Like to Access Your Contacts</b><span>Your contacts who have Clique Clock show up here so you can add them to your team. Nothing is uploaded.</span></div>
+  <div class="ab"><button type="button" data-ct="no">Don’t Allow</button><button type="button" data-ct="ok" style="font-weight:600">Allow</button></div></div></div>`;
+const sheets = {
+  newteam: () => {
+    const nt = ui.newTeam;
+    return `<form class="sheet" id="teamForm" autocomplete="off"><i class="grab"></i>
+      <div class="h2">${nt.addTo ? 'Add people' : 'New team'}</div>
+      ${nt.addTo ? '' : `<div class="field" style="margin-top:16px"><input id="teamIn" maxlength="30" placeholder="Team name, like IXD 415" value="${esc(nt.name)}" autocapitalize="words"></div>
+      <div class="lbl">Team color</div><div class="swatches">${TEAM_COLORS.map((c, i) => `<button type="button" class="swatch ${nt.color === i ? 'on' : ''}" data-color="${i}" style="background:${c[0]}" aria-label="${COLOR_NAMES[i]}" title="${COLOR_NAMES[i]}"></button>`).join('')}</div>
+      <div class="lbl">Team icon</div><div class="icons">${TEAM_ICONS.map(([k, n]) => `<button type="button" class="icn ${nt.icon === k ? 'on' : ''}" data-icon="${k}" aria-label="${n}" title="${n}" style="${tvars(nt.color)}">${I(k, 22, 2)}</button>`).join('')}</div>`}
+      <div id="ctBox">${contactsHtml(nt)}</div>
+      <div class="ctnote">${I('qr', 18)}<span>${nt.addTo ? 'Anyone else can join with the team code or QR.' : "Not in your contacts? You'll get a team code and QR to share once the team is made."}</span></div>
+      <button class="pill p-navy" type="submit" style="margin-top:18px">${nt.addTo ? 'Add to team' : 'Create team'}</button>
+    </form>`;
+  },
+  code: () => `<form class="sheet" id="codeForm" autocomplete="off"><i class="grab"></i>
+      <div class="h2">Join a team</div><div class="sub" style="margin-top:6px">Enter the code from your coach. If they add you from their contacts, the invite shows up on your home screen.</div>
+      <div class="field" style="margin-top:16px"><input id="codeIn" maxlength="6" placeholder="Code" autocapitalize="characters" style="letter-spacing:6px;text-transform:uppercase"></div>
+      ${ui.joinErr ? `<div class="sub danger" style="margin-top:8px">${ui.joinErr}</div>` : ''}
+      <button class="pill p-navy" type="submit" style="margin-top:16px">Join</button></form>`,
+  excuse: () => {
+    const e = ui.excuseFor, a = alarmById(e.occ.split('@')[0]);
+    return `<form class="sheet" id="excuseForm" autocomplete="off"><i class="grab"></i>
+      <div class="h2">Ask to be excused</div><div class="sub" style="margin-top:6px">${a ? esc(a.name) + ', ' + dayLabel(new Date(e.occ.split('@')[1] + 'T00:00')) + '. ' : ''}Your coach decides. Teammates only see "Excused".</div>
+      <div class="lbl">Reason</div><div class="chips">${['Sick', 'Injured', 'Family', 'Other'].map(r => `<button type="button" class="ch ${e.reason === r ? 'on' : ''}" data-reason="${r}">${r}</button>`).join('')}</div>
+      <div class="field" style="margin-top:14px"><input id="noteIn" maxlength="80" placeholder="Add a note (optional)" value="${esc(e.note)}"></div>
+      <button class="pill p-navy" id="exGo" type="submit" style="margin-top:16px" ${e.reason ? '' : 'disabled'}>Send to coach</button></form>`;
+  },
+  repeat: () => {
+    const d = ui.draft, is = arr => d.days.join() === arr.join();
+    return `<div class="sheet"><i class="grab"></i><div class="h2">Repeat</div>
+      <div class="card" style="margin-top:14px;padding:4px 16px">${[['Once', []], ['Weekdays', [1, 2, 3, 4, 5]], ['Every day', [0, 1, 2, 3, 4, 5, 6]]].map(([l, v]) => `<button class="opt-row" data-act="setdays" data-v="${v.join()}">${l}<span class="ck">${is(v) ? I('check', 20, 3) : ''}</span></button>`).join('')}</div>
+      <div class="lbl">Or pick days</div><div class="days">${DAY1.map((l, i) => `<button class="${d.days.includes(i) ? 'on' : ''}" data-act="toggleday" data-i="${i}">${l}</button>`).join('')}</div>
+      <button class="pill p-navy" data-act="closesheet" style="margin-top:18px">Done</button></div>`;
+  },
+  confirm: () => { const c = ui.confirm; return `<div class="sheet"><i class="grab"></i><div class="h2">${c.title}</div><div class="sub" style="margin-top:6px">${c.body}</div>
+      <button class="pill" style="background:var(--red);color:#fff;margin-top:20px" data-act="${c.act}">${c.label}</button><button class="link" data-act="closesheet">Cancel</button></div>`; }
+};
+const INPUT_SHEETS = new Set(['newteam', 'code', 'excuse']);
+const RING_SCREENS = new Set(['ring', 'snooze', 'status', 'allup']);
+
+/* ================= Render loop ================= */
+const $app = document.getElementById('app'), $phone = document.querySelector('.phone'), $sbar = document.getElementById('sbar'), $home = document.querySelector('.homebar'), $clock = document.getElementById('sclock'), $banner = document.getElementById('banner');
+// On a computer the app shows inside a phone so it doesn't blend into the page.
+const mq = matchMedia('(min-width: 700px) and (min-height: 600px)'), framed = () => document.documentElement.classList.contains('framed');
+function fit() { $phone.style.setProperty('--k', Math.min(1, (innerHeight - 60) / 880, (innerWidth - 60) / 420).toFixed(3)); }
+function frame() { document.documentElement.classList.toggle('framed', mq.matches); fit(); }
+frame(); mq.addEventListener('change', () => { frame(); render(true); }); addEventListener('resize', fit);
+const getY = () => framed() ? $app.scrollTop : window.scrollY, setY = y => { if (framed()) $app.scrollTop = y; else window.scrollTo(0, y); };
+
+
+/* ================= Notifications (banner at the top, like a phone) ================= */
+const bq = []; let bShow = false;
+function notify(n) { bq.push(n); if (!bShow) nextBanner(); }
+function nextBanner() {
+  const n = bq.shift(); if (!n) { bShow = false; return; }
+  bShow = true; tone(false); buzz(60);
+  const msg = n.app === 'Messages';
+  $banner.innerHTML = `<span class="appic${msg ? ' msg' : ''}">${msg ? '<svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M12 3C6.5 3 2 6.7 2 11.2c0 2.5 1.4 4.8 3.6 6.3L5 21l3.9-2.1c1 .3 2 .4 3.1.4 5.5 0 10-3.7 10-8.1S17.5 3 12 3z"/></svg>' : I('bell', 20, 2.4)}</span><span class="grow"><span class="bt"><span>${msg ? 'MESSAGES' : 'CLIQUE CLOCK'}</span><span>now</span></span><b>${esc(n.title)}</b>${n.body ? `<small>${esc(n.body)}</small>` : ''}</span>`;
+  $banner.dataset.act = n.act || 'home'; $banner.dataset.id = n.id || '';
+  requestAnimationFrame(() => $banner.classList.add('show'));
+  clearTimeout(nextBanner.t); nextBanner.t = setTimeout(hideBanner, 4600);
+}
+function hideBanner() { $banner.classList.remove('show'); clearTimeout(nextBanner.t); setTimeout(nextBanner, 500); }
+const listNames = ns => ns.length === 1 ? ns[0] : ns.length === 2 ? ns[0] + ' and ' + ns[1] : ns[0] + ' and ' + (ns.length - 1) + ' others';
+// Notices what changed since the last tick: invites, new or changed alarms, cancellations, excuse answers, requests, people joining.
+function watch() {
+  if (!S.nick) return;
+  const first = !ui.w, w = ui.w || (ui.w = { inv: new Set(), al: {}, sk: new Set(), ex: {}, rq: new Set(), mem: {} }), out = [], now = Date.now();
+  for (const t of teamInvites()) if (!w.inv.has(t.id)) { w.inv.add(t.id); out.push({ title: t.coachName + ' added you to ' + t.name, body: 'Tap to join and get the team\'s alarms.' }); }
+  for (const a of alarmsAll()) {
+    const t = team(a.team); if (!t) continue;
+    const known = a.id in w.al, f = fmt(a.hh, a.mm);
+    if (a.creator !== S.key && (known ? num(a.v) > w.al[a.id] : now - num(a.v) < 90e3)) out.push({ title: (known ? 'Alarm changed · ' : 'New alarm · ') + t.name, body: `${a.by || 'Coach'} set ${a.name} for ${f.hm} ${f.ap}, ${repeatText(a.days).toLowerCase()}.`, act: 'alarm', id: a.id });
+    w.al[a.id] = num(a.v);
+    const coachOf = t.coachKey === S.key;
+    for (const o of occs(a, 7)) {
+      if (!coachOf && o.skipped && !w.sk.has(o.occ)) { w.sk.add(o.occ); if (known) out.push({ title: a.name + ' is canceled ' + dayWord(o.date), body: 'Coach ' + shortCoach(t.coachName) + ' turned it off for everyone.', act: 'alarm', id: a.id }); }
+      if (S.role === 'player' && S.excuses[o.occ]) { const e = excuseOf(S.key, o.occ, t, a); if (w.ex[o.occ] === 'pending' && e.status !== 'pending') out.push({ title: e.status === 'ok' ? 'You\'re excused' : 'Excuse not approved', body: a.name + ' ' + dayWord(o.date) + (e.status === 'ok' ? '. It won\'t ring for you.' : '. Coach needs you there.'), act: 'alarm', id: a.id }); w.ex[o.occ] = e.status; }
+      if (coachOf && o.at > now && !o.skipped) for (const m of crew(o)) if (m.req && m.req.status === 'pending' && !w.rq.has(m.key + '|' + o.occ)) { w.rq.add(m.key + '|' + o.occ); out.push({ title: m.name + ' wants to be excused', body: a.name + ' ' + dayWord(o.date) + ' · ' + m.req.reason + (m.req.note ? ': "' + m.req.note + '"' : ''), act: 'home' }); }
+    }
+  }
+  for (const t of myTeams()) if (t.coachKey === S.key) {
+    const ins = members(t).filter(m => m.role !== 'coach' && m.state === 'in'), was = w.mem[t.id];
+    // people joining close together share one banner
+    if (was) { const nw = ins.filter(m => !was.has(m.key)); if (nw.length) { const j = ui.jb[t.id] || (ui.jb[t.id] = { names: [], first: now }); j.names.push(...nw.map(m => m.name)); j.last = now; } }
+    w.mem[t.id] = new Set(ins.map(m => m.key));
+    const j = ui.jb[t.id];
+    if (j && (now - j.last > 3500 || now - j.first > 9000)) { delete ui.jb[t.id]; out.push({ title: listNames(j.names) + ' joined ' + t.name, body: 'They\'ll get the team\'s alarms now.', act: 'team', id: t.id }); }
+  }
+  if (!first) out.forEach(notify);
+}
+function screenFor() {
+  if (!S.role) return 'role';
+  if (!S.nick) return 'name';
+  if (!S.verified) return S.phone ? 'verify' : 'phone';
+  const o = activeOcc();
+  if (o) {
+    ui.occ = o;
+    const st = myStatus(o.occ);
+    if (st === 'up') return allUp(crew(o)) ? 'allup' : 'status';
+    if (st === 'snoozed') return 'snooze';
+    return 'ring';
+  }
+  return ui.view;
+}
+let lastBeep = 0;
+function render(force) {
+  // background work: auto-join by code, notice new invites
+  if (S.pendingJoin && S.nick && S.role === 'player') { const t = [...teamsAll().values()].find(x => x.code === S.pendingJoin); if (t) { joinTeam(t.id); hit('joins'); S.pendingJoin = ''; toast('You joined ' + t.name); publish(); } }
+  watch();
+  const screen = screenFor();
+  const entering = screen !== ui.screen;
+  // Screens with inputs or the time wheel only redraw when something on them is tapped.
+  const stable = !force && !entering && (screen === 'name' || screen === 'phone' || screen === 'verify' || screen === 'create' || (ui.sheet && INPUT_SHEETS.has(ui.sheet)));
+  if (!stable) {
+    let html = views[screen]();
+    if (ui.sheet && sheets[ui.sheet] && !RING_SCREENS.has(screen) && screen !== 'role' && screen !== 'name' && screen !== 'phone' && screen !== 'verify') html += `<div class="dim" data-act="closesheet"></div>` + sheets[ui.sheet]();
+    if (ui.toast && Date.now() < ui.toastT) html += `<div class="toast">${esc(ui.toast)}</div>`;
+    if (entering || force || html !== ui.lastHtml) {
+      const y = getY();
+      $app.innerHTML = html; ui.lastHtml = html;
+      if (entering) { setY(0); const r = $app.querySelector('.scr'); if (r) { r.classList.add('enter'); setTimeout(() => r.classList.remove('enter'), 900); } onEnter(screen); }
+      else { setY(y); if (screen === 'name' || screen === 'phone' || screen === 'verify') onEnter(screen); }   // forms need their listeners again after a redraw
+      afterRender(screen);
+    }
+  }
+  ui.screen = screen;
+  const ringing = RING_SCREENS.has(screen);
+  const tc = ringing ? tcol(team(ui.occ.a.team).color) : ['', '#12304a'];
+  if (framed()) { document.body.style.background = ''; $phone.style.background = tc[0]; $sbar.style.color = tc[1]; $home.style.background = tc[1]; }
+  else document.body.style.background = tc[0];
+  $clock.textContent = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }).replace(/\s?[AP]M$/, '');
+  if (ringing) crew(ui.occ).forEach(m => { ui.prev[m.key] = m.status; });
+  if (screen === 'ring' && !ringTracked.has(ui.occ.occ)) { ringTracked.add(ui.occ.occ); hit('rings'); }
+  if (screen === 'ring' && Date.now() - lastBeep >= 1000) { lastBeep = Date.now(); tone(true); buzz([400, 200, 400]); }
+}
+function toast(msg) { ui.toast = msg; ui.toastT = Date.now() + 2600; }
+
+function onEnter(screen) {
+  if (screen === 'name') {
+    const f = document.getElementById('nameForm'), inp = document.getElementById('nameIn'), go = document.getElementById('nameGo');
+    inp.addEventListener('input', () => { go.disabled = !clean(inp.value, 24); });
+    setTimeout(() => inp.focus(), 300);
+    f.addEventListener('submit', e => { e.preventDefault(); const v = clean(inp.value, 24); if (!v) return; unlockAudio(); S.nick = v; save(); render(true); });
+  }
+  if (screen === 'phone') {
+    const f = document.getElementById('phoneForm'), inp = document.getElementById('phoneIn'), go = document.getElementById('phoneGo');
+    const digits = () => inp.value.replace(/\D/g, '').slice(0, 10);
+    inp.addEventListener('input', () => { const d = digits(); inp.value = fmtPhone(d); go.disabled = d.length < 10; });
+    setTimeout(() => inp.focus(), 300);
+    f.addEventListener('submit', e => { e.preventDefault(); const d = digits(); if (d.length < 10) return; S.phone = d; sendCode(); save(); render(true); });
+  }
+  if (screen === 'verify') {
+    const f = document.getElementById('codeForm2'), inp = document.getElementById('otpIn'), boxes = [...document.querySelectorAll('.otp i')];
+    const paint = () => { const v = inp.value; boxes.forEach((b, i) => { b.textContent = v[i] || ''; b.classList.toggle('cur', i === Math.min(v.length, 5) && document.activeElement === inp); }); };
+    inp.addEventListener('input', () => { inp.value = inp.value.replace(/\D/g, '').slice(0, 6); paint(); if (inp.value.length === 6) setTimeout(() => f.requestSubmit(), 250); });
+    inp.addEventListener('focus', paint); inp.addEventListener('blur', paint);
+    document.querySelector('.otp').addEventListener('click', () => inp.focus());
+    setTimeout(() => { inp.focus(); paint(); }, 300);
+    f.addEventListener('submit', e => { e.preventDefault(); if (inp.value.length < 6) return; finishSignup(); });
+  }
+}
+function afterRender(screen) {
+  if (screen === 'create') { wireWheel(); const ti = document.getElementById('titleIn'); if (ti) ti.addEventListener('input', () => { ui.draft.name = ti.value; }); }
+  if (screen === 'invite') drawQR();
+  if (ui.sheet === 'newteam') wireTeamForm();
+  if (ui.sheet === 'code') {
+    const f = document.getElementById('codeForm'), i = document.getElementById('codeIn'); setTimeout(() => i.focus(), 300);
+    // A phone that just opened may not have heard from the coach's phone yet, so keep looking for a bit.
+    f.addEventListener('submit', e => { e.preventDefault(); const v = i.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); if (!v) return;
+      const btn = f.querySelector('button[type=submit]'), start = Date.now(); btn.disabled = true; btn.textContent = 'Looking for your team...';
+      (function look() {
+        if (ui.sheet !== 'code') return;
+        const t = [...teamsAll().values()].find(x => x.code === v);
+        if (t) { joinTeam(t.id); hit('joins'); ui.sheet = null; ui.joinErr = ''; toast('You joined ' + t.name); publish(); render(true); return; }
+        if (Date.now() - start < 12000) { setTimeout(look, 500); return; }
+        ui.joinErr = "Couldn't find a team with that code. Check it with your coach."; render(true);
+      })(); });
+  }
+  if (ui.sheet === 'excuse') {
+    const f = document.getElementById('excuseForm'), n = document.getElementById('noteIn');
+    n.addEventListener('input', () => { ui.excuseFor.note = n.value; });
+    f.addEventListener('click', e => { const r = e.target.closest('[data-reason]'); if (!r) return; ui.excuseFor.reason = r.dataset.reason; f.querySelectorAll('.ch').forEach(x => x.classList.toggle('on', x === r)); document.getElementById('exGo').disabled = false; });
+    f.addEventListener('submit', e => { e.preventDefault(); const x = ui.excuseFor; if (!x.reason) return; hit('excuses'); S.excuses[x.occ] = { reason: x.reason, note: clean(x.note, 80), at: Date.now() }; { const xa = alarmById(x.occ.split('@')[0]); if (xa) logIt(xa.team, 'You asked to be excused from ' + xa.name); } ui.sheet = null; toast('Sent to your coach'); publish(); render(true); });
+  }
+}
+function wireTeamForm() {
+  const f = document.getElementById('teamForm'), nt = ui.newTeam, ti = document.getElementById('teamIn');
+  if (ti) { ti.addEventListener('input', () => { nt.name = ti.value; }); if (!nt.name) setTimeout(() => ti.focus(), 300); }
+  f.addEventListener('click', e => {
+    if (e.target.closest('[data-ct=ask]')) {
+      if (document.querySelector('.alertdim')) return;
+      $phone.insertAdjacentHTML('beforeend', permAlert());
+      const al = $phone.querySelector('.alertdim');
+      al.addEventListener('click', ev => { const ct = ev.target.closest('[data-ct]'); if (!ct) return; S.contacts = ct.dataset.ct; save(); al.remove();
+        const box = document.getElementById('ctBox'); if (box) box.innerHTML = contactsHtml(nt); });
+      return;
+    }
+    const sw = e.target.closest('[data-color]'); if (sw) { nt.color = +sw.dataset.color; f.querySelectorAll('.swatch').forEach(x => x.classList.toggle('on', x === sw)); f.querySelectorAll('.icn').forEach(x => x.setAttribute('style', tvars(nt.color))); return; }
+    const ic = e.target.closest('[data-icon]'); if (ic) { nt.icon = ic.dataset.icon; f.querySelectorAll('.icn').forEach(x => x.classList.toggle('on', x === ic)); return; }
+    const pk = e.target.closest('.pick'); if (pk) { const k = pk.dataset.pk; nt.picked = nt.picked.includes(k) ? nt.picked.filter(x => x !== k) : nt.picked.concat(k); pk.classList.toggle('on'); return; }
+    if (e.target.closest('[data-all]')) { const all = [...f.querySelectorAll('.pick')]; const on = all.length && all.every(x => x.classList.contains('on')); nt.picked = on ? [] : all.map(x => x.dataset.pk); all.forEach(x => x.classList.toggle('on', !on)); }
+  });
+  f.addEventListener('submit', e => {
+    e.preventDefault();
+    const names = {}; f.querySelectorAll('.pick').forEach(p => { names[p.dataset.pk] = p.dataset.pn; });
+    const add = nt.picked.map(k => ({ key: k, name: names[k] || 'Player', at: Date.now() }));
+    if (nt.addTo) { const t = S.ownTeams.find(x => x.id === nt.addTo); if (t) t.invited = t.invited.concat(add.filter(a => !t.invited.some(b => b.key === a.key))); ui.sheet = null; ui.view = 'team'; toast(add.length ? 'Invites sent' : 'No one added'); publish(); render(true); return; }
+    const name = clean(nt.name, 30); if (!name) { const fi = f.querySelector('.field'); fi.classList.remove('shake'); void fi.offsetWidth; fi.classList.add('shake'); ti.focus(); return; }
+    const t = { id: 't' + uid(), name, color: nt.color, icon: nt.icon || 'star', code: newCode(), invited: add, at: Date.now() };
+    S.ownTeams.push(t); hit('teams'); ui.sheet = null; ui.teamId = t.id; ui.view = 'invite'; publish(); render(true);
+  });
+}
+function inviteUrl(t) { const u = new URL(location.origin + location.pathname); u.searchParams.set('join', t.code); if (Q.get('team')) u.searchParams.set('team', ROOM); return u.toString(); }
+function drawQR() {
+  const t = team(ui.teamId), el = document.getElementById('qr'); if (!t || !el || !window.qrcode) return;
+  const q = qrcode(0, 'M'); q.addData(inviteUrl(t)); q.make();
+  el.innerHTML = q.createSvgTag({ cellSize: 6, margin: 0, scalable: true }).replace(/fill="black"/g, 'fill="#12304a"');
+}
+
+function patchRepeat() {
+  const sh = document.querySelector('.sheet'), t = document.createElement('div'); t.innerHTML = sheets.repeat();
+  if (sh) sh.innerHTML = t.firstElementChild.innerHTML;
+  const sm = document.querySelector('[data-act=repeat] small'); if (sm) sm.textContent = repeatText(ui.draft.days);
+}
+
+/* ================= Sign-in by phone (test version: no real text is sent) ================= */
+const fmtPhone = d => d.length > 6 ? `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}` : d.length > 3 ? `(${d.slice(0, 3)}) ${d.slice(3)}` : d;
+function sendCode() {
+  ui.otp = String(100000 + Math.floor(Math.random() * 900000)); ui.otpAt = Date.now();
+  setTimeout(() => notify({ app: 'Messages', title: 'Clique Clock', body: `Your Clique Clock code is ${ui.otp}. Don't share it with anyone.`, act: 'fillcode' }), 1600);
+}
+function finishSignup() {
+  S.verified = true; hitOnce('signup-' + S.role);
+  if (S.role === 'coach') { ui.newTeam = { name: '', color: 0, icon: 'soccer', picked: [], exclude: [], addTo: null }; ui.sheet = 'newteam'; }
+  else if (!S.pendingJoin && !teamInvites().length) { ui.joinErr = ''; ui.sheet = 'code'; }
+  publish(); render(true);
+}
+
+/* ================= Time wheel ================= */
+const ITEM = 76;
+function wireWheel() {
+  const d = ui.draft;
+  const build = (el, vals, cur, isHour) => {
+    const reps = isHour ? 9 : 5, pad = (el.clientHeight - ITEM) / 2, n = vals.length;
+    el.innerHTML = `<div style="height:${pad}px"></div>` + Array.from({ length: n * reps }, (_, i) => `<div class="it">${vals[i % n]}</div>`).join('') + `<div style="height:${pad}px"></div>`;
+    const midStart = Math.floor(reps / 2) * n;
+    el.scrollTop = (midStart + Math.max(0, vals.indexOf(cur))) * ITEM;
+    const items = el.querySelectorAll('.it');
+    const paint = () => { const c = el.scrollTop / ITEM, lo = Math.max(0, Math.floor(c) - 4), hi = Math.min(items.length - 1, Math.ceil(c) + 4);
+      for (let i = lo; i <= hi; i++) { const dd = Math.abs(i - c); items[i].style.transform = `scale(${Math.max(.36, 1 - dd * .22)})`; items[i].style.opacity = Math.max(.1, 1 - dd * .3); } };
+    let tmr = 0, raf = 0, drag = null;
+    el.addEventListener('scroll', () => {
+      cancelAnimationFrame(raf); raf = requestAnimationFrame(paint);
+      clearTimeout(tmr); tmr = setTimeout(() => {
+        if (drag) return;
+        const i = Math.round(el.scrollTop / ITEM), k = ((i % n) + n) % n;
+        if (isHour) d.h12 = +vals[k]; else d.mm = +vals[k];
+        const j = midStart + k;   // hop back to the middle copy so it never runs out
+        if (j !== i) { el.style.scrollSnapType = 'none'; el.scrollTop += (j - i) * ITEM; el.style.scrollSnapType = ''; paint(); }
+      }, 140);
+    }, { passive: true });
+    // mouse drag (touch scrolls natively)
+    el.addEventListener('pointerdown', e => { if (e.pointerType !== 'mouse') return; drag = { y: e.clientY, top: el.scrollTop }; el.style.scrollSnapType = 'none'; el.setPointerCapture(e.pointerId); });
+    el.addEventListener('pointermove', e => { if (drag) el.scrollTop = drag.top - (e.clientY - drag.y); });
+    const end = () => { if (!drag) return; drag = null; const i = Math.round(el.scrollTop / ITEM); el.style.scrollSnapType = ''; el.scrollTo({ top: i * ITEM, behavior: 'smooth' }); };
+    el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
+    paint();
+  };
+  build(document.getElementById('wh'), Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0')), String(d.h12).padStart(2, '0'), true);
+  build(document.getElementById('wm'), Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0')), String(d.mm).padStart(2, '0'), false);
+}
+
+/* ================= Actions ================= */
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b) { if (ui.menu && !e.target.closest('.menu')) { ui.menu = false; render(true); } return; }
+  unlockAudio();
+  if (b === $banner) hideBanner();
+  const act = b.dataset.act, D = b.dataset, now = Date.now();
+  switch (act) {
+    case 'role': S.role = D.v; save(); break;
+    case 'unrole': S.role = null; save(); break;
+    case 'unname': S.nick = ''; save(); break;
+    case 'unphone': S.phone = ''; save(); break;
+    case 'resend': sendCode(); toast('New code sent'); break;
+    case 'fillcode': { const inp = document.getElementById('otpIn'); if (inp && ui.otp) { inp.value = ui.otp; inp.dispatchEvent(new Event('input')); } return; }
+    case 'home': ui.view = 'home'; ui.sheet = null; break;
+    case 'me': ui.view = 'me'; break;
+    case 'sound': S.sound = D.v; save(); tone(true, D.v); break;
+    case 'vibrate': S.vibrate = !S.vibrate; save(); buzz(80); break;
+    case 'askreset': ui.confirm = { title: 'Sign out?', body: 'This phone leaves its teams and starts over from the beginning.', label: 'Sign out', act: 'reset' }; ui.sheet = 'confirm'; break;
+    case 'reset': try { sessionStorage.removeItem(STORE); if (live && client) client.publish(BASE + '/p/' + S.key, '', { retain: true, qos: 0 }); } catch (x) {} location.href = location.pathname + (Q.get('team') ? '?team=' + ROOM : ''); return;
+    case 'day': ui.day = +D.i; break;
+    case 'alarm': ui.alarmId = D.id; ui.view = 'alarm'; break;
+    case 'team': ui.teamId = D.id; ui.view = 'team'; break;
+    case 'invite': ui.teamId = D.id; ui.view = 'invite'; break;
+    case 'newteam': ui.newTeam = { name: '', color: 0, icon: 'soccer', picked: [], exclude: [], addTo: null }; ui.sheet = 'newteam'; break;
+    case 'addpeople': { const t = team(ui.teamId); ui.newTeam = { name: '', color: 0, picked: [], exclude: members(t).map(m => m.key), addTo: t.id }; ui.sheet = 'newteam'; break; }
+    case 'code': ui.joinErr = ''; ui.sheet = 'code'; break;
+    case 'jointeam': { hit('joins'); const t = team(D.id); joinTeam(D.id); toast('You joined ' + (t ? t.name : 'the team')); publish(); break; }
+    case 'declineteam': S.declined.push(D.id); publish(); break;
+    case 'closesheet': ui.sheet = null; ui.confirm = null; break;
+    case 'shareinvite': { const t = team(ui.teamId), url = inviteUrl(t);
+      if (navigator.share) navigator.share({ title: 'Join ' + t.name, text: 'Join ' + t.name + ' on Clique Clock. Code: ' + t.code, url }).catch(() => {});
+      else if (navigator.clipboard) navigator.clipboard.writeText(url).then(() => { toast('Link copied'); render(true); }).catch(() => {});
+      return; }
+    case 'new': case 'edit': {
+      const teams = createTeams(); if (!teams.length) return;
+      if (act === 'edit') { const a = alarmById(ui.alarmId); ui.draft = { id: a.id, team: a.team, name: a.name, h12: a.hh % 12 || 12, mm: a.mm, ap: a.hh >= 12 ? 'PM' : 'AM', days: a.days.slice(), coachRings: !!a.coachRings }; }
+      else { const s = new Date(now + 2 * 60e3); ui.draft = { team: (D.team && teams.some(x => x.id === D.team)) ? D.team : teams[0].id, name: '', h12: s.getHours() % 12 || 12, mm: s.getMinutes(), ap: s.getHours() >= 12 ? 'PM' : 'AM', days: [], coachRings: false }; }
+      ui.menu = false; ui.view = 'create'; break; }
+    case 'teammenu': ui.menu = !ui.menu; break;
+    case 'pickteam': ui.draft.team = D.id; ui.menu = false; break;
+    case 'ap': ui.draft.ap = D.v; document.querySelectorAll('.ampm button').forEach(x => x.classList.toggle('on', x.dataset.v === D.v)); return;
+    case 'repeat': ui.sheet = 'repeat'; break;
+    // Repeat sheet and options: update in place so the sheet doesn't slide up again on every tap.
+    case 'setdays': ui.draft.days = D.v ? D.v.split(',').map(Number) : []; patchRepeat(); return;
+    case 'toggleday': { const i = +D.i, ds = ui.draft.days; ui.draft.days = (ds.includes(i) ? ds.filter(x => x !== i) : ds.concat(i)).sort(); patchRepeat(); return; }
+    case 'ringme': { ui.draft.coachRings = !ui.draft.coachRings; const sm = b.querySelector('small'); if (sm) sm.textContent = ui.draft.coachRings ? 'Yes' : 'No, just watch'; return; }
+    case 'cancel': ui.view = ui.draft && ui.draft.id ? 'alarm' : 'home'; ui.draft = null; break;
+    case 'save': {
+      const d = ui.draft, hh = (d.h12 % 12) + (d.ap === 'PM' ? 12 : 0);
+      const at = new Date(); at.setHours(hh, d.mm, 0, 0); if (at.getTime() <= now + 1000) at.setDate(at.getDate() + 1);
+      const old = d.id ? S.alarms.find(a => a.id === d.id) : null;
+      const a = { id: d.id || 'a' + uid(), team: d.team, name: clean(d.name, 40) || 'Alarm', hh, mm: d.mm, days: d.days.slice(), date: dkey(at), coachRings: S.role === 'coach' ? !!d.coachRings : true, by: old ? old.by : S.nick, creator: old ? old.creator : S.key, made: old ? (old.made || old.v) : now, v: now };
+      S.alarms = S.alarms.filter(x => x.id !== a.id).concat(a); if (!d.id) hit('alarms');
+      ui.draft = null; ui.alarmId = a.id; ui.view = d.id ? 'alarm' : 'home'; toast(d.id ? 'Alarm updated' : 'Alarm set for everyone on ' + ((team(a.team) || {}).name || 'the team')); publish(); break; }
+    case 'skip': { const a = alarmById(ui.alarmId), k = D.dk, cur = S.skips[a.id] || [], was = cur.includes(k); S.skips[a.id] = was ? cur.filter(x => x !== k) : cur.concat(k); logIt(a.team, (was ? 'You turned ' + a.name + ' back on ' : 'You canceled ' + a.name + ' ') + dayWord(new Date(k + 'T00:00'))); toast(was ? "It's back on" : 'Canceled. The team sees it'); publish(); break; }
+    case 'excuse': ui.excuseFor = { occ: D.o, reason: '', note: '' }; ui.sheet = 'excuse'; break;
+    case 'decide': { hit(D.v === 'ok' ? 'excuse-approved' : 'excuse-denied'); S.decisions[D.k + '|' + D.o] = D.v; const da = alarmById(D.o.split('@')[0]); if (da) logIt(da.team, (D.v === 'ok' ? 'You excused ' : 'You said no to ') + (D.n || 'a player') + ' for ' + da.name); toast(D.v === 'ok' ? 'Excused' : 'Request denied'); publish(); break; }
+    case 'askdelete': ui.confirm = { title: 'Delete this alarm?', body: 'It goes away for everyone on the team.', label: 'Delete alarm', act: 'delalarm' }; ui.sheet = 'confirm'; break;
+    case 'delalarm': S.alarms = S.alarms.filter(a => a.id !== ui.alarmId); delete S.cache.alarms[ui.alarmId]; ui.sheet = null; ui.confirm = null; ui.view = 'home'; toast('Alarm deleted'); publish(); break;
+    case 'askleave': { const t = team(ui.teamId), mine = t.coachKey === S.key;
+      ui.confirm = mine ? { title: 'Delete ' + esc(t.name) + '?', body: 'The team and its alarms go away for everyone.', label: 'Delete team', act: 'leaveteam' } : { title: 'Leave ' + esc(t.name) + '?', body: "You'll stop getting its alarms.", label: 'Leave team', act: 'leaveteam' };
+      ui.sheet = 'confirm'; break; }
+    case 'leaveteam': { const id = ui.teamId; S.ownTeams = S.ownTeams.filter(t => t.id !== id); S.alarms = S.alarms.filter(a => a.team !== id); S.joined = S.joined.filter(x => x !== id); S.declined.push(id); delete S.cache.teams[id]; ui.sheet = null; ui.confirm = null; ui.view = 'home'; publish(); break; }
+    // ringing
+    case 'up': { const o = ui.occ; if (myStatus(o.occ) !== 'up') hit('wakeups'); S.ring[o.occ] = Object.assign({}, S.ring[o.occ] || {}, { status: 'up', upAt: now, at: o.at }); logIt(o.a.team, 'You were up for ' + o.a.name); publish(); break; }
+    case 'snooze': { const o = ui.occ, r = S.ring[o.occ] || { snoozes: 0 }; if (num(r.snoozes) >= MAX_SNOOZE) return; hit('snoozes'); S.ring[o.occ] = { status: 'snoozed', snoozes: num(r.snoozes) + 1, snoozeUntil: now + SNOOZE_MS, upAt: 0, at: o.at }; publish(); break; }
+    case 'closeocc': S.closed.push(ui.occ.occ); ui.view = 'home'; save(); break;
+    default: return;
+  }
+  render(true);
+});
+
+window.__ta = { S, ui, render };   // for automated checks
+render(true);
+setInterval(render, 250);
+})();
+</script>
+</body>
+</html>
