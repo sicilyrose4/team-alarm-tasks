@@ -174,6 +174,10 @@ svg{display:block;flex:none}
 .teamrow{display:flex;align-items:center;gap:12px;width:100%;background:var(--glass);border:1px solid var(--edge);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);box-shadow:0 8px 30px rgba(40,90,160,.08);border-radius:24px;padding:14px 16px;margin-bottom:10px;transition:transform .12s}
 .teamrow .sw{width:40px;height:40px;border-radius:50%;flex:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 0 0 1px rgba(18,48,74,.1)}
 .teamrow .go{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;flex:none;color:var(--navy)}
+.editbtn{position:absolute;top:18px;right:18px;display:flex;align-items:center;gap:6px;padding:8px 13px;border-radius:20px;font:600 14px var(--f);color:inherit;background:var(--chip);border:1px solid var(--chipb);transition:transform .12s}.editbtn:active{transform:scale(.95)}
+.rost{display:flex;align-items:center;gap:12px;padding:8px 0;font:600 16px var(--f)}.rost+.rost{border-top:1px solid rgba(18,48,74,.07)}.rost .grow small{display:block;font:500 12px var(--f);color:var(--muted)}
+.rost.out>span,.rost.out .grow{opacity:.4}.rost.out .grow b{text-decoration:line-through}
+.rmbtn{padding:7px 12px;border-radius:16px;font:600 13px var(--f);background:rgba(255,255,255,.7);border:1px solid var(--edge);color:#d04a5a}.rost.out .rmbtn{color:var(--navy)}
 .acts{display:flex;flex-direction:column;gap:10px;margin-top:6px}
 .nonext b{display:block;font:600 18px var(--f)}.nonext small{display:block;font:500 14px/1.4 var(--f);color:var(--muted);margin-top:4px}
 .teamrow b{font:600 17px var(--f);display:block}.teamrow small{font:500 13px var(--f);color:var(--muted)}
@@ -356,7 +360,7 @@ const shortCoach = n => n.replace(/^coach\s+/i, '');
 const I = (name, s = 22, w = 2.4) => {
   const P = {
     plus: '<path d="M12 5v14M5 12h14"/>', check: '<path d="M5 12.5l4.5 4.5L19 7"/>', x: '<path d="M6 6l12 12M18 6L6 18"/>',
-    back: '<path d="M15 5l-7 7 7 7"/>', right: '<path d="M9 6l6 6-6 6"/>', down: '<path d="M6 9l6 6 6-6"/>',
+    pencil: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>', back: '<path d="M15 5l-7 7 7 7"/>', right: '<path d="M9 6l6 6-6 6"/>', down: '<path d="M6 9l6 6 6-6"/>',
     repeat: '<path d="M17 2l4 4-4 4"/><path d="M3 11V9a3 3 0 0 1 3-3h15"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a3 3 0 0 1-3 3H3"/>',
     bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
     users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
@@ -488,6 +492,7 @@ function teamsAll() {
     if (!t || typeof t.id !== 'string' || m.has(t.id)) return;
     m.set(t.id, { id: t.id, name: clean(t.name, 30) || 'Team', color: Math.max(0, Math.min(TEAM_COLORS.length - 1, num(t.color))), code: clean(t.code, 6),
       invited: Array.isArray(t.invited) ? t.invited.filter(x => x && typeof x.key === 'string').map(x => ({ key: x.key, name: clean(x.name, 24) || 'Player', at: num(x.at) })) : [],
+      removed: Array.isArray(t.removed) ? t.removed.filter(k => typeof k === 'string') : [],
       icon: ICON_KEYS.includes(t.icon) ? t.icon : 'star', at: num(t.at), coachKey, coachName: clean(coachName, 24) || 'Coach' });
   };
   S.ownTeams.forEach(t => add(t, S.key, S.nick));
@@ -500,7 +505,7 @@ const team = id => teamsAll().get(id) || null;
 const myTeams = () => [...teamsAll().values()].filter(t => t.coachKey === S.key || S.joined.includes(t.id));
 function members(t) {
   const list = [], seen = new Set();
-  const push = o => { if (!o.key || seen.has(o.key)) return; seen.add(o.key); list.push(o); };
+  const push = o => { if (!o.key || seen.has(o.key) || (o.role !== 'coach' && t.removed.includes(o.key))) return; seen.add(o.key); list.push(o); };
   push({ key: t.coachKey, name: t.coachName, role: 'coach', me: t.coachKey === S.key, state: 'in' });
   const joinedKeys = new Set();
   if (S.joined.includes(t.id)) joinedKeys.add(S.key);
@@ -844,7 +849,7 @@ const views = {
     const isCoach = t.coachKey === S.key, ms = members(t);
     return `<div class="scr">
       <div>${backBtn()}</div>
-      <div class="big" style="${tvars(t.color)}"><span class="chip on-team">${isCoach ? 'Your team' : 'Coach ' + esc(shortCoach(t.coachName))}</span>
+      <div class="big" style="${tvars(t.color)};position:relative"><span class="chip on-team">${isCoach ? 'Your team' : 'Coach ' + esc(shortCoach(t.coachName))}</span>${isCoach ? `<button class="editbtn" data-act="editteam" aria-label="Edit team">${I('pencil', 16, 2.2)}Edit</button>` : ''}
         <div class="row" style="margin-top:16px;align-items:center"><div style="font:600 40px/1.05 var(--f)">${esc(t.name)}</div><span class="bigic">${tIcon(t, 30, 2)}</span></div>
         <div class="rp" style="margin-top:6px">${ms.filter(m => m.state === 'in').length} on the team${isCoach && t.code ? ' · code ' + esc(t.code) : ''}</div></div>
       ${isCoach ? `<button class="pill p-navy" data-act="invite" data-id="${esc(t.id)}" style="margin-top:12px">${I('qr', 20)}Invite players</button>` : ''}
@@ -941,11 +946,15 @@ function ringView(kind) {
 /* ================= Sheets ================= */
 // Coaches only see people from their own contacts who have the app (after allowing access), not everyone.
 function contactsHtml(nt) {
-  if (S.contacts !== 'ok') return `<div class="lbl">${nt.addTo ? 'Add people' : 'Add players'}</div>
+  if (S.contacts !== 'ok') return `<div class="lbl">${nt.addTo || nt.edit ? 'Add people' : 'Add players'}</div>
     <button type="button" class="ctbtn" data-ct="ask"><span class="ctic">${I('users', 22)}</span><span class="grow"><b>Add from contacts</b><small>${S.contacts === 'no' ? 'Contacts access is off. Tap to try again.' : 'See which of your contacts have Clique Clock'}</small></span>${I('right', 20)}</button>`;
   const people = livePeers().filter(p => p.role === 'player').map(p => ({ key: p.key, name: clean(p.nick, 24) })).concat(FAKES.map((n, i) => ({ key: 'f' + i, name: n }))).filter(p => !nt.exclude.includes(p.key));
   return `<div class="lbl" style="display:flex;justify-content:space-between">Contacts on Clique Clock · ${people.length}${people.length ? '<a data-all="1" style="color:var(--blue);letter-spacing:0;text-transform:none;cursor:pointer">Select all</a>' : ''}</div>
     <div>${people.map(p => `<button type="button" class="pick ${nt.picked.includes(p.key) ? 'on' : ''}" data-pk="${esc(p.key)}" data-pn="${esc(p.name)}">${av(p, 40)}${esc(p.name)}<span class="ck">${I('check', 16, 3)}</span></button>`).join('') || '<div class="empty">Everyone in your contacts with the app is already on the team</div>'}</div>`;
+}
+function rosterEdit(nt) {
+  const ms = members(team(nt.edit)).filter(m => m.role !== 'coach');
+  return `<div class="lbl">Roster · ${ms.length}</div><div class="card" style="padding:4px 14px">${ms.map(m => `<div class="rost ${nt.removed.includes(m.key) ? 'out' : ''}" data-rk="${esc(m.key)}">${av(m, 36)}<div class="grow"><b>${esc(m.name)}</b>${m.state === 'invited' ? '<small>Invited</small>' : ''}</div><button type="button" class="rmbtn" data-rm="${esc(m.key)}">${nt.removed.includes(m.key) ? 'Undo' : 'Remove'}</button></div>`).join('') || '<div class="empty" style="padding:12px 0">No players yet</div>'}</div>`;
 }
 const permAlert = () => `<div class="alertdim"><div class="alert"><div class="at"><b>“Clique Clock” Would Like to Access Your Contacts</b><span>Your contacts who have Clique Clock show up here so you can add them to your team. Nothing is uploaded.</span></div>
   <div class="ab"><button type="button" data-ct="no">Don’t Allow</button><button type="button" data-ct="ok" style="font-weight:600">Allow</button></div></div></div>`;
@@ -953,13 +962,14 @@ const sheets = {
   newteam: () => {
     const nt = ui.newTeam;
     return `<form class="sheet" id="teamForm" autocomplete="off"><i class="grab"></i>
-      <div class="h2">${nt.addTo ? 'Add people' : 'New team'}</div>
+      <div class="h2">${nt.edit ? 'Edit team' : nt.addTo ? 'Add people' : 'New team'}</div>
       ${nt.addTo ? '' : `<div class="field" style="margin-top:16px"><input id="teamIn" maxlength="30" placeholder="Team name, like IXD 415" value="${esc(nt.name)}" autocapitalize="words"></div>
       <div class="lbl">Team color</div><div class="swatches">${TEAM_COLORS.map((c, i) => `<button type="button" class="swatch ${nt.color === i ? 'on' : ''}" data-color="${i}" style="background:${c[0]}" aria-label="${COLOR_NAMES[i]}" title="${COLOR_NAMES[i]}"></button>`).join('')}</div>
       <div class="lbl">Team icon</div><div class="icons">${TEAM_ICONS.map(([k, n]) => `<button type="button" class="icn ${nt.icon === k ? 'on' : ''}" data-icon="${k}" aria-label="${n}" title="${n}" style="${tvars(nt.color)}">${I(k, 22, 2)}</button>`).join('')}</div>`}
+      ${nt.edit ? rosterEdit(nt) : ''}
       <div id="ctBox">${contactsHtml(nt)}</div>
-      <div class="ctnote">${I('qr', 18)}<span>${nt.addTo ? 'Anyone else can join with the team code or QR.' : "Not in your contacts? You'll get a team code and QR to share once the team is made."}</span></div>
-      <button class="pill p-navy" type="submit" style="margin-top:18px">${nt.addTo ? 'Add to team' : 'Create team'}</button>
+      <div class="ctnote">${I('qr', 18)}<span>${nt.addTo || nt.edit ? 'Anyone else can join with the team code or QR.' : "Not in your contacts? You'll get a team code and QR to share once the team is made."}</span></div>
+      <button class="pill p-navy" type="submit" style="margin-top:18px">${nt.edit ? 'Save changes' : nt.addTo ? 'Add to team' : 'Create team'}</button>
     </form>`;
   },
   code: () => `<form class="sheet" id="codeForm" autocomplete="off"><i class="grab"></i>
@@ -1056,6 +1066,8 @@ function screenFor() {
 let lastBeep = 0;
 function render(force) {
   // background work: auto-join by code, notice new invites
+  if (S.role === 'player' && S.joined.length) { const all = teamsAll(); const gone = S.joined.filter(id => { const t = all.get(id); return t && t.removed.includes(S.key); });
+    if (gone.length) { gone.forEach(id => { const t = all.get(id); notify({ title: t.name, body: t.coachName + ' removed you from the team' }); }); S.joined = S.joined.filter(id => !gone.includes(id)); S.alarms = S.alarms.filter(a => !gone.includes(a.team)); publish(); } }
   if (S.pendingJoin && S.nick && S.role === 'player') { const t = [...teamsAll().values()].find(x => x.code === S.pendingJoin); if (t) { joinTeam(t.id); hit('joins'); S.pendingJoin = ''; toast('You joined ' + t.name); publish(); } }
   watch();
   const screen = screenFor();
@@ -1122,6 +1134,7 @@ function afterRender(screen) {
       (function look() {
         if (ui.sheet !== 'code') return;
         const t = [...teamsAll().values()].find(x => x.code === v);
+        if (t && t.removed.includes(S.key)) { ui.joinErr = 'Your coach removed you from ' + esc(t.name) + '. Ask them to add you back.'; render(true); return; }
         if (t) { joinTeam(t.id); hit('joins'); ui.sheet = null; ui.joinErr = ''; toast('You joined ' + t.name); publish(); render(true); return; }
         if (Date.now() - start < 12000) { setTimeout(look, 500); return; }
         ui.joinErr = "Couldn't find a team with that code. Check it with your coach."; render(true);
@@ -1148,6 +1161,7 @@ function wireTeamForm() {
     }
     const sw = e.target.closest('[data-color]'); if (sw) { nt.color = +sw.dataset.color; f.querySelectorAll('.swatch').forEach(x => x.classList.toggle('on', x === sw)); f.querySelectorAll('.icn').forEach(x => x.setAttribute('style', tvars(nt.color))); return; }
     const ic = e.target.closest('[data-icon]'); if (ic) { nt.icon = ic.dataset.icon; f.querySelectorAll('.icn').forEach(x => x.classList.toggle('on', x === ic)); return; }
+    const rm = e.target.closest('[data-rm]'); if (rm) { const k = rm.dataset.rm, out = !nt.removed.includes(k); nt.removed = out ? nt.removed.concat(k) : nt.removed.filter(x => x !== k); rm.closest('.rost').classList.toggle('out', out); rm.textContent = out ? 'Undo' : 'Remove'; return; }
     const pk = e.target.closest('.pick'); if (pk) { const k = pk.dataset.pk; nt.picked = nt.picked.includes(k) ? nt.picked.filter(x => x !== k) : nt.picked.concat(k); pk.classList.toggle('on'); return; }
     if (e.target.closest('[data-all]')) { const all = [...f.querySelectorAll('.pick')]; const on = all.length && all.every(x => x.classList.contains('on')); nt.picked = on ? [] : all.map(x => x.dataset.pk); all.forEach(x => x.classList.toggle('on', !on)); }
   });
@@ -1155,6 +1169,13 @@ function wireTeamForm() {
     e.preventDefault();
     const names = {}; f.querySelectorAll('.pick').forEach(p => { names[p.dataset.pk] = p.dataset.pn; });
     const add = nt.picked.map(k => ({ key: k, name: names[k] || 'Player', at: Date.now() }));
+    if (nt.edit) { const t = S.ownTeams.find(x => x.id === nt.edit); const name = clean(nt.name, 30);
+      if (!name) { const fi = f.querySelector('.field'); fi.classList.remove('shake'); void fi.offsetWidth; fi.classList.add('shake'); ti.focus(); return; }
+      if (t) { t.name = name; t.color = nt.color; if (nt.icon) t.icon = nt.icon;
+        t.invited = t.invited.filter(m => !nt.removed.includes(m.key)).concat(add.filter(a => !t.invited.some(b => b.key === a.key)));
+        t.removed = (t.removed || []).filter(k => !add.some(a => a.key === k)).concat(nt.removed.filter(k => k[0] !== 'f'));
+        if (nt.removed.length) logIt(t.id, nt.removed.length === 1 ? 'You removed a player' : 'You removed ' + nt.removed.length + ' players'); }
+      ui.sheet = null; toast('Team updated'); publish(); render(true); return; }
     if (nt.addTo) { const t = S.ownTeams.find(x => x.id === nt.addTo); if (t) t.invited = t.invited.concat(add.filter(a => !t.invited.some(b => b.key === a.key))); ui.sheet = null; ui.view = 'team'; toast(add.length ? 'Invites sent' : 'No one added'); publish(); render(true); return; }
     const name = clean(nt.name, 30); if (!name) { const fi = f.querySelector('.field'); fi.classList.remove('shake'); void fi.offsetWidth; fi.classList.add('shake'); ti.focus(); return; }
     const t = { id: 't' + uid(), name, color: nt.color, icon: nt.icon || 'star', code: newCode(), invited: add, at: Date.now() };
@@ -1244,6 +1265,7 @@ document.addEventListener('click', e => {
     case 'alarm': ui.alarmId = D.id; ui.view = 'alarm'; break;
     case 'team': ui.teamId = D.id; ui.view = 'team'; break;
     case 'invite': ui.teamId = D.id; ui.view = 'invite'; break;
+    case 'editteam': { const t = S.ownTeams.find(x => x.id === ui.teamId); if (!t) break; ui.newTeam = { edit: t.id, name: t.name, color: t.color, icon: t.icon || 'star', picked: [], removed: [], exclude: members(team(t.id)).map(m => m.key), addTo: null }; ui.sheet = 'newteam'; break; }
     case 'newteam': ui.newTeam = { name: '', color: 0, icon: 'soccer', picked: [], exclude: [], addTo: null }; ui.sheet = 'newteam'; break;
     case 'addpeople': { const t = team(ui.teamId); ui.newTeam = { name: '', color: 0, picked: [], exclude: members(t).map(m => m.key), addTo: t.id }; ui.sheet = 'newteam'; break; }
     case 'code': ui.joinErr = ''; ui.sheet = 'code'; break;
